@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nexus Admin — Business Management Platform</title>
+  <meta name="description" content="Multi-company business management platform dashboard."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/css/dash.css"/>
+</head>
+<body>
+
+<!-- ===================== SHELL ===================== -->
+<div class="shell" id="shell">
+
+<!-- ==================== SIDEBAR ==================== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
+    </div>
+    <span class="brand-name">Nexus</span>
+  </div>
+  <nav class="sidebar-nav avatar-colors">
+    <div class="nav-section-label">Main</div>
+    <a class="nav-item active" href="#dashboard">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a class="nav-item" href="#onboarding">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+      <span class="nav-label">Onboarding</span>
+      <span class="nav-badge">2</span>
+    </a>
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item" href="admin_clients.html">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
+      <span class="nav-label">Clients</span>
+    </a>
+    <a class="nav-item" href="#services">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+      <span class="nav-label">Services</span>
+    </a>
+    <a class="nav-item" href="#contracts">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+      <span class="nav-label">Contracts</span>
+    </a>
+    <a class="nav-item" href="#documents">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+      <span class="nav-label">Documents</span>
+    </a>
+    <div class="nav-section-label">Finance</div>
+    <a class="nav-item" href="#invoices">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
+      <span class="nav-label">Invoices</span>
+      <span class="nav-badge">7</span>
+    </a>
+    <a class="nav-item" href="#renewals">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+      <span class="nav-label">Renewals</span>
+    </a>
+    <div class="nav-section-label">Analytics</div>
+    <a class="nav-item" href="#reports">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+      <span class="nav-label">Reports</span>
+    </a>
+    <div class="nav-section-label">System</div>
+    <a class="nav-item" href="#settings">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+      <span class="nav-label">Settings</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-item" style="gap:10px;">
+      <div class="avatar" style="width:30px;height:30px;font-size:11px;">AL</div>
+      <div style="overflow:hidden;">
+        <div class="nav-label" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Alex Lambert</div>
+        <div class="nav-label" style="color:var(--gray-500);font-size:11px;">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ==================== HEADER ==================== -->
+<header class="header">
+  <button class="header-toggle" id="sidebar-toggle" title="Toggle sidebar">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+  </button>
+
+  <!-- Company Selector -->
+  <div class="dropdown-wrap">
+    <button class="company-selector" data-dropdown-trigger>
+      <div class="company-dot" id="company-dot">A</div>
+      <span id="company-label">Acme Corp</span>
+      <svg class="company-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+    </button>
+    <div class="dropdown-menu" style="min-width:220px;">
+      <div style="padding:6px 10px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);">Switch Company</div>
+      <button class="dropdown-item" data-company="Acme Corp" data-color="var(--brand-500)">
+        <div style="width:20px;height:20px;border-radius:4px;background:var(--brand-500);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;">A</div>
+        Acme Corp
+      </button>
+      <button class="dropdown-item" data-company="Beta LLC" data-color="#10b981">
+        <div style="width:20px;height:20px;border-radius:4px;background:#10b981;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;">B</div>
+        Beta LLC
+      </button>
+      <button class="dropdown-item" data-company="Gamma SA" data-color="#8b5cf6">
+        <div style="width:20px;height:20px;border-radius:4px;background:#8b5cf6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;">G</div>
+        Gamma SA
+      </button>
+      <div class="dropdown-divider"></div>
+      <button class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>Add Company</button>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="header-search">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+    <input type="text" placeholder="Search clients, invoices, contracts…" id="global-search"/>
+    <span class="search-shortcut">⌘F</span>
+  </div>
+
+  <div class="header-actions">
+    <!-- Notifications -->
+    <div class="dropdown-wrap">
+      <button class="icon-btn" data-dropdown-trigger title="Notifications">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+        <span class="notif-dot"></span>
+      </button>
+      <div class="dropdown-menu notif-panel">
+        <div class="notif-panel-header">
+          <span class="notif-panel-title">Notifications</span>
+          <button class="btn btn-ghost btn-sm">Mark all read</button>
+        </div>
+        <div class="notif-item unread">
+          <div class="notif-ico amber"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg></div>
+          <div><div class="notif-text">Invoice <strong>#INV-0089</strong> is overdue by 5 days</div><div class="notif-when">2 hours ago</div></div>
+        </div>
+        <div class="notif-item unread">
+          <div class="notif-ico blue"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg></div>
+          <div><div class="notif-text">New client <strong>Vega Systems</strong> onboarded</div><div class="notif-when">5 hours ago</div></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-ico red"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg></div>
+          <div><div class="notif-text">Contract <strong>#CTR-0042</strong> expires in 14 days</div><div class="notif-when">Yesterday</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help -->
+    <button class="icon-btn" title="Help">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/></svg>
+    </button>
+
+    <div class="divider-v"></div>
+
+    <!-- Profile -->
+    <div class="dropdown-wrap">
+      <button class="profile-btn" data-dropdown-trigger>
+        <div class="avatar">AL</div>
+        <div class="profile-info">
+          <div class="profile-name">Alex Lambert</div>
+          <div class="profile-role">Super Admin</div>
+        </div>
+        <svg style="width:14px;height:14px;color:var(--gray-400);margin-left:4px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+      </button>
+      <div class="dropdown-menu">
+        <button class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>My Profile</button>
+        <button class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>Account Settings</button>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item danger" onclick="showToast('Logged out','info')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>Sign Out</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== MAIN ==================== -->
+<main class="main" id="dashboard">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Monday, March 17, 2026 &mdash; Acme Corp</p>
+    </div>
+    <div class="page-header-actions">
+      <button class="btn btn-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+        Export
+      </button>
+      <button class="btn btn-primary" data-modal-open="modal-add-client">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        Add Client
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card highlight">
+      <div class="kpi-top">
+        <div class="kpi-label" style="color: rgba(255,255,255,0.8);">Total Clients</div>
+        <div class="kpi-top-icon" style="background: rgba(255,255,255,0.2); color: #fff;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25"/></svg>
+        </div>
+      </div>
+      <div class="kpi-value" style="color: #fff;">248</div>
+      <div class="kpi-meta" style="color: rgba(255,255,255,0.8);">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></svg>
+        +26 this month
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <div class="kpi-label">Active Services</div>
+        <div class="kpi-top-icon" style="background: var(--info-bg); color: var(--info-text);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25"/></svg>
+        </div>
+      </div>
+      <div class="kpi-value">184</div>
+      <div class="kpi-meta">
+        <span style="color: var(--success-text); display: flex; align-items: center; gap: 2px;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></svg>
+          +5%
+        </span>
+        &middot; Across 12 categories
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <div class="kpi-label">Unpaid Invoices</div>
+        <div class="kpi-top-icon" style="background: var(--warning-bg); color: var(--warning-text);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25"/></svg>
+        </div>
+      </div>
+      <div class="kpi-value">37</div>
+      <div class="kpi-meta">
+        <span style="color: var(--danger-text); display: flex; align-items: center; gap: 2px;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"/></svg>
+          +3
+        </span>
+        &middot; &euro;48,320 outstanding
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <div class="kpi-label">Monthly Revenue</div>
+        <div class="kpi-top-icon" style="background: #f3f0ff; color: #7c3aed;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25"/></svg>
+        </div>
+      </div>
+      <div class="kpi-value">&euro;74K</div>
+      <div class="kpi-meta">
+        <span style="color: var(--success-text); display: flex; align-items: center; gap: 2px;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></svg>
+          +18%
+        </span>
+        &middot; vs &euro;62K last month
+      </div>
+    </div>
+  </div>
+
+  <!-- Two-column row: Chart + Activity -->
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+
+    <!-- Revenue Chart -->
+    <div class="card" id="revenue-chart">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Revenue Overview</div>
+          <div class="card-subtitle">Monthly billed amount &mdash; current financial year</div>
+        </div>
+        <div class="card-actions">
+          <div class="tabs">
+            <button class="tab-btn active">Monthly</button>
+            <button class="tab-btn">Quarterly</button>
+          </div>
+        </div>
+      </div>
+      <div style="padding:20px 20px 0;">
+        <div style="font-size:1.75rem;font-weight:800;color:var(--gray-900);letter-spacing:-.03em;">&euro;74,210</div>
+        <div style="font-size:var(--text-sm);color:var(--gray-500);margin-top:2px;">March 2026 &mdash; <span style="color:var(--success-text);font-weight:600;">+18% vs last month</span></div>
+      </div>
+      <div class="chart-placeholder" style="height:160px;padding:0 20px 0;margin-top:16px;"></div>
+      <div class="chart-x-labels" style="padding:4px 20px 16px;"></div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Recent Activity</div>
+        <button class="btn btn-ghost btn-sm">View all</button>
+      </div>
+      <div class="activity-list">
+        <div class="activity-item">
+          <div class="activity-dot blue"></div>
+          <div class="activity-content">
+            <div class="activity-text">Contract <strong>#CTR-0099</strong> signed by <strong>Orion Tech</strong></div>
+            <div class="activity-time">10 min ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot green"></div>
+          <div class="activity-content">
+            <div class="activity-text">Invoice <strong>#INV-0102</strong> paid &mdash; &euro;3,500</div>
+            <div class="activity-time">1 hour ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot amber"></div>
+          <div class="activity-content">
+            <div class="activity-text">Renewal reminder sent to <strong>Vega Systems</strong></div>
+            <div class="activity-time">2 hours ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot blue"></div>
+          <div class="activity-content">
+            <div class="activity-text">New client <strong>Solaris GmbH</strong> added</div>
+            <div class="activity-time">3 hours ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot red"></div>
+          <div class="activity-content">
+            <div class="activity-text">Invoice <strong>#INV-0089</strong> overdue — 5 days</div>
+            <div class="activity-time">5 hours ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot green"></div>
+          <div class="activity-content">
+            <div class="activity-text">Document <strong>NDA-Nexar.pdf</strong> uploaded</div>
+            <div class="activity-time">Yesterday</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Clients Table -->
+  <div class="card" data-filter-table="clients-table">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Recent Clients</div>
+        <div class="card-subtitle">Latest onboarded and active clients</div>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-secondary btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          Export
+        </button>
+        <button class="btn btn-primary btn-sm" data-modal-open="modal-add-client">+ Add Client</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <div class="filter-search">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <input type="text" placeholder="Search clients…" data-filter-search/>
+      </div>
+      <select class="filter-select" data-filter-select="status">
+        <option value="all">All Status</option>
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <select class="filter-select" data-filter-select="sector">
+        <option value="all">All Sectors</option>
+        <option value="tech">Technology</option>
+        <option value="finance">Finance</option>
+        <option value="healthcare">Healthcare</option>
+        <option value="retail">Retail</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table id="clients-table">
+        <thead>
+          <tr>
+            <th data-sort>Client <span class="sort-icon"> ↕</span></th>
+            <th data-sort>Sector <span class="sort-icon"> ↕</span></th>
+            <th>Services</th>
+            <th data-sort>Contract Value <span class="sort-icon"> ↕</span></th>
+            <th>Status</th>
+            <th data-sort>Since <span class="sort-icon"> ↕</span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="td-avatar"><div class="avatar-sm c0">OT</div><div><div class="td-main">Orion Tech</div><div class="td-sub">contact@oriontech.io</div></div></div></td>
+            <td><span data-col="sector">Technology</span></td>
+            <td>4</td>
+            <td>&euro;24,000/yr</td>
+            <td><span class="badge badge-active" data-col="status">Active</span></td>
+            <td>Jan 2024</td>
+            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm btn-icon" title="View"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button><button class="btn btn-secondary btn-sm btn-icon" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></button></div></td>
+          </tr>
+          <tr>
+            <td><div class="td-avatar"><div class="avatar-sm c1">VS</div><div><div class="td-main">Vega Systems</div><div class="td-sub">info@vegasys.com</div></div></div></td>
+            <td><span data-col="sector">Finance</span></td>
+            <td>2</td>
+            <td>&euro;8,500/yr</td>
+            <td><span class="badge badge-active" data-col="status">Active</span></td>
+            <td>Mar 2025</td>
+            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm btn-icon" title="View"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button><button class="btn btn-secondary btn-sm btn-icon" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></button></div></td>
+          </tr>
+          <tr>
+            <td><div class="td-avatar"><div class="avatar-sm c2">SG</div><div><div class="td-main">Solaris GmbH</div><div class="td-sub">admin@solaris.de</div></div></div></td>
+            <td><span data-col="sector">Healthcare</span></td>
+            <td>6</td>
+            <td>&euro;36,000/yr</td>
+            <td><span class="badge badge-pending" data-col="status">Pending</span></td>
+            <td>Mar 2026</td>
+            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm btn-icon" title="View"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button><button class="btn btn-secondary btn-sm btn-icon" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></button></div></td>
+          </tr>
+          <tr>
+            <td><div class="td-avatar"><div class="avatar-sm c3">NX</div><div><div class="td-main">Nexar Industries</div><div class="td-sub">ops@nexar.co</div></div></div></td>
+            <td><span data-col="sector">Retail</span></td>
+            <td>3</td>
+            <td>&euro;15,200/yr</td>
+            <td><span class="badge badge-active" data-col="status">Active</span></td>
+            <td>Jul 2023</td>
+            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm btn-icon" title="View"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button><button class="btn btn-secondary btn-sm btn-icon" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></button></div></td>
+          </tr>
+          <tr>
+            <td><div class="td-avatar"><div class="avatar-sm c4">AP</div><div><div class="td-main">Atlas Partners</div><div class="td-sub">legal@atlaspartners.eu</div></div></div></td>
+            <td><span data-col="sector">Finance</span></td>
+            <td>1</td>
+            <td>&euro;4,800/yr</td>
+            <td><span class="badge badge-active" data-col="status">Active</span></td>
+            <td>Oct 2024</td>
+            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm btn-icon" title="View"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button><button class="btn btn-secondary btn-sm btn-icon" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></button></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">
+      <span>Showing 5 of 248 clients</span>
+      <div class="pagination">
+        <button class="page-btn" disabled>&laquo;</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">&raquo;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unpaid Invoices Table -->
+  <div class="card" data-filter-table="invoices-table">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Unpaid Invoices</div>
+        <div class="card-subtitle">37 invoices &mdash; &euro;48,320 outstanding</div>
+      </div>
+      <div class="card-actions">
+        <div class="tabs">
+          <button class="tab-btn active">All</button>
+          <button class="tab-btn">Overdue</button>
+          <button class="tab-btn">Pending</button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Creating new invoice…','info')">+ New Invoice</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <div class="filter-search">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <input type="text" placeholder="Search invoices…" data-filter-search/>
+      </div>
+      <select class="filter-select" data-filter-select="inv-status">
+        <option value="all">All Status</option>
+        <option value="unpaid">Unpaid</option>
+        <option value="overdue">Overdue</option>
+      </select>
+      <div class="filter-actions">
+        <button class="btn btn-secondary btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          Export CSV
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="invoices-table">
+        <thead>
+          <tr>
+            <th data-sort>Invoice <span class="sort-icon"> ↕</span></th>
+            <th data-sort>Client <span class="sort-icon"> ↕</span></th>
+            <th data-sort>Amount <span class="sort-icon"> ↕</span></th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Progress</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="td-main">#INV-0089</div><div class="td-sub">Issued 01 Feb 2026</div></td>
+            <td>Orion Tech</td>
+            <td><strong>&euro;6,800</strong></td>
+            <td>10 Mar 2026</td>
+            <td><span class="badge badge-overdue" data-col="inv-status">Overdue</span></td>
+            <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill red" style="width:0%"></div></div><div class="progress-label">5 days late</div></div></td>
+            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm" data-action="mark-paid">Mark Paid</button><button class="btn btn-ghost btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button></div></td>
+          </tr>
+          <tr>
+            <td><div class="td-main">#INV-0091</div><div class="td-sub">Issued 15 Feb 2026</div></td>
+            <td>Vega Systems</td>
+            <td><strong>&euro;2,100</strong></td>
+            <td>15 Mar 2026</td>
+            <td><span class="badge badge-overdue" data-col="inv-status">Overdue</span></td>
+            <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill red" style="width:0%"></div></div><div class="progress-label">2 days late</div></div></td>
+            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm" data-action="mark-paid">Mark Paid</button><button class="btn btn-ghost btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button></div></td>
+          </tr>
+          <tr>
+            <td><div class="td-main">#INV-0094</div><div class="td-sub">Issued 01 Mar 2026</div></td>
+            <td>Nexar Industries</td>
+            <td><strong>&euro;4,450</strong></td>
+            <td>31 Mar 2026</td>
+            <td><span class="badge badge-unpaid" data-col="inv-status">Unpaid</span></td>
+            <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill amber" style="width:45%"></div></div><div class="progress-label">14 days left</div></div></td>
+            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm" data-action="mark-paid">Mark Paid</button><button class="btn btn-ghost btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button></div></td>
+          </tr>
+          <tr>
+            <td><div class="td-main">#INV-0096</div><div class="td-sub">Issued 10 Mar 2026</div></td>
+            <td>Atlas Partners</td>
+            <td><strong>&euro;1,200</strong></td>
+            <td>10 Apr 2026</td>
+            <td><span class="badge badge-unpaid" data-col="inv-status">Unpaid</span></td>
+            <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill green" style="width:80%"></div></div><div class="progress-label">24 days left</div></div></td>
+            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm" data-action="mark-paid">Mark Paid</button><button class="btn btn-ghost btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button></div></td>
+          </tr>
+          <tr>
+            <td><div class="td-main">#INV-0097</div><div class="td-sub">Issued 12 Mar 2026</div></td>
+            <td>Solaris GmbH</td>
+            <td><strong>&euro;9,770</strong></td>
+            <td>12 Apr 2026</td>
+            <td><span class="badge badge-unpaid" data-col="inv-status">Unpaid</span></td>
+            <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill green" style="width:90%"></div></div><div class="progress-label">26 days left</div></div></td>
+            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm" data-action="mark-paid">Mark Paid</button><button class="btn btn-ghost btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">
+      <span>Showing 5 of 37 unpaid invoices</span>
+      <div class="pagination">
+        <button class="page-btn" disabled>&laquo;</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">&raquo;</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div><!-- end .shell -->
+
+<!-- ==================== MODAL: Add Client ==================== -->
+<div class="modal-overlay" id="modal-add-client">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Client</div>
+      <button class="icon-btn modal-close" data-modal-close="modal-add-client">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="field"><label>Company Name *</label><input type="text" placeholder="e.g. Acme Corp"/></div>
+        <div class="field"><label>Sector</label><select><option>Technology</option><option>Finance</option><option>Healthcare</option><option>Retail</option><option>Other</option></select></div>
+        <div class="field"><label>Contact Name *</label><input type="text" placeholder="Full name"/></div>
+        <div class="field"><label>Email *</label><input type="email" placeholder="contact@company.com"/></div>
+        <div class="field"><label>Phone</label><input type="tel" placeholder="+33 6 00 00 00 00"/></div>
+        <div class="field"><label>Country</label><input type="text" placeholder="France"/></div>
+        <div class="field full"><label>Notes</label><textarea placeholder="Any additional notes…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal-close="modal-add-client">Cancel</button>
+      <button class="btn btn-primary" onclick="showToast('Client saved successfully','success');closeModal('modal-add-client')">Save Client</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SCRIPTS ==================== -->
+<!-- Supabase JS Library (Loaded via CDN for vanilla JS) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Main App Logic -->
+<script src="assets/js/dash.js"></script>
+</body>
+</html>
+
+

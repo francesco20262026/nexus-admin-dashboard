@@ -1,575 +1,321 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nexus Admin — Business Management Platform</title>
-  <meta name="description" content="Multi-company business management platform dashboard."/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/css/style.css"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nexus — Business Management Platform</title>
+<meta name="description" content="Manage your clients, contracts, invoices and renewals in one elegant platform."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/css/site.css"/>
 </head>
 <body>
 
-<!-- ===================== SHELL ===================== -->
-<div class="shell" id="shell">
-
-<!-- ==================== SIDEBAR ==================== -->
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div class="brand-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
-    </div>
-    <span class="brand-name">Nexus</span>
-  </div>
-  <nav class="sidebar-nav avatar-colors">
-    <div class="nav-section-label">Main</div>
-    <a class="nav-item active" href="#dashboard">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span class="nav-label">Dashboard</span>
-    </a>
-    <a class="nav-item" href="#onboarding">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-      <span class="nav-label">Onboarding</span>
-      <span class="nav-badge">2</span>
-    </a>
-    <div class="nav-section-label">Management</div>
-    <a class="nav-item" href="#clients">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
-      <span class="nav-label">Clients</span>
-    </a>
-    <a class="nav-item" href="#services">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-      <span class="nav-label">Services</span>
-    </a>
-    <a class="nav-item" href="#contracts">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-      <span class="nav-label">Contracts</span>
-    </a>
-    <a class="nav-item" href="#documents">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
-      <span class="nav-label">Documents</span>
-    </a>
-    <div class="nav-section-label">Finance</div>
-    <a class="nav-item" href="#invoices">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
-      <span class="nav-label">Invoices</span>
-      <span class="nav-badge">7</span>
-    </a>
-    <a class="nav-item" href="#renewals">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-      <span class="nav-label">Renewals</span>
-    </a>
-    <div class="nav-section-label">Analytics</div>
-    <a class="nav-item" href="#reports">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
-      <span class="nav-label">Reports</span>
-    </a>
-    <div class="nav-section-label">System</div>
-    <a class="nav-item" href="#settings">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-      <span class="nav-label">Settings</span>
-    </a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="nav-item" style="gap:10px;">
-      <div class="avatar" style="width:30px;height:30px;font-size:11px;">AL</div>
-      <div style="overflow:hidden;">
-        <div class="nav-label" style="color:#fff;font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Alex Lambert</div>
-        <div class="nav-label" style="color:var(--gray-500);font-size:11px;">Super Admin</div>
+<!-- NAV -->
+<nav id="site-nav">
+  <div class="nav-pill">
+    <div class="nav-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+      <div class="nav-logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
       </div>
+      <span class="nav-logo-name">Nexus</span>
     </div>
-  </div>
-</aside>
-
-<!-- ==================== HEADER ==================== -->
-<header class="header">
-  <button class="header-toggle" id="sidebar-toggle" title="Toggle sidebar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-  </button>
-
-  <!-- Company Selector -->
-  <div class="dropdown-wrap">
-    <button class="company-selector" data-dropdown-trigger>
-      <div class="company-dot" id="company-dot">A</div>
-      <span id="company-label">Acme Corp</span>
-      <svg class="company-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+    <div class="nav-links">
+      <button class="nav-link" data-scroll="#features">Features</button>
+      <button class="nav-link" data-scroll="#testimonials">Clients</button>
+      <button class="nav-link" data-scroll="#contact">Pricing</button>
+      <button class="nav-link" data-scroll="#site-footer">About</button>
+    </div>
+    <div class="nav-cta">
+      <button class="btn-nav-ghost" onclick="location.href='login.html'">Sign in</button>
+      <button class="btn-nav-primary" onclick="location.href='login.html'">
+        Get Started
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+      </button>
+    </div>
+    <button class="menu-btn" id="menu-btn">
+      <svg id="menu-icon-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:22px;height:22px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+      <svg id="menu-icon-close" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:22px;height:22px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
     </button>
-    <div class="dropdown-menu" style="min-width:220px;">
-      <div style="padding:6px 10px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);">Switch Company</div>
-      <button class="dropdown-item" data-company="Acme Corp" data-color="var(--brand-500)">
-        <div style="width:20px;height:20px;border-radius:4px;background:var(--brand-500);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;">A</div>
-        Acme Corp
-      </button>
-      <button class="dropdown-item" data-company="Beta LLC" data-color="#10b981">
-        <div style="width:20px;height:20px;border-radius:4px;background:#10b981;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;">B</div>
-        Beta LLC
-      </button>
-      <button class="dropdown-item" data-company="Gamma SA" data-color="#8b5cf6">
-        <div style="width:20px;height:20px;border-radius:4px;background:#8b5cf6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;">G</div>
-        Gamma SA
-      </button>
-      <div class="dropdown-divider"></div>
-      <button class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>Add Company</button>
-    </div>
   </div>
+</nav>
 
-  <!-- Search -->
-  <div class="header-search">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-    <input type="text" placeholder="Search clients, invoices, contracts…" id="global-search"/>
-  </div>
-
-  <div class="header-actions">
-    <!-- Notifications -->
-    <div class="dropdown-wrap">
-      <button class="icon-btn" data-dropdown-trigger title="Notifications">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
-        <span class="notif-dot"></span>
-      </button>
-      <div class="dropdown-menu notif-panel">
-        <div class="notif-panel-header">
-          <span class="notif-panel-title">Notifications</span>
-          <button class="btn btn-ghost btn-sm">Mark all read</button>
-        </div>
-        <div class="notif-item unread">
-          <div class="notif-ico amber"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg></div>
-          <div><div class="notif-text">Invoice <strong>#INV-0089</strong> is overdue by 5 days</div><div class="notif-when">2 hours ago</div></div>
-        </div>
-        <div class="notif-item unread">
-          <div class="notif-ico blue"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg></div>
-          <div><div class="notif-text">New client <strong>Vega Systems</strong> onboarded</div><div class="notif-when">5 hours ago</div></div>
-        </div>
-        <div class="notif-item">
-          <div class="notif-ico red"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg></div>
-          <div><div class="notif-text">Contract <strong>#CTR-0042</strong> expires in 14 days</div><div class="notif-when">Yesterday</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Help -->
-    <button class="icon-btn" title="Help">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/></svg>
-    </button>
-
-    <div class="divider-v"></div>
-
-    <!-- Profile -->
-    <div class="dropdown-wrap">
-      <button class="profile-btn" data-dropdown-trigger>
-        <div class="avatar">AL</div>
-        <div class="profile-info">
-          <div class="profile-name">Alex Lambert</div>
-          <div class="profile-role">Super Admin</div>
-        </div>
-        <svg style="width:14px;height:14px;color:var(--gray-400);margin-left:4px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-      </button>
-      <div class="dropdown-menu">
-        <button class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>My Profile</button>
-        <button class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>Account Settings</button>
-        <div class="dropdown-divider"></div>
-        <button class="dropdown-item danger" onclick="showToast('Logged out','info')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>Sign Out</button>
-      </div>
-    </div>
-  </div>
-</header>
-
-<!-- ==================== MAIN ==================== -->
-<main class="main" id="dashboard">
-
-  <!-- Page Header -->
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Dashboard</h1>
-      <p class="page-subtitle">Monday, March 17, 2026 &mdash; Acme Corp</p>
-    </div>
-    <div class="page-header-actions">
-      <button class="btn btn-secondary">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-        Export
-      </button>
-      <button class="btn btn-primary" data-modal-open="modal-add-client">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-        Add Client
-      </button>
-    </div>
-  </div>
-
-  <!-- KPI Cards -->
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-top">
-        <div class="kpi-icon blue">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
-        </div>
-        <span class="kpi-trend up"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></svg>+12%</span>
-      </div>
-      <div class="kpi-value">248</div>
-      <div class="kpi-label">Total Clients</div>
-      <div class="kpi-meta">+26 this month</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-top">
-        <div class="kpi-icon green">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-        </div>
-        <span class="kpi-trend up"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></svg>+5%</span>
-      </div>
-      <div class="kpi-value">184</div>
-      <div class="kpi-label">Active Services</div>
-      <div class="kpi-meta">Across 12 categories</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-top">
-        <div class="kpi-icon amber">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
-        </div>
-        <span class="kpi-trend down"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"/></svg>+3</span>
-      </div>
-      <div class="kpi-value">37</div>
-      <div class="kpi-label">Unpaid Invoices</div>
-      <div class="kpi-meta">&euro;48,320 outstanding</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-top">
-        <div class="kpi-icon violet">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-        </div>
-        <span class="kpi-trend up"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></svg>+18%</span>
-      </div>
-      <div class="kpi-value">&euro;74K</div>
-      <div class="kpi-label">Monthly Revenue</div>
-      <div class="kpi-meta">vs &euro;62K last month</div>
-    </div>
-  </div>
-
-  <!-- Two-column row: Chart + Activity -->
-  <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
-
-    <!-- Revenue Chart -->
-    <div class="card" id="revenue-chart">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Revenue Overview</div>
-          <div class="card-subtitle">Monthly billed amount &mdash; current financial year</div>
-        </div>
-        <div class="card-actions">
-          <div class="tabs">
-            <button class="tab-btn active">Monthly</button>
-            <button class="tab-btn">Quarterly</button>
-          </div>
-        </div>
-      </div>
-      <div style="padding:20px 20px 0;">
-        <div style="font-size:1.75rem;font-weight:800;color:var(--gray-900);letter-spacing:-.03em;">&euro;74,210</div>
-        <div style="font-size:var(--text-sm);color:var(--gray-500);margin-top:2px;">March 2026 &mdash; <span style="color:var(--success-text);font-weight:600;">+18% vs last month</span></div>
-      </div>
-      <div class="chart-placeholder" style="height:160px;padding:0 20px 0;margin-top:16px;"></div>
-      <div class="chart-x-labels" style="padding:4px 20px 16px;"></div>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Recent Activity</div>
-        <button class="btn btn-ghost btn-sm">View all</button>
-      </div>
-      <div class="activity-list">
-        <div class="activity-item">
-          <div class="activity-dot blue"></div>
-          <div class="activity-content">
-            <div class="activity-text">Contract <strong>#CTR-0099</strong> signed by <strong>Orion Tech</strong></div>
-            <div class="activity-time">10 min ago</div>
-          </div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-dot green"></div>
-          <div class="activity-content">
-            <div class="activity-text">Invoice <strong>#INV-0102</strong> paid &mdash; &euro;3,500</div>
-            <div class="activity-time">1 hour ago</div>
-          </div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-dot amber"></div>
-          <div class="activity-content">
-            <div class="activity-text">Renewal reminder sent to <strong>Vega Systems</strong></div>
-            <div class="activity-time">2 hours ago</div>
-          </div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-dot blue"></div>
-          <div class="activity-content">
-            <div class="activity-text">New client <strong>Solaris GmbH</strong> added</div>
-            <div class="activity-time">3 hours ago</div>
-          </div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-dot red"></div>
-          <div class="activity-content">
-            <div class="activity-text">Invoice <strong>#INV-0089</strong> overdue — 5 days</div>
-            <div class="activity-time">5 hours ago</div>
-          </div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-dot green"></div>
-          <div class="activity-content">
-            <div class="activity-text">Document <strong>NDA-Nexar.pdf</strong> uploaded</div>
-            <div class="activity-time">Yesterday</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Recent Clients Table -->
-  <div class="card" data-filter-table="clients-table">
-    <div class="card-header">
-      <div>
-        <div class="card-title">Recent Clients</div>
-        <div class="card-subtitle">Latest onboarded and active clients</div>
-      </div>
-      <div class="card-actions">
-        <button class="btn btn-secondary btn-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-          Export
-        </button>
-        <button class="btn btn-primary btn-sm" data-modal-open="modal-add-client">+ Add Client</button>
-      </div>
-    </div>
-    <div class="filter-bar">
-      <div class="filter-search">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-        <input type="text" placeholder="Search clients…" data-filter-search/>
-      </div>
-      <select class="filter-select" data-filter-select="status">
-        <option value="all">All Status</option>
-        <option value="active">Active</option>
-        <option value="pending">Pending</option>
-        <option value="inactive">Inactive</option>
-      </select>
-      <select class="filter-select" data-filter-select="sector">
-        <option value="all">All Sectors</option>
-        <option value="tech">Technology</option>
-        <option value="finance">Finance</option>
-        <option value="healthcare">Healthcare</option>
-        <option value="retail">Retail</option>
-      </select>
-    </div>
-    <div class="table-wrap">
-      <table id="clients-table">
-        <thead>
-          <tr>
-            <th data-sort>Client <span class="sort-icon"> ↕</span></th>
-            <th data-sort>Sector <span class="sort-icon"> ↕</span></th>
-            <th>Services</th>
-            <th data-sort>Contract Value <span class="sort-icon"> ↕</span></th>
-            <th>Status</th>
-            <th data-sort>Since <span class="sort-icon"> ↕</span></th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><div class="td-avatar"><div class="avatar-sm c0">OT</div><div><div class="td-main">Orion Tech</div><div class="td-sub">contact@oriontech.io</div></div></div></td>
-            <td><span data-col="sector">Technology</span></td>
-            <td>4</td>
-            <td>&euro;24,000/yr</td>
-            <td><span class="badge badge-active" data-col="status">Active</span></td>
-            <td>Jan 2024</td>
-            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm btn-icon" title="View"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button><button class="btn btn-secondary btn-sm btn-icon" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></button></div></td>
-          </tr>
-          <tr>
-            <td><div class="td-avatar"><div class="avatar-sm c1">VS</div><div><div class="td-main">Vega Systems</div><div class="td-sub">info@vegasys.com</div></div></div></td>
-            <td><span data-col="sector">Finance</span></td>
-            <td>2</td>
-            <td>&euro;8,500/yr</td>
-            <td><span class="badge badge-active" data-col="status">Active</span></td>
-            <td>Mar 2025</td>
-            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm btn-icon" title="View"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button><button class="btn btn-secondary btn-sm btn-icon" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></button></div></td>
-          </tr>
-          <tr>
-            <td><div class="td-avatar"><div class="avatar-sm c2">SG</div><div><div class="td-main">Solaris GmbH</div><div class="td-sub">admin@solaris.de</div></div></div></td>
-            <td><span data-col="sector">Healthcare</span></td>
-            <td>6</td>
-            <td>&euro;36,000/yr</td>
-            <td><span class="badge badge-pending" data-col="status">Pending</span></td>
-            <td>Mar 2026</td>
-            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm btn-icon" title="View"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button><button class="btn btn-secondary btn-sm btn-icon" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></button></div></td>
-          </tr>
-          <tr>
-            <td><div class="td-avatar"><div class="avatar-sm c3">NX</div><div><div class="td-main">Nexar Industries</div><div class="td-sub">ops@nexar.co</div></div></div></td>
-            <td><span data-col="sector">Retail</span></td>
-            <td>3</td>
-            <td>&euro;15,200/yr</td>
-            <td><span class="badge badge-active" data-col="status">Active</span></td>
-            <td>Jul 2023</td>
-            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm btn-icon" title="View"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button><button class="btn btn-secondary btn-sm btn-icon" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></button></div></td>
-          </tr>
-          <tr>
-            <td><div class="td-avatar"><div class="avatar-sm c4">AP</div><div><div class="td-main">Atlas Partners</div><div class="td-sub">legal@atlaspartners.eu</div></div></div></td>
-            <td><span data-col="sector">Finance</span></td>
-            <td>1</td>
-            <td>&euro;4,800/yr</td>
-            <td><span class="badge badge-active" data-col="status">Active</span></td>
-            <td>Oct 2024</td>
-            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm btn-icon" title="View"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button><button class="btn btn-secondary btn-sm btn-icon" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg></button></div></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="table-footer">
-      <span>Showing 5 of 248 clients</span>
-      <div class="pagination">
-        <button class="page-btn" disabled>&laquo;</button>
-        <button class="page-btn active">1</button>
-        <button class="page-btn">2</button>
-        <button class="page-btn">3</button>
-        <button class="page-btn">&raquo;</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Unpaid Invoices Table -->
-  <div class="card" data-filter-table="invoices-table">
-    <div class="card-header">
-      <div>
-        <div class="card-title">Unpaid Invoices</div>
-        <div class="card-subtitle">37 invoices &mdash; &euro;48,320 outstanding</div>
-      </div>
-      <div class="card-actions">
-        <div class="tabs">
-          <button class="tab-btn active">All</button>
-          <button class="tab-btn">Overdue</button>
-          <button class="tab-btn">Pending</button>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="showToast('Creating new invoice…','info')">+ New Invoice</button>
-      </div>
-    </div>
-    <div class="filter-bar">
-      <div class="filter-search">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-        <input type="text" placeholder="Search invoices…" data-filter-search/>
-      </div>
-      <select class="filter-select" data-filter-select="inv-status">
-        <option value="all">All Status</option>
-        <option value="unpaid">Unpaid</option>
-        <option value="overdue">Overdue</option>
-      </select>
-      <div class="filter-actions">
-        <button class="btn btn-secondary btn-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-          Export CSV
-        </button>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table id="invoices-table">
-        <thead>
-          <tr>
-            <th data-sort>Invoice <span class="sort-icon"> ↕</span></th>
-            <th data-sort>Client <span class="sort-icon"> ↕</span></th>
-            <th data-sort>Amount <span class="sort-icon"> ↕</span></th>
-            <th>Due Date</th>
-            <th>Status</th>
-            <th>Progress</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><div class="td-main">#INV-0089</div><div class="td-sub">Issued 01 Feb 2026</div></td>
-            <td>Orion Tech</td>
-            <td><strong>&euro;6,800</strong></td>
-            <td>10 Mar 2026</td>
-            <td><span class="badge badge-overdue" data-col="inv-status">Overdue</span></td>
-            <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill red" style="width:0%"></div></div><div class="progress-label">5 days late</div></div></td>
-            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm" data-action="mark-paid">Mark Paid</button><button class="btn btn-ghost btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button></div></td>
-          </tr>
-          <tr>
-            <td><div class="td-main">#INV-0091</div><div class="td-sub">Issued 15 Feb 2026</div></td>
-            <td>Vega Systems</td>
-            <td><strong>&euro;2,100</strong></td>
-            <td>15 Mar 2026</td>
-            <td><span class="badge badge-overdue" data-col="inv-status">Overdue</span></td>
-            <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill red" style="width:0%"></div></div><div class="progress-label">2 days late</div></div></td>
-            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm" data-action="mark-paid">Mark Paid</button><button class="btn btn-ghost btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button></div></td>
-          </tr>
-          <tr>
-            <td><div class="td-main">#INV-0094</div><div class="td-sub">Issued 01 Mar 2026</div></td>
-            <td>Nexar Industries</td>
-            <td><strong>&euro;4,450</strong></td>
-            <td>31 Mar 2026</td>
-            <td><span class="badge badge-unpaid" data-col="inv-status">Unpaid</span></td>
-            <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill amber" style="width:45%"></div></div><div class="progress-label">14 days left</div></div></td>
-            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm" data-action="mark-paid">Mark Paid</button><button class="btn btn-ghost btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button></div></td>
-          </tr>
-          <tr>
-            <td><div class="td-main">#INV-0096</div><div class="td-sub">Issued 10 Mar 2026</div></td>
-            <td>Atlas Partners</td>
-            <td><strong>&euro;1,200</strong></td>
-            <td>10 Apr 2026</td>
-            <td><span class="badge badge-unpaid" data-col="inv-status">Unpaid</span></td>
-            <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill green" style="width:80%"></div></div><div class="progress-label">24 days left</div></div></td>
-            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm" data-action="mark-paid">Mark Paid</button><button class="btn btn-ghost btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button></div></td>
-          </tr>
-          <tr>
-            <td><div class="td-main">#INV-0097</div><div class="td-sub">Issued 12 Mar 2026</div></td>
-            <td>Solaris GmbH</td>
-            <td><strong>&euro;9,770</strong></td>
-            <td>12 Apr 2026</td>
-            <td><span class="badge badge-unpaid" data-col="inv-status">Unpaid</span></td>
-            <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill green" style="width:90%"></div></div><div class="progress-label">26 days left</div></div></td>
-            <td><div class="flex gap-2"><button class="btn btn-secondary btn-sm" data-action="mark-paid">Mark Paid</button><button class="btn btn-ghost btn-sm btn-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button></div></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="table-footer">
-      <span>Showing 5 of 37 unpaid invoices</span>
-      <div class="pagination">
-        <button class="page-btn" disabled>&laquo;</button>
-        <button class="page-btn active">1</button>
-        <button class="page-btn">2</button>
-        <button class="page-btn">3</button>
-        <button class="page-btn">&raquo;</button>
-      </div>
-    </div>
-  </div>
-
-</main>
-</div><!-- end .shell -->
-
-<!-- ==================== MODAL: Add Client ==================== -->
-<div class="modal-overlay" id="modal-add-client">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Add New Client</div>
-      <button class="icon-btn modal-close" data-modal-close="modal-add-client">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid" style="margin-top:12px;">
-        <div class="field"><label>Company Name *</label><input type="text" placeholder="e.g. Acme Corp"/></div>
-        <div class="field"><label>Sector</label><select><option>Technology</option><option>Finance</option><option>Healthcare</option><option>Retail</option><option>Other</option></select></div>
-        <div class="field"><label>Contact Name *</label><input type="text" placeholder="Full name"/></div>
-        <div class="field"><label>Email *</label><input type="email" placeholder="contact@company.com"/></div>
-        <div class="field"><label>Phone</label><input type="tel" placeholder="+33 6 00 00 00 00"/></div>
-        <div class="field"><label>Country</label><input type="text" placeholder="France"/></div>
-        <div class="field full"><label>Notes</label><textarea placeholder="Any additional notes…"></textarea></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" data-modal-close="modal-add-client">Cancel</button>
-      <button class="btn btn-primary" onclick="showToast('Client saved successfully','success');closeModal('modal-add-client')">Save Client</button>
-    </div>
+<div id="mobile-menu">
+  <div class="mobile-menu-inner">
+    <button class="mobile-menu-link" data-scroll="#features">Features</button>
+    <button class="mobile-menu-link" data-scroll="#testimonials">Clients</button>
+    <button class="mobile-menu-link" data-scroll="#contact">Pricing</button>
+    <button class="mobile-menu-link" data-scroll="#site-footer">About</button>
+    <div class="mobile-divider"></div>
+    <button class="mobile-menu-link" onclick="location.href='login.html'" style="color:#fff;font-weight:700">Get Started →</button>
   </div>
 </div>
 
-<!-- ==================== SCRIPTS ==================== -->
-<!-- Supabase JS Library (Loaded via CDN for vanilla JS) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Main App Logic -->
-<script src="assets/js/main.js"></script>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge"><span class="hero-badge-dot"></span>Business Management Platform</div>
+  <h1 class="hero-title">
+    Elevate your<br/>
+    <span class="rotating-wrapper">
+      Business
+      <span class="rotating-box"><span id="rotating-word">Growth</span></span>
+    </span>
+  </h1>
+  <p class="hero-sub">Nexus helps companies save time and boost revenue with smart client management, automated invoicing, and contract tracking — fully managed for you.</p>
+  <div class="hero-btns">
+    <button class="btn-hero-white" onclick="location.href='login.html'">
+      Start for Free
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+    </button>
+    <button class="btn-hero-outline">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+      Watch Demo
+    </button>
+  </div>
+
+  <!-- Trust bar -->
+  <div class="trust-bar" style="width:100%;margin-top:48px">
+    <div class="trust-bar-label">Trusted by innovative companies worldwide</div>
+    <div class="trust-track-wrap">
+      <div class="trust-track" id="trust-track">
+        <span class="trust-name">Orion Tech</span>
+        <span class="trust-name">Vega Systems</span>
+        <span class="trust-name">Solaris GmbH</span>
+        <span class="trust-name">Atlas Partners</span>
+        <span class="trust-name">Nordic AS</span>
+        <span class="trust-name">Nexar Industries</span>
+        <span class="trust-name">DataFlow</span>
+        <span class="trust-name">FutureScale</span>
+        <!-- duplicate for loop -->
+        <span class="trust-name">Orion Tech</span>
+        <span class="trust-name">Vega Systems</span>
+        <span class="trust-name">Solaris GmbH</span>
+        <span class="trust-name">Atlas Partners</span>
+        <span class="trust-name">Nordic AS</span>
+        <span class="trust-name">Nexar Industries</span>
+        <span class="trust-name">DataFlow</span>
+        <span class="trust-name">FutureScale</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="features-white">
+    <div class="features-dot-bg"></div>
+    <div class="features-inner">
+      <div id="features-header">
+        <div class="feat-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+          Nexus Working 24/7 — Never Miss a Client
+        </div>
+        <h2 class="feat-section-title">Your Business Team<br/><span>Never Sleeps</span></h2>
+        <p class="feat-section-sub">Watch Nexus handle client management, invoicing, and contract renewals automatically while you focus on growing your business.</p>
+      </div>
+
+      <div id="features-grid">
+        <!-- Chat -->
+        <div class="feat-card large" data-demo="chat">
+          <div class="demo-area">
+            <div class="demo-badge"><div class="demo-dot"></div>24/7</div>
+            <div class="chat-msg bot" style="opacity:0;transform:translateY(8px)"><div class="bubble">Hi! How can I help you today?</div></div>
+            <div class="chat-msg user" style="opacity:0;transform:translateY(8px)"><div class="bubble">I'd like to book an appointment</div></div>
+            <div class="chat-msg bot" style="opacity:0;transform:translateY(8px)"><div class="bubble">Perfect! What service are you interested in?</div></div>
+            <div class="typing"><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>
+          </div>
+          <h3 class="feat-card-title">24/7 Client Chat</h3>
+          <p class="feat-card-desc">Intelligent chat that handles client inquiries, answers questions, and captures new contacts across all channels.</p>
+        </div>
+
+        <!-- Phone -->
+        <div class="feat-card" data-demo="phone">
+          <div class="demo-area">
+            <div class="call-count">Calls: 1</div>
+            <div class="phone-wrap">
+              <div class="phone-circle">
+                <div class="phone-ring1"></div><div class="phone-ring2"></div>
+                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+              </div>
+              <div class="call-label"></div>
+            </div>
+          </div>
+          <h3 class="feat-card-title">Smart Scheduling</h3>
+          <p class="feat-card-desc">Automated scheduling that confirms appointments and sends reminders without manual work.</p>
+        </div>
+
+        <!-- Calendar -->
+        <div class="feat-card" data-demo="calendar">
+          <div class="demo-area">
+            <div class="cal-grid">
+              <!-- 21 cells -->
+              <div class="cal-cell">1</div><div class="cal-cell">2</div><div class="cal-cell">3</div><div class="cal-cell">4</div><div class="cal-cell">5</div><div class="cal-cell weekend">6</div><div class="cal-cell weekend">7</div>
+              <div class="cal-cell">8</div><div class="cal-cell">9</div><div class="cal-cell">10</div><div class="cal-cell">11</div><div class="cal-cell">12</div><div class="cal-cell weekend">13</div><div class="cal-cell weekend">14</div>
+              <div class="cal-cell">15</div><div class="cal-cell">16</div><div class="cal-cell">17</div><div class="cal-cell">18</div><div class="cal-cell">19</div><div class="cal-cell weekend">20</div><div class="cal-cell weekend">21</div>
+            </div>
+            <div class="cal-note">✓ Appointment booked for the 15th</div>
+          </div>
+          <h3 class="feat-card-title">Contract Renewals</h3>
+          <p class="feat-card-desc">Track expiry dates, receive timely alerts, and manage contract lifecycle from a single view.</p>
+        </div>
+
+        <!-- Email -->
+        <div class="feat-card large" data-demo="email">
+          <div class="demo-area">
+            <div class="email-row"><div class="email-dot"></div><span class="email-subj">Service inquiry</span><svg class="email-check" fill="currentColor" viewBox="0 0 20 20" style="width:12px;height:12px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>
+            <div class="email-row"><div class="email-dot"></div><span class="email-subj">Invoice reminder</span><svg class="email-check" fill="currentColor" viewBox="0 0 20 20" style="width:12px;height:12px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>
+            <div class="email-row"><div class="email-dot"></div><span class="email-subj">Contract renewal</span><svg class="email-check" fill="currentColor" viewBox="0 0 20 20" style="width:12px;height:12px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>
+          </div>
+          <h3 class="feat-card-title">Smart Invoicing</h3>
+          <p class="feat-card-desc">Track unpaid invoices, send automatic reminders, and get a clear overview of your outstanding revenue at a glance.</p>
+        </div>
+
+        <!-- Leads -->
+        <div class="feat-card" data-demo="leads">
+          <div class="demo-area">
+            <div class="lead-row"><span class="lead-name">Marco R.</span><div class="lead-track"><div class="lead-bar"></div></div><span class="lead-pct">0%</span><span class="lead-check">✓</span></div>
+            <div class="lead-row"><span class="lead-name">Lena M.</span><div class="lead-track"><div class="lead-bar"></div></div><span class="lead-pct">0%</span><span class="lead-check">✓</span></div>
+            <div class="lead-row"><span class="lead-name">James W.</span><div class="lead-track"><div class="lead-bar"></div></div><span class="lead-pct">0%</span><span class="lead-check">✓</span></div>
+          </div>
+          <h3 class="feat-card-title">Revenue Analytics</h3>
+          <p class="feat-card-desc">Real-time KPIs, monthly revenue trends, and client health scores — all on your dashboard.</p>
+        </div>
+
+        <!-- Integrations -->
+        <div class="feat-card" data-demo="integrations">
+          <div class="demo-area">
+            <div class="integ-grid">
+              <div class="integration-item"><div class="integ-dot"></div><span class="integ-name">CRM</span></div>
+              <div class="integration-item"><div class="integ-dot"></div><span class="integ-name">Invoices</span></div>
+              <div class="integration-item"><div class="integ-dot"></div><span class="integ-name">Calendar</span></div>
+              <div class="integration-item"><div class="integ-dot"></div><span class="integ-name">Email</span></div>
+            </div>
+            <div class="integ-count">0/4 connected</div>
+          </div>
+          <h3 class="feat-card-title">Secure Client Portal</h3>
+          <p class="feat-card-desc">Invite clients to their own secure portal where they can view invoices, contracts, and shared documents.</p>
+        </div>
+      </div><!-- /features-grid -->
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" data-observe>
+  <div class="testi-grid-bg"></div>
+  <div class="testi-inner">
+    <div class="testi-header">
+      <div class="fade-in-element testi-eyebrow"><div class="testi-eyebrow-line"></div>Success Stories<div class="testi-eyebrow-line"></div></div>
+      <h2 class="fade-in-element testi-title">The businesses we <em>empower</em></h2>
+      <p class="fade-in-element testi-sub">Discover how leading companies transform their operations with Nexus.</p>
+    </div>
+    <div class="fade-in-element testi-cols">
+      <!-- Column 1 -->
+      <div class="testi-col">
+        <div class="testi-col-inner">
+          <div class="testi-card"><p class="testi-card-text">"We went from missing 70% of after-hours inquiries to capturing every single lead. Client bookings increased 50% in the first month."</p><div class="testi-card-author"><div class="testi-avatar">MR</div><div><div class="testi-card-name">Marco Rossi</div><div class="testi-card-role">CEO, Orion Tech</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"We spend so much less time on admin because Nexus handles everything automatically. It's transformed how we manage clients."</p><div class="testi-card-author"><div class="testi-avatar">SC</div><div><div class="testi-card-name">Sarah Chen</div><div class="testi-card-role">Sales Manager</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Our conversion rates increased 85% and revenue grew 40% in Q1. The contract renewal alerts alone are worth every penny."</p><div class="testi-card-author"><div class="testi-avatar">MT</div><div><div class="testi-card-name">Mike Torres</div><div class="testi-card-role">General Manager</div></div></div></div>
+          <!-- duplicate for loop -->
+          <div class="testi-card"><p class="testi-card-text">"We went from missing 70% of after-hours inquiries to capturing every single lead. Client bookings increased 50% in the first month."</p><div class="testi-card-author"><div class="testi-avatar">MR</div><div><div class="testi-card-name">Marco Rossi</div><div class="testi-card-role">CEO, Orion Tech</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"We spend so much less time on admin because Nexus handles everything automatically. It's transformed how we manage clients."</p><div class="testi-card-author"><div class="testi-avatar">SC</div><div><div class="testi-card-name">Sarah Chen</div><div class="testi-card-role">Sales Manager</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Our conversion rates increased 85% and revenue grew 40% in Q1. The contract renewal alerts alone are worth every penny."</p><div class="testi-card-author"><div class="testi-avatar">MT</div><div><div class="testi-card-name">Mike Torres</div><div class="testi-card-role">General Manager</div></div></div></div>
+        </div>
+      </div>
+      <!-- Column 2 -->
+      <div class="testi-col">
+        <div class="testi-col-inner">
+          <div class="testi-card"><p class="testi-card-text">"The client portal is a game changer. Our clients love being able to access their documents and invoices at any time."</p><div class="testi-card-author"><div class="testi-avatar">LM</div><div><div class="testi-card-name">Lena Müller</div><div class="testi-card-role">Operations, Vega Systems</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Client satisfaction scores improved dramatically. People love the instant responses and having all their documents in one place."</p><div class="testi-card-author"><div class="testi-avatar">DK</div><div><div class="testi-card-name">David Kim</div><div class="testi-card-role">CX Manager</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Property inquiries handled instantly. We've closed 3x more contracts since implementing Nexus as our management platform."</p><div class="testi-card-author"><div class="testi-avatar">JW</div><div><div class="testi-card-name">James Wilson</div><div class="testi-card-role">Real Estate Broker</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"The client portal is a game changer. Our clients love being able to access their documents and invoices at any time."</p><div class="testi-card-author"><div class="testi-avatar">LM</div><div><div class="testi-card-name">Lena Müller</div><div class="testi-card-role">Operations, Vega Systems</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Client satisfaction scores improved dramatically. People love the instant responses and having all their documents in one place."</p><div class="testi-card-author"><div class="testi-avatar">DK</div><div><div class="testi-card-name">David Kim</div><div class="testi-card-role">CX Manager</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Property inquiries handled instantly. We've closed 3x more contracts since implementing Nexus as our management platform."</p><div class="testi-card-author"><div class="testi-avatar">JW</div><div><div class="testi-card-name">James Wilson</div><div class="testi-card-role">Real Estate Broker</div></div></div></div>
+        </div>
+      </div>
+      <!-- Column 3 -->
+      <div class="testi-col">
+        <div class="testi-col-inner">
+          <div class="testi-card"><p class="testi-card-text">"Managing 3 companies from one dashboard used to feel impossible. With Nexus it's effortless — I'd recommend it to anyone."</p><div class="testi-card-author"><div class="testi-avatar">SL</div><div><div class="testi-card-name">Sophie Laurent</div><div class="testi-card-role">Director, Atlas Partners</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Invoice tracking alone has saved us 10+ hours a week. The automatic reminders mean we never chase clients for payment anymore."</p><div class="testi-card-author"><div class="testi-avatar">LT</div><div><div class="testi-card-name">Lisa Thompson</div><div class="testi-card-role">Store Manager</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Nexus helped us scale from 50 to 200 clients without adding headcount. The automation is remarkable."</p><div class="testi-card-author"><div class="testi-avatar">MG</div><div><div class="testi-card-name">Maria Garcia</div><div class="testi-card-role">Operations Director</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Managing 3 companies from one dashboard used to feel impossible. With Nexus it's effortless — I'd recommend it to anyone."</p><div class="testi-card-author"><div class="testi-avatar">SL</div><div><div class="testi-card-name">Sophie Laurent</div><div class="testi-card-role">Director, Atlas Partners</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Invoice tracking alone has saved us 10+ hours a week. The automatic reminders mean we never chase clients for payment anymore."</p><div class="testi-card-author"><div class="testi-avatar">LT</div><div><div class="testi-card-name">Lisa Thompson</div><div class="testi-card-role">Store Manager</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"Nexus helped us scale from 50 to 200 clients without adding headcount. The automation is remarkable."</p><div class="testi-card-author"><div class="testi-avatar">MG</div><div><div class="testi-card-name">Maria Garcia</div><div class="testi-card-role">Operations Director</div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="contact" data-observe>
+  <div class="cta-inner">
+    <div class="cta-card fade-in-element" style="transition-delay:0ms">
+      <h3 class="cta-title">Ready to transform your business's <em>client management</em>?</h3>
+      <p class="cta-sub">Join hundreds of companies already using Nexus to streamline operations and grow faster.</p>
+      <button class="btn-cta" onclick="location.href='login.html'">
+        Get Started Free
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="site-footer">
+  <div class="footer-top">
+    <div>
+      <div class="footer-brand-logo">
+        <div class="footer-logo-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg></div>
+        <span class="footer-brand-name">Nexus</span>
+      </div>
+      <p class="footer-brand-desc">The all-in-one platform for modern businesses to manage clients, contracts, and growth.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Product</div>
+      <div class="footer-links">
+        <a class="footer-link" href="#features">Features</a>
+        <a class="footer-link" href="#contact">Pricing</a>
+        <a class="footer-link" href="login.html">Client Portal</a>
+        <span class="footer-link">Integrations</span>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <div class="footer-links">
+        <span class="footer-link">About</span>
+        <span class="footer-link">Blog</span>
+        <span class="footer-link">Careers</span>
+        <span class="footer-link">Contact</span>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Resources</div>
+      <div class="footer-links">
+        <span class="footer-link">Documentation</span>
+        <span class="footer-link">Case Studies</span>
+        <span class="footer-link">Support</span>
+        <span class="footer-link">Status</span>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Social</div>
+      <div class="footer-links">
+        <span class="footer-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M22.675 0h-21.35C.595 0 0 .595 0 1.326v21.348C0 23.406.595 24 1.325 24H12.82v-9.294H9.692V11.41h3.128V8.796c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.31h3.587l-.467 3.296h-3.12V24h6.116c.73 0 1.325-.594 1.325-1.326V1.326C24 .595 23.405 0 22.675 0z"/></svg>Facebook</span>
+        <span class="footer-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5zm4.25 2.75a5.75 5.75 0 1 1 0 11.5 5.75 5.75 0 0 1 0-11.5zm0 1.5a4.25 4.25 0 1 0 0 8.5 4.25 4.25 0 0 0 0-8.5zm5.5-.25a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>Instagram</span>
+        <span class="footer-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>LinkedIn</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Nexus. All rights reserved.</span>
+    <span>Made with care for growing businesses.</span>
+  </div>
+</footer>
+
+<script src="assets/js/site.js"></script>
 </body>
 </html>
+
+
