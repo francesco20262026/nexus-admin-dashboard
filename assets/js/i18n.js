@@ -60,6 +60,10 @@ const I18n = {
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.dataset.i18n;
       const val = this.t(key);
+      // Only overwrite if we actually found a translation.
+      // If val === key it means the key was not found; in that case
+      // preserve any hardcoded text already in the element.
+      if (val === key) return;
       if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
         el.placeholder = val;
       } else {
@@ -68,6 +72,7 @@ const I18n = {
     });
     document.documentElement.lang = this._lang;
   },
+
 
   // ── Change language, persist, reload UI ───────────────────
   async setLang(lang) {
