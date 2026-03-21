@@ -1,27 +1,36 @@
 """
-main.py — FastAPI application entry point
-Includes all routers, webhooks, APScheduler jobs, and CORS.
+main.py — FastAPI application entry point.
+Responsibility: bootstrap only — app creation, CORS, router registration, scheduler lifespan.
+Business routes belong in their respective router modules.
 """
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 
 from config import settings
-from auth.router import router as auth_router
-from modules.clients.router import router as clients_router
-from modules.invoices.router import router as invoices_router
-from modules.services.router import router as services_router
-from modules.contracts.router import router as contracts_router
-from modules.documents.router import router as documents_router
-from modules.reminders.router import router as reminders_router
-from modules.renewals.router import router as renewals_router
-from modules.dashboard.router import router as dashboard_router
+from auth.router          import router as auth_router
+from modules.clients.router    import router as clients_router
+from modules.invoices.router   import router as invoices_router
+from modules.services.router   import router as services_router
+from modules.contracts.router  import router as contracts_router
+from modules.documents.router  import router as documents_router
+from modules.reminders.router  import router as reminders_router
+from modules.renewals.router   import router as renewals_router
+from modules.dashboard.router  import router as dashboard_router
+from modules.settings.router   import router as settings_router
+from modules.payments.router   import router as payments_router
+from modules.onboarding.router  import router as onboarding_router
+from modules.users.router       import router as users_router
+from modules.companies.router   import router as companies_router
+from routers.health    import router as health_router
+from routers.jobs      import router as jobs_router
+from routers.webhooks  import router as webhooks_router
 
 logger = logging.getLogger(__name__)
 
-# ── APScheduler ──────────────────────────────────────────────
+# ── Scheduler ────────────────────────────────────────────────
 scheduler = AsyncIOScheduler()
 
 
@@ -29,12 +38,41 @@ scheduler = AsyncIOScheduler()
 async def lifespan(app: FastAPI):
     """Start/stop background scheduler with the app."""
     from jobs.payment_reminders import run_payment_reminders
-    from jobs.renewal_alerts import run_renewal_alerts
+    from jobs.renewal_alerts    import run_renewal_alerts
 
-    scheduler.add_job(run_payment_reminders, "cron", hour=8, minute=0, id="payment_reminders")
+    scheduler.add_job(run_payment_reminders, "cron", hour=8, minute=0,  id="payment_reminders")
     scheduler.add_job(run_renewal_alerts,    "cron", hour=8, minute=30, id="renewal_alerts")
     scheduler.start()
+    app.state.scheduler = scheduler
     logger.info("Scheduler started")
+
+    # ── PDF subsystem startup probe ───────────────────────────
+    # Runs synchronously before the server starts accepting traffic.
+    # Surfaces missing WeasyPrint or OS library issues immediately in logs.
+    try:
+        from core_services.pdf_service import (
+            WEASYPRINT_AVAILABLE, WEASYPRINT_ERROR, test_pdf_generation
+        )
+        if not WEASYPRINT_AVAILABLE:
+            logger.critical(
+                "PDF subsystem FAILED to load: %s — "
+                "contract send-sign will return HTTP 503. "
+                "Fix: apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 "
+                "libcairo2 libgdk-pixbuf2.0-0 libffi-dev && pip install weasyprint",
+                WEASYPRINT_ERROR,
+            )
+        else:
+            try:
+                test_pdf_generation()
+                logger.info("PDF subsystem OK — WeasyPrint rendering verified")
+            except Exception as exc:
+                logger.critical(
+                    "PDF subsystem DEGRADED — WeasyPrint loaded but rendering failed: %s — "
+                    "contract send-sign will return HTTP 503", exc
+                )
+    except Exception as exc:
+        logger.error("PDF health probe raised unexpectedly: %s", exc)
+
     yield
     scheduler.shutdown()
     logger.info("Scheduler stopped")
@@ -49,11 +87,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
+# CORS — wildcard in development; restrict to known origins in production
+_dev = settings.app_env == "development"
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=True,
+    allow_origins=["*"] if _dev else settings.cors_origins,
+    allow_credentials=False,  # incompatible with wildcard; auth uses Bearer tokens
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -68,95 +107,12 @@ app.include_router(documents_router, prefix="/api")
 app.include_router(reminders_router, prefix="/api")
 app.include_router(renewals_router,  prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
-
-
-# ── Webhooks ─────────────────────────────────────────────────
-
-@app.post("/webhooks/zoho-sign", tags=["webhooks"])
-async def webhook_zoho_sign(request: Request):
-    """Receive Zoho Sign events (document completed, etc.)."""
-    from integrations.zoho_sign import handle_signed_webhook
-    from database import supabase
-
-    payload = await request.json()
-    event_type = payload.get("requests", {}).get("action", "")
-
-    # Log raw event
-    supabase.table("webhook_events").insert({
-        "provider": "zoho_sign",
-        "event_type": event_type,
-        "payload": payload,
-        "status": "received",
-    }).execute()
-
-    if event_type == "completed":
-        await handle_signed_webhook(payload)
-        supabase.table("webhook_events").update({"status": "processed"}).eq(
-            "event_type", event_type
-        ).execute()
-
-    return {"status": "ok"}
-
-
-@app.post("/webhooks/windoc", tags=["webhooks"])
-async def webhook_windoc(request: Request):
-    """Receive Windoc payment update events."""
-    from integrations.windoc import sync_invoice_from_windoc
-    from database import supabase
-
-    payload = await request.json()
-    windoc_id = payload.get("invoice_id")
-    company_id = payload.get("company_id")
-
-    supabase.table("webhook_events").insert({
-        "provider": "windoc",
-        "event_type": payload.get("event", "payment_update"),
-        "payload": payload,
-        "status": "received",
-    }).execute()
-
-    if windoc_id and company_id:
-        await sync_invoice_from_windoc(windoc_id, company_id)
-
-    return {"status": "ok"}
-
-
-@app.post("/webhooks/sendgrid", tags=["webhooks"])
-async def webhook_sendgrid(request: Request):
-    """Receive SendGrid bounce / delivery events."""
-    from database import supabase
-
-    events = await request.json()
-    if not isinstance(events, list):
-        events = [events]
-
-    for event in events:
-        event_type = event.get("event", "unknown")
-        email = event.get("email", "")
-
-        supabase.table("webhook_events").insert({
-            "provider": "sendgrid",
-            "event_type": event_type,
-            "payload": event,
-            "status": "received",
-        }).execute()
-
-        # Update email_log if bounce or failed delivery
-        if event_type in ("bounce", "dropped", "deferred"):
-            supabase.table("email_logs").update({
-                "status": "bounced" if event_type == "bounce" else "failed",
-                "error_message": event.get("reason", event_type),
-            }).eq("to_email", email).eq("status", "sent").execute()
-
-    return {"status": "ok"}
-
-
-# ── Health ────────────────────────────────────────────────────
-
-@app.get("/api/health", tags=["health"])
-async def health():
-    return {
-        "status": "ok",
-        "version": "1.0.0",
-        "scheduler": scheduler.running,
-    }
+app.include_router(settings_router,    prefix="/api")
+app.include_router(payments_router,    prefix="/api")
+app.include_router(onboarding_router,  prefix="/api")
+app.include_router(users_router,       prefix="/api")
+app.include_router(companies_router,   prefix="/api")
+app.include_router(health_router,    prefix="/api")
+app.include_router(jobs_router,      prefix="/api")
+# Webhooks are NOT under /api — providers call the path directly
+app.include_router(webhooks_router)

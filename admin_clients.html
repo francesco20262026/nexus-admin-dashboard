@@ -1,127 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Clients — Nexus Admin</title>
-  <meta name="description" content="Manage all clients across companies."/>
+  <title>Nexus — Clienti</title>
+  <meta name="description" content="Gestisci tutti i clienti attivi dell'azienda."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/css/dash.css"/>
-  <style>
-    /* ---- Clients-page extras ---- */
-    .controls-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
-    .controls-bar .filter-search { flex: 1; min-width: 200px; max-width: 340px; }
-    .controls-bar .filter-search input { width: 100%; }
-    .controls-right { margin-left: auto; display: flex; gap: 8px; }
-
-    /* Status pill in table */
-    .pill {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 4px 10px; border-radius: 999px;
-      font-size: 11px; font-weight: 600; white-space: nowrap;
-    }
-    .pill::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-    .pill-active   { background:var(--success-bg); color:var(--success-text); }
-    .pill-active::before { background:var(--success-text); }
-    .pill-inactive { background:var(--gray-100); color:var(--gray-500); }
-    .pill-inactive::before { background:var(--gray-400); }
-    .pill-pending  { background:var(--warning-bg); color:var(--warning-text); }
-    .pill-pending::before { background:var(--warning-text); }
-
-    /* Table row actions always visible on hover */
-    .row-actions { display:flex; gap:4px; opacity:0; transition:opacity .15s; }
-    tr:hover .row-actions { opacity:1; }
-
-    /* Empty state */
-    .empty-state {
-      text-align:center; padding:60px 20px;
-      color:var(--gray-400); font-size:var(--text-sm);
-    }
-    .empty-state svg { width:48px;height:48px;margin:0 auto 12px;opacity:.35; }
-
-    /* Stat chips above table */
-    .stat-chips { display:flex; gap:12px; flex-wrap:wrap; }
-    .stat-chip {
-      display:flex; align-items:center; gap:8px;
-      background:var(--surface); border-radius:var(--radius-xl);
-      padding:12px 18px;
-      box-shadow:0 4px 20px rgba(0,0,0,.03);
-      font-size:var(--text-sm);
-    }
-    .stat-chip-val { font-size:1.25rem; font-weight:700; color:var(--gray-900); }
-    .stat-chip-lbl { color:var(--gray-500); font-size:11px; margin-top:1px; }
-
-    /* Form layout in modal */
-    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    .field-row.cols-3 { grid-template-columns:1fr 1fr 1fr; }
-    .field-row.cols-1 { grid-template-columns:1fr; }
-    .field { display:flex; flex-direction:column; gap:5px; }
-    .field label { font-size:var(--text-sm); font-weight:500; color:var(--gray-700); }
-    .field input,.field select,.field textarea {
-      padding:8px 12px; border:1px solid var(--border);
-      border-radius:var(--radius-sm); font-size:var(--text-sm);
-      font-family:inherit; color:var(--gray-800); background:var(--surface);
-      transition:border-color var(--trans), box-shadow var(--trans);
-      outline:none;
-    }
-    .field input:focus,.field select:focus,.field textarea:focus {
-      border-color:var(--brand-500); box-shadow:0 0 0 2px var(--brand-50);
-    }
-    .field textarea { resize:vertical; min-height:70px; }
-    .field-hint { font-size:11px; color:var(--gray-400); margin-top:2px; }
-
-    .form-section-title {
-      font-size:11px; font-weight:700; text-transform:uppercase;
-      letter-spacing:.07em; color:var(--gray-400);
-      padding:4px 0 2px; margin-top:4px;
-    }
-    .form-divider { border:none; border-top:1px solid var(--border); margin:4px 0 8px; }
-
-    .checkbox-row {
-      display:flex; align-items:flex-start; gap:10px; cursor:pointer;
-      padding:12px; background:var(--brand-50); border:1px solid rgba(10,92,54,.15);
-      border-radius:var(--radius-md); margin-top:4px;
-    }
-    .checkbox-row input[type=checkbox] { margin-top:2px; accent-color:var(--brand-500); }
-    .checkbox-row span { font-size:var(--text-sm); color:var(--gray-700); }
-    .checkbox-row strong { display:block; font-weight:600; color:var(--brand-500); }
-
-    /* Wide modal */
-    .modal.modal-wide { max-width:720px; }
-
-    /* Pagination */
-    .table-footer {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:12px 20px; font-size:var(--text-sm); color:var(--gray-500);
-      border-top:1px solid var(--border);
-    }
-    .pagination { display:flex; gap:4px; }
-    .page-btn {
-      min-width:32px; height:32px; border-radius:var(--radius-sm);
-      border:1px solid var(--border); background:var(--surface);
-      font-size:var(--text-sm); color:var(--gray-600); cursor:pointer;
-      display:flex; align-items:center; justify-content:center;
-      transition:background var(--trans), border-color var(--trans);
-    }
-    .page-btn:hover:not(:disabled) { background:var(--gray-100); }
-    .page-btn.active { background:var(--brand-500); color:#fff; border-color:var(--brand-500); }
-    .page-btn:disabled { opacity:.4; cursor:not-allowed; }
-  </style>
+  <link rel="stylesheet" href="assets/css/dash.css?v=20"/>
+  <link rel="stylesheet" href="assets/css/global_search.css"/>
 </head>
 <body>
-
 <div class="shell" id="shell">
 
-<!-- ===== SIDEBAR ===== -->
+<!-- ==================== SIDEBAR ==================== -->
 <aside class="sidebar">
   <div class="sidebar-brand">
     <div class="brand-icon">
@@ -130,116 +22,73 @@
     <span class="brand-name">Nexus</span>
   </div>
   <nav class="sidebar-nav avatar-colors">
-    <div class="nav-section-label">Main</div>
-    <a class="nav-item" href="admin_dash.html">
+    <div class="nav-section-label" data-i18n="nav.main">Principale</div>
+    <a class="nav-item" href="admin_dash.html?v=20">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span class="nav-label">Dashboard</span>
+      <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="admin_onboarding.html?v=20">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-      <span class="nav-label">Onboarding</span>
-      <span class="nav-badge">2</span>
+      <span class="nav-label" data-i18n="nav.onboarding">Onboarding</span>
     </a>
-    <div class="nav-section-label">Management</div>
-    <a class="nav-item active" href="admin_clients.html">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
-      <span class="nav-label">Clients</span>
+    <div class="nav-section-label" data-i18n="nav.management">Gestione</div>
+    <a class="nav-item active" href="admin_clients.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+      <span class="nav-label" data-i18n="nav.clients">Clienti</span>
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="admin_services.html?v=20">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-      <span class="nav-label">Services</span>
+      <span class="nav-label" data-i18n="nav.services">Servizi</span>
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="admin_contracts.html?v=20">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-      <span class="nav-label">Contracts</span>
+      <span class="nav-label" data-i18n="nav.contracts">Contratti</span>
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="admin_documents.html?v=20">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
-      <span class="nav-label">Documents</span>
+      <span class="nav-label" data-i18n="nav.documents">Documenti</span>
     </a>
-    <div class="nav-section-label">Finance</div>
-    <a class="nav-item" href="#">
+    <div class="nav-section-label" data-i18n="nav.finance">Finanza</div>
+    <a class="nav-item" href="admin_invoices.html?v=20">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
-      <span class="nav-label">Invoices</span>
-      <span class="nav-badge">7</span>
+      <span class="nav-label" data-i18n="nav.invoices">Fatture</span>
+      <span class="nav-badge" id="nav-badge-invoices" style="display:none"></span>
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="admin_renewals.html?v=20">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-      <span class="nav-label">Renewals</span>
+      <span class="nav-label" data-i18n="nav.renewals">Rinnovi</span>
     </a>
-    <div class="nav-section-label">Analytics</div>
-    <a class="nav-item" href="#">
+    <div class="nav-section-label" data-i18n="nav.analytics">Analisi</div>
+    <a class="nav-item" href="admin_reports.html?v=20">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
-      <span class="nav-label">Reports</span>
+      <span class="nav-label" data-i18n="nav.reports">Report</span>
     </a>
-    <div class="nav-section-label">System</div>
-    <a class="nav-item" href="#">
+    <div class="nav-section-label"
+    <div class="nav-section-label" data-i18n="nav.system">Sistema</div>
+          <a class="nav-item" href="admin_companies.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+      <span class="nav-label" data-i18n="nav.companies">Aziende</span>
+    </a><a class="nav-item" href="admin_users.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+      <span class="nav-label" data-i18n="nav.users">Utenti</span>
+    </a>
+    <a class="nav-item" href="admin_settings.html?v=20">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-      <span class="nav-label">Settings</span>
+      <span class="nav-label" data-i18n="nav.settings">Impostazioni</span>
     </a>
   </nav>
   <div class="sidebar-footer">
     <div class="nav-item" style="gap:10px;">
-      <div class="avatar" style="width:30px;height:30px;font-size:11px;">AL</div>
+      <div class="avatar" style="width:30px;height:30px;font-size:11px;" id="sidebar-avatar">–</div>
       <div style="overflow:hidden;">
-        <div class="nav-label" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Alex Lambert</div>
-        <div class="nav-label" style="color:var(--gray-500);font-size:11px;">Super Admin</div>
+        <div class="nav-label" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="sidebar-name">—</div>
+        <div class="nav-label" style="color:var(--gray-500);font-size:11px;">Admin</div>
       </div>
     </div>
   </div>
 </aside>
 
-<!-- ===== HEADER ===== -->
-<header class="header">
-  <button class="header-toggle" id="sidebar-toggle" title="Toggle sidebar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-  </button>
-  <div class="dropdown-wrap">
-    <button class="company-selector" data-dropdown-trigger>
-      <div class="company-dot" id="company-dot">A</div>
-      <span id="company-label">Acme Corp</span>
-      <svg class="company-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-    </button>
-    <div class="dropdown-menu" style="min-width:220px;">
-      <div style="padding:6px 10px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);">Switch Company</div>
-      <button class="dropdown-item" data-company="Acme Corp" data-color="var(--brand-500)"><div style="width:20px;height:20px;border-radius:4px;background:var(--brand-500);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;">A</div>Acme Corp</button>
-      <button class="dropdown-item" data-company="Beta LLC" data-color="#10b981"><div style="width:20px;height:20px;border-radius:4px;background:#10b981;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;">B</div>Beta LLC</button>
-      <button class="dropdown-item" data-company="Gamma SA" data-color="#8b5cf6"><div style="width:20px;height:20px;border-radius:4px;background:#8b5cf6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;">G</div>Gamma SA</button>
-    </div>
-  </div>
-  <div class="header-search">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-    <input type="text" placeholder="Search clients…" id="global-search"/>
-    <span class="search-shortcut">⌘F</span>
-  </div>
-  <div class="header-actions">
-    <div class="dropdown-wrap">
-      <button class="icon-btn" data-dropdown-trigger title="Notifications">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
-        <span class="notif-dot"></span>
-      </button>
-    </div>
-    <button class="icon-btn" title="Help">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/></svg>
-    </button>
-    <div class="divider-v"></div>
-    <div class="dropdown-wrap">
-      <button class="profile-btn" data-dropdown-trigger>
-        <div class="avatar">AL</div>
-        <div class="profile-info">
-          <div class="profile-name">Alex Lambert</div>
-          <div class="profile-role">Super Admin</div>
-        </div>
-        <svg style="width:14px;height:14px;color:var(--gray-400);margin-left:4px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-      </button>
-      <div class="dropdown-menu">
-        <button class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>My Profile</button>
-        <div class="dropdown-divider"></div>
-        <button class="dropdown-item danger"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>Sign Out</button>
-      </div>
-    </div>
-  </div>
-</header>
+<script src="components/header.js?v=20"></script>
 
 <!-- ===== MAIN ===== -->
 <main class="main">
@@ -247,367 +96,207 @@
   <!-- Page header -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">Clients</h1>
-      <p class="page-subtitle">Manage all clients across companies</p>
+      <h1 class="page-title" data-i18n="cl.title">Clienti</h1>
+      <p class="page-subtitle" data-i18n="cl.subtitle">Area di gestione clienti attivi</p>
     </div>
     <div class="page-header-actions">
-      <button class="btn btn-secondary">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-        Export CSV
+      <button class="btn btn-secondary" id="btn-refresh-clients">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+        <span data-i18n="common.refresh">Aggiorna</span>
       </button>
       <button class="btn btn-primary" id="btn-add-client">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-        Add Client
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        <span data-i18n="cl.new">Nuovo cliente</span>
       </button>
     </div>
   </div>
 
-  <!-- Stat chips -->
-  <div class="stat-chips">
-    <div class="stat-chip">
-      <div>
-        <div class="stat-chip-val">248</div>
-        <div class="stat-chip-lbl">Total Clients</div>
+  <!-- ① KPI cards -->
+  <div class="stat-grid stat-grid--sm">
+    <div class="stat-card stat-card--brand">
+      <div class="stat-card-top">
+        <div class="stat-card-label" data-i18n="cl.kpi_total">Totale clienti</div>
+        <div class="stat-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+        </div>
       </div>
+      <div class="stat-card-val" id="kpi-cl-total"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
+      <div class="stat-card-meta" id="kpi-cl-total-meta"><div class="skeleton-text skeleton short"></div></div>
     </div>
-    <div class="stat-chip">
-      <div>
-        <div class="stat-chip-val" style="color:var(--success-text);">231</div>
-        <div class="stat-chip-lbl">Active</div>
+
+    <div class="stat-card stat-card--success">
+      <div class="stat-card-top">
+        <div class="stat-card-label" data-i18n="cl.kpi_active">Attivi</div>
+        <div class="stat-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"/></svg>
+        </div>
       </div>
+      <div class="stat-card-val" id="kpi-cl-active"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
+      <div class="stat-card-meta" id="kpi-cl-active-meta"><div class="skeleton-text skeleton short"></div></div>
     </div>
-    <div class="stat-chip">
-      <div>
-        <div class="stat-chip-val" style="color:var(--warning-text);">12</div>
-        <div class="stat-chip-lbl">Pending</div>
+
+    <div class="stat-card stat-card--amber">
+      <div class="stat-card-top">
+        <div class="stat-card-label" data-i18n="cl.kpi_inactive">Sospesi / Inattivi</div>
+        <div class="stat-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+        </div>
       </div>
+      <div class="stat-card-val" id="kpi-cl-inactive"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
+      <div class="stat-card-meta" id="kpi-cl-inactive-meta"><div class="skeleton-text skeleton short"></div></div>
     </div>
-    <div class="stat-chip">
-      <div>
-        <div class="stat-chip-val" style="color:var(--gray-400);">5</div>
-        <div class="stat-chip-lbl">Inactive</div>
+
+    <div class="stat-card stat-card--purple">
+      <div class="stat-card-top">
+        <div class="stat-card-label" data-i18n="cl.kpi_new_month">Nuovi questo mese</div>
+        <div class="stat-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg>
+        </div>
       </div>
+      <div class="stat-card-val" id="kpi-cl-new-month"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
+      <div class="stat-card-meta" id="kpi-cl-new-month-meta"><div class="skeleton-text skeleton short"></div></div>
     </div>
   </div>
 
-  <!-- Clients card -->
+  <!-- ② Filters + List -->
   <div class="card">
-    <!-- Controls bar -->
-    <div class="controls-bar">
-      <div class="filter-search">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-        <input type="text" id="tbl-search" placeholder="Search by name, email, city…"/>
-      </div>
-      <select class="filter-select" id="filter-company">
-        <option value="all">All Companies</option>
-        <option value="Acme Corp">Acme Corp</option>
-        <option value="Beta LLC">Beta LLC</option>
-        <option value="Gamma SA">Gamma SA</option>
-      </select>
-      <select class="filter-select" id="filter-status">
-        <option value="all">All Status</option>
-        <option value="active">Active</option>
-        <option value="pending">Pending</option>
-        <option value="inactive">Inactive</option>
-      </select>
-      <div class="controls-right">
-        <button class="btn btn-ghost btn-sm" id="btn-clear-filters">Clear filters</button>
+    <!-- Filters -->
+    <div class="filter-bar" style="flex-direction:column;align-items:stretch;border-bottom:none;padding-bottom:8px;">
+      <!-- Row 1: search + secondary selects -->
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select id="cl-filter-sector" class="form-input" style="width:auto;min-width:140px;max-width:180px;">
+          <option value="" data-i18n="cl.all_sectors">Tutti i settori</option>
+        </select>
+        <select id="cl-filter-city" class="form-input" style="width:auto;min-width:130px;max-width:170px;">
+          <option value="" data-i18n="cl.all_cities">Tutte le città</option>
+        </select>
       </div>
     </div>
 
-    <!-- Table -->
-    <div class="table-wrap">
-      <table id="clients-table">
-        <thead>
-          <tr>
-            <th data-sort="company">Company <span class="sort-icon">↕</span></th>
-            <th data-sort="name">Client Name <span class="sort-icon">↕</span></th>
-            <th data-sort="city">City <span class="sort-icon">↕</span></th>
-            <th data-sort="email">Email</th>
-            <th>Phone</th>
-            <th data-sort="status">Status <span class="sort-icon">↕</span></th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="clients-tbody">
-          <!-- Populated by JS -->
-        </tbody>
-      </table>
+    <!-- Tab pills -->
+    <div class="filter-tabs" id="cl-tab-bar" style="padding:4px 20px 12px;border-bottom:1px solid var(--border);">
+      <button class="filter-tab active" data-tab="all"       data-i18n="filter.all">Tutti</button>
+      <button class="filter-tab"        data-tab="active"    data-i18n="filter.active">Attivi</button>
+      <button class="filter-tab"        data-tab="inactive"  data-i18n="filter.inactive">Inattivi</button>
+      <button class="filter-tab"        data-tab="suspended" data-i18n="cl.suspended">Sospesi</button>
     </div>
 
-    <!-- Footer / pagination -->
-    <div class="table-footer">
-      <span id="pagination-info">Showing 1–10 of 248 clients</span>
-      <div class="pagination" id="pagination"></div>
+    <!-- List -->
+    <div id="cl-list">
+      <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
+      <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
+      <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="table-footer" style="padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <span id="cl-info" style="font-size:13px;color:var(--gray-500);">—</span>
+      <div id="cl-pagination" style="display:flex;gap:4px;"></div>
     </div>
   </div>
+
 </main>
 </div><!-- end .shell -->
 
-<!-- ===== MODAL: Add Client ===== -->
-<div class="modal-overlay" id="modal-add-client">
-  <div class="modal modal-wide">
-    <div class="modal-header">
-      <div class="modal-title">Add New Client</div>
-      <button class="icon-btn" id="modal-close-btn">
+<!-- ===== MODAL: Nuovo Cliente ===== -->
+<div class="modal-overlay" id="modal-add-client" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:680px;width:100%;">
+    <div class="modal-header" style="padding:20px 24px 0;">
+      <div class="modal-title" id="modal-client-title" data-i18n="cl.modal_new">Nuovo cliente</div>
+      <button class="icon-btn" onclick="document.getElementById('modal-add-client').classList.remove('open')">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div class="modal-body" style="padding:20px 24px;display:flex;flex-direction:column;gap:16px;">
+    <div class="modal-body" style="padding:20px 24px;">
+      <div class="form-grid">
+        <!-- Sezione anagrafica -->
+        <div class="form-group form-grid--full" style="margin-bottom:0;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);padding:4px 0 2px;" data-i18n="cl.section_company">Anagrafica azienda</div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:2px 0 10px;"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_name">Ragione sociale *</label>
+          <input class="form-input" id="f-name" type="text" placeholder="Es. Rossi Srl"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_vat">Partita IVA</label>
+          <input class="form-input" id="f-vat" type="text" placeholder="IT12345678901"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_sdi">Codice destinatario (SDI)</label>
+          <input class="form-input" id="f-sdi" type="text" placeholder="XXXXXXX" maxlength="7"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_sector">Settore</label>
+          <input class="form-input" id="f-sector" type="text" placeholder="Es. Tecnologia, Edilizia…"/>
+        </div>
 
-      <div class="form-section-title">Company &amp; Identity</div>
-      <hr class="form-divider"/>
-      <div class="field-row">
-        <div class="field">
-          <label>Company *</label>
-          <select id="f-company">
-            <option value="">Select company…</option>
-            <option>Acme Corp</option>
-            <option>Beta LLC</option>
-            <option>Gamma SA</option>
-          </select>
+        <!-- Sezione contatto -->
+        <div class="form-group form-grid--full" style="margin-bottom:0;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);padding:8px 0 2px;" data-i18n="cl.section_contact">Contatto principale</div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:2px 0 10px;"/>
         </div>
-        <div class="field">
-          <label>Client / Business Name *</label>
-          <input type="text" id="f-name" placeholder="e.g. Orion Tech Srl"/>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_referente">Nome referente</label>
+          <input class="form-input" id="f-referente" type="text" placeholder="Mario Rossi"/>
         </div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>VAT Number</label>
-          <input type="text" id="f-vat" placeholder="e.g. IT12345678901"/>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_email">Email *</label>
+          <input class="form-input" id="f-email" type="email" placeholder="info@azienda.it"/>
         </div>
-        <div class="field">
-          <label>Destination Code (SDI)</label>
-          <input type="text" id="f-sdi" placeholder="e.g. XXXXXXX"/>
-          <span class="field-hint">7-character code for e-invoicing</span>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_pec">PEC</label>
+          <input class="form-input" id="f-pec" type="email" placeholder="azienda@pec.it"/>
         </div>
-      </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_phone">Telefono</label>
+          <input class="form-input" id="f-phone" type="tel" placeholder="+39 02…"/>
+        </div>
 
-      <div class="form-section-title" style="margin-top:4px;">Contact</div>
-      <hr class="form-divider"/>
-      <div class="field-row">
-        <div class="field">
-          <label>Contact Email *</label>
-          <input type="email" id="f-email" placeholder="contact@company.com"/>
+        <!-- Sezione indirizzo -->
+        <div class="form-group form-grid--full" style="margin-bottom:0;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);padding:8px 0 2px;" data-i18n="cl.section_address">Indirizzo</div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:2px 0 10px;"/>
         </div>
-        <div class="field">
-          <label>PEC (Certified Email)</label>
-          <input type="email" id="f-pec" placeholder="company@pec.it"/>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_city">Città</label>
+          <input class="form-input" id="f-city" type="text" placeholder="Milano"/>
         </div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Phone</label>
-          <input type="tel" id="f-phone" placeholder="+39 02 0000000"/>
+        <div class="form-group form-grid--full">
+          <label class="form-label" data-i18n="cl.f_address">Indirizzo completo</label>
+          <input class="form-input" id="f-address" type="text" placeholder="Via Esempio 12, 20121 Milano"/>
         </div>
-        <div class="field">
-          <label>City</label>
-          <input type="text" id="f-city" placeholder="e.g. Milan"/>
+        <div class="form-group form-grid--full">
+          <label class="form-label" data-i18n="cl.f_notes">Note</label>
+          <textarea class="form-input" id="f-notes" rows="2" style="resize:vertical;" placeholder="Eventuali note…"></textarea>
         </div>
-      </div>
 
-      <div class="form-section-title" style="margin-top:4px;">Address</div>
-      <hr class="form-divider"/>
-      <div class="field-row cols-1">
-        <div class="field">
-          <label>Full Address</label>
-          <input type="text" id="f-address" placeholder="Via Example 12, 20121 Milan, Italy"/>
-        </div>
+        <!-- Invito portale -->
+        <label class="form-group form-grid--full" style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:12px;background:var(--brand-50);border:1px solid rgba(10,92,54,.15);border-radius:var(--radius-md);margin-top:4px;">
+          <input type="checkbox" id="f-portal" style="margin-top:3px;accent-color:var(--brand-500);"/>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--brand-600);" data-i18n="cl.f_invite_title">Crea utente portale</div>
+            <div style="font-size:12px;color:var(--gray-600);" data-i18n="cl.f_invite_desc">Invia invito email al cliente per accedere al portale</div>
+          </div>
+        </label>
       </div>
-
-      <div class="form-section-title" style="margin-top:4px;">Notes</div>
-      <hr class="form-divider"/>
-      <div class="field-row cols-1">
-        <div class="field">
-          <textarea id="f-notes" placeholder="Any additional notes about this client…"></textarea>
-        </div>
-      </div>
-
-      <label class="checkbox-row">
-        <input type="checkbox" id="f-portal"/>
-        <div>
-          <strong>Create portal user</strong>
-          <span>Invite this client to access the client portal with their email</span>
-        </div>
-      </label>
-
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" id="modal-cancel-btn">Cancel</button>
-      <button class="btn btn-primary" id="modal-save-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-        Save Client
-      </button>
+    <div class="modal-footer" style="padding:0 24px 20px;">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-add-client').classList.remove('open')" data-i18n="modal.cancel">Annulla</button>
+      <button class="btn btn-primary" id="modal-save-btn" data-i18n="modal.save">Salva</button>
     </div>
   </div>
 </div>
 
-<!-- Toast container (reuse from dash.js pattern) -->
-<div id="toast-container" style="position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;"></div>
+<div id="toast-container" class="toast-container"></div>
 
-<script src="assets/js/dash.js"></script>
-<script>
-/* ========================================================
-   CLIENTS PAGE — Vanilla JS
-======================================================== */
-(function() {
-
-  /* --- Sample data --- */
-  const CLIENTS = [
-    { id:1, company:'Acme Corp',  name:'Orion Tech',       city:'Milan',    email:'contact@oriontech.io',     phone:'+39 02 1234567',  status:'active'   },
-    { id:2, company:'Acme Corp',  name:'Vega Systems',     city:'Rome',     email:'info@vegasys.com',         phone:'+39 06 9876543',  status:'active'   },
-    { id:3, company:'Beta LLC',   name:'Solaris GmbH',     city:'Berlin',   email:'admin@solaris.de',         phone:'+49 30 9990000',  status:'pending'  },
-    { id:4, company:'Acme Corp',  name:'Nexar Industries', city:'Turin',    email:'ops@nexar.co',             phone:'+39 011 5554444', status:'active'   },
-    { id:5, company:'Gamma SA',   name:'Atlas Partners',   city:'Paris',    email:'legal@atlaspartners.eu',   phone:'+33 1 4444 0000', status:'active'   },
-    { id:6, company:'Beta LLC',   name:'Helix Corp',       city:'London',   email:'hello@helixcorp.co.uk',    phone:'+44 20 71234567', status:'inactive' },
-    { id:7, company:'Acme Corp',  name:'Zeta Solutions',   city:'Naples',   email:'info@zetasolutions.it',    phone:'+39 081 1122334', status:'pending'  },
-    { id:8, company:'Gamma SA',   name:'Apex Dynamics',    city:'Madrid',   email:'contact@apexdyn.es',       phone:'+34 91 0000900',  status:'active'   },
-    { id:9, company:'Acme Corp',  name:'Nordic AS',        city:'Oslo',     email:'post@nordicgroup.no',      phone:'+47 22 111 222',  status:'active'   },
-    { id:10,company:'Beta LLC',   name:'Meridian SA',      city:'Zurich',   email:'info@meridian.ch',         phone:'+41 44 1234567',  status:'active'   },
-    { id:11,company:'Acme Corp',  name:'Bluewave Ltd',     city:'Dublin',   email:'info@bluewave.ie',         phone:'+353 1 234 5678', status:'pending'  },
-    { id:12,company:'Gamma SA',   name:'Crestline BV',     city:'Amsterdam',email:'hello@crestline.nl',       phone:'+31 20 1234567',  status:'active'   },
-  ];
-
-  const PER_PAGE = 10;
-  let filtered = [...CLIENTS];
-  let currentPage = 1;
-  let sortCol = 'name';
-  let sortDir = 1;
-
-  /* --- DOM refs --- */
-  const tbody   = document.getElementById('clients-tbody');
-  const search  = document.getElementById('tbl-search');
-  const fComp   = document.getElementById('filter-company');
-  const fStatus = document.getElementById('filter-status');
-  const pInfo   = document.getElementById('pagination-info');
-  const pNav    = document.getElementById('pagination');
-  const clearBtn= document.getElementById('btn-clear-filters');
-
-  /* --- Filter & sort --- */
-  function applyFilters() {
-    const q   = search.value.toLowerCase();
-    const co  = fComp.value;
-    const st  = fStatus.value;
-    filtered = CLIENTS.filter(c => {
-      const matchQ  = !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || c.city.toLowerCase().includes(q);
-      const matchCo = co === 'all' || c.company === co;
-      const matchSt = st === 'all' || c.status === st;
-      return matchQ && matchCo && matchSt;
-    });
-    filtered.sort((a,b) => {
-      const av = (a[sortCol]||'').toLowerCase();
-      const bv = (b[sortCol]||'').toLowerCase();
-      return av < bv ? -sortDir : av > bv ? sortDir : 0;
-    });
-    currentPage = 1;
-    render();
-  }
-
-  /* --- Render table --- */
-  function render() {
-    const start = (currentPage-1)*PER_PAGE;
-    const page  = filtered.slice(start, start+PER_PAGE);
-    if (!page.length) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 16.318A4.486 4.486 0 0 0 12.016 15a4.486 4.486 0 0 0-3.198 1.318M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z"/></svg>
-        No clients match your filters.</div></td></tr>`;
-    } else {
-      tbody.innerHTML = page.map(c => `
-        <tr>
-          <td><span style="font-size:11px;color:var(--gray-400);">${c.company}</span></td>
-          <td><div class="td-avatar">
-            <div class="avatar-sm" style="background:hsl(${(c.id*53)%360},55%,55%);">${c.name.slice(0,2).toUpperCase()}</div>
-            <div><div class="td-main">${c.name}</div></div>
-          </div></td>
-          <td>${c.city}</td>
-          <td><a href="mailto:${c.email}" style="color:var(--brand-500);">${c.email}</a></td>
-          <td style="white-space:nowrap;">${c.phone}</td>
-          <td><span class="pill pill-${c.status}">${c.status.charAt(0).toUpperCase()+c.status.slice(1)}</span></td>
-          <td>
-            <div class="row-actions">
-              <button class="btn btn-secondary btn-sm btn-icon" title="Edit" onclick="editClient(${c.id})">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
-              </button>
-              <button class="btn btn-ghost btn-sm btn-icon" title="Delete" onclick="deleteClient(${c.id})" style="color:var(--danger-text);">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
-              </button>
-            </div>
-          </td>
-        </tr>`).join('');
-    }
-    renderPagination();
-  }
-
-  function renderPagination() {
-    const total = filtered.length;
-    const pages = Math.ceil(total/PER_PAGE);
-    const start = Math.min((currentPage-1)*PER_PAGE+1, total);
-    const end   = Math.min(currentPage*PER_PAGE, total);
-    pInfo.textContent = total ? `Showing ${start}–${end} of ${total} clients` : 'No clients found';
-    pNav.innerHTML = '';
-    if (pages <= 1) return;
-    const addBtn = (label, page, disabled, isActive) => {
-      const b = document.createElement('button');
-      b.className = 'page-btn' + (isActive ? ' active':'');
-      b.innerHTML = label; b.disabled = disabled;
-      b.onclick = () => { currentPage=page; render(); };
-      pNav.appendChild(b);
-    };
-    addBtn('«', 1, currentPage===1, false);
-    for (let i=1;i<=pages;i++) {
-      if (pages>7 && i>2 && i<pages-1 && Math.abs(i-currentPage)>1) {
-        if (i===3 || i===pages-2) { const s=document.createElement('span'); s.textContent='…'; s.dash.cssText='padding:0 6px;color:var(--gray-400);font-size:var(--text-sm);'; pNav.appendChild(s); }
-        continue;
-      }
-      addBtn(i, i, false, i===currentPage);
-    }
-    addBtn('»', pages, currentPage===pages, false);
-  }
-
-  /* --- Sort by column --- */
-  document.querySelectorAll('[data-sort]').forEach(th => {
-    th.style.cursor='pointer';
-    th.onclick = () => {
-      const col=th.dataset.sort;
-      if (sortCol===col) sortDir=-sortDir; else { sortCol=col; sortDir=1; }
-      applyFilters();
-    };
-  });
-
-  /* --- Event bindings --- */
-  search.addEventListener('input', applyFilters);
-  fComp.addEventListener('change', applyFilters);
-  fStatus.addEventListener('change', applyFilters);
-  clearBtn.addEventListener('click', () => {
-    search.value=''; fComp.value='all'; fStatus.value='all'; applyFilters();
-  });
-
-  /* --- Modal --- */
-  const modal = document.getElementById('modal-add-client');
-  document.getElementById('btn-add-client').onclick = () => modal.classList.add('open');
-  document.getElementById('modal-close-btn').onclick  = () => modal.classList.remove('open');
-  document.getElementById('modal-cancel-btn').onclick = () => modal.classList.remove('open');
-  modal.addEventListener('click', e => { if(e.target===modal) modal.classList.remove('open'); });
-
-  document.getElementById('modal-save-btn').onclick = () => {
-    const name = document.getElementById('f-name').value.trim();
-    const email = document.getElementById('f-email').value.trim();
-    if (!name || !email) { alert('Client name and email are required.'); return; }
-    showToast('Client "'+name+'" saved successfully', 'success');
-    modal.classList.remove('open');
-  };
-
-  /* --- Global actions --- */
-  window.editClient   = (id) => showToast('Edit client #'+id+' (coming soon)', 'info');
-  window.deleteClient = (id) => { if(confirm('Delete this client?')) showToast('Client deleted','info'); };
-
-  /* --- Init --- */
-  applyFilters();
-
-})();
-</script>
+<!-- ==================== SCRIPTS ==================== -->
+<script src="assets/js/api.js?v=20"></script>
+<script src="assets/js/auth.js?v=20"></script>
+<script src="assets/js/ui.js?v=20"></script>
+<script src="assets/js/i18n.js?v=20"></script>
+<script src="assets/js/dash.js?v=20"></script>
+<script src="assets/js/admin_clients.js?v=20"></script>
+<script src="assets/js/global_search.js"></script>
 </body>
 </html>
-
-

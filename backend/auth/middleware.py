@@ -52,3 +52,9 @@ def require_admin(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
     if not user.is_admin:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin access required")
     return user
+
+
+def require_client(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+    if not user.client_id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Client access required")
+    return user

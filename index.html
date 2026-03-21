@@ -11,6 +11,11 @@
 </head>
 <body>
 
+<!-- TOP BAR -->
+<div id="top-bar">
+  <div id="lang-switcher-slot"></div>
+</div>
+
 <!-- NAV -->
 <nav id="site-nav">
   <div class="nav-pill">
@@ -27,9 +32,9 @@
       <button class="nav-link" data-scroll="#site-footer">About</button>
     </div>
     <div class="nav-cta">
-      <button class="btn-nav-ghost" onclick="location.href='login.html'">Sign in</button>
+      <button class="btn-nav-ghost" onclick="location.href='login.html'" data-i18n="index.cta_login">Sign in</button>
       <button class="btn-nav-primary" onclick="location.href='login.html'">
-        Get Started
+        <span data-i18n="index.cta_demo">Get Started</span>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
       </button>
     </div>
@@ -47,7 +52,7 @@
     <button class="mobile-menu-link" data-scroll="#contact">Pricing</button>
     <button class="mobile-menu-link" data-scroll="#site-footer">About</button>
     <div class="mobile-divider"></div>
-    <button class="mobile-menu-link" onclick="location.href='login.html'" style="color:#fff;font-weight:700">Get Started →</button>
+    <button class="mobile-menu-link" onclick="location.href='login.html'" style="color:#fff;font-weight:700">Get Started â†’</button>
   </div>
 </div>
 
@@ -153,7 +158,7 @@
               <div class="cal-cell">8</div><div class="cal-cell">9</div><div class="cal-cell">10</div><div class="cal-cell">11</div><div class="cal-cell">12</div><div class="cal-cell weekend">13</div><div class="cal-cell weekend">14</div>
               <div class="cal-cell">15</div><div class="cal-cell">16</div><div class="cal-cell">17</div><div class="cal-cell">18</div><div class="cal-cell">19</div><div class="cal-cell weekend">20</div><div class="cal-cell weekend">21</div>
             </div>
-            <div class="cal-note">✓ Appointment booked for the 15th</div>
+            <div class="cal-note">âœ“ Appointment booked for the 15th</div>
           </div>
           <h3 class="feat-card-title">Contract Renewals</h3>
           <p class="feat-card-desc">Track expiry dates, receive timely alerts, and manage contract lifecycle from a single view.</p>
@@ -173,9 +178,9 @@
         <!-- Leads -->
         <div class="feat-card" data-demo="leads">
           <div class="demo-area">
-            <div class="lead-row"><span class="lead-name">Marco R.</span><div class="lead-track"><div class="lead-bar"></div></div><span class="lead-pct">0%</span><span class="lead-check">✓</span></div>
-            <div class="lead-row"><span class="lead-name">Lena M.</span><div class="lead-track"><div class="lead-bar"></div></div><span class="lead-pct">0%</span><span class="lead-check">✓</span></div>
-            <div class="lead-row"><span class="lead-name">James W.</span><div class="lead-track"><div class="lead-bar"></div></div><span class="lead-pct">0%</span><span class="lead-check">✓</span></div>
+            <div class="lead-row"><span class="lead-name">Marco R.</span><div class="lead-track"><div class="lead-bar"></div></div><span class="lead-pct">0%</span><span class="lead-check">âœ“</span></div>
+            <div class="lead-row"><span class="lead-name">Lena M.</span><div class="lead-track"><div class="lead-bar"></div></div><span class="lead-pct">0%</span><span class="lead-check">âœ“</span></div>
+            <div class="lead-row"><span class="lead-name">James W.</span><div class="lead-track"><div class="lead-bar"></div></div><span class="lead-pct">0%</span><span class="lead-check">âœ“</span></div>
           </div>
           <h3 class="feat-card-title">Revenue Analytics</h3>
           <p class="feat-card-desc">Real-time KPIs, monthly revenue trends, and client health scores — all on your dashboard.</p>
@@ -225,10 +230,10 @@
       <!-- Column 2 -->
       <div class="testi-col">
         <div class="testi-col-inner">
-          <div class="testi-card"><p class="testi-card-text">"The client portal is a game changer. Our clients love being able to access their documents and invoices at any time."</p><div class="testi-card-author"><div class="testi-avatar">LM</div><div><div class="testi-card-name">Lena Müller</div><div class="testi-card-role">Operations, Vega Systems</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"The client portal is a game changer. Our clients love being able to access their documents and invoices at any time."</p><div class="testi-card-author"><div class="testi-avatar">LM</div><div><div class="testi-card-name">Lena MÃ¼ller</div><div class="testi-card-role">Operations, Vega Systems</div></div></div></div>
           <div class="testi-card"><p class="testi-card-text">"Client satisfaction scores improved dramatically. People love the instant responses and having all their documents in one place."</p><div class="testi-card-author"><div class="testi-avatar">DK</div><div><div class="testi-card-name">David Kim</div><div class="testi-card-role">CX Manager</div></div></div></div>
           <div class="testi-card"><p class="testi-card-text">"Property inquiries handled instantly. We've closed 3x more contracts since implementing Nexus as our management platform."</p><div class="testi-card-author"><div class="testi-avatar">JW</div><div><div class="testi-card-name">James Wilson</div><div class="testi-card-role">Real Estate Broker</div></div></div></div>
-          <div class="testi-card"><p class="testi-card-text">"The client portal is a game changer. Our clients love being able to access their documents and invoices at any time."</p><div class="testi-card-author"><div class="testi-avatar">LM</div><div><div class="testi-card-name">Lena Müller</div><div class="testi-card-role">Operations, Vega Systems</div></div></div></div>
+          <div class="testi-card"><p class="testi-card-text">"The client portal is a game changer. Our clients love being able to access their documents and invoices at any time."</p><div class="testi-card-author"><div class="testi-avatar">LM</div><div><div class="testi-card-name">Lena MÃ¼ller</div><div class="testi-card-role">Operations, Vega Systems</div></div></div></div>
           <div class="testi-card"><p class="testi-card-text">"Client satisfaction scores improved dramatically. People love the instant responses and having all their documents in one place."</p><div class="testi-card-author"><div class="testi-avatar">DK</div><div><div class="testi-card-name">David Kim</div><div class="testi-card-role">CX Manager</div></div></div></div>
           <div class="testi-card"><p class="testi-card-text">"Property inquiries handled instantly. We've closed 3x more contracts since implementing Nexus as our management platform."</p><div class="testi-card-author"><div class="testi-avatar">JW</div><div><div class="testi-card-name">James Wilson</div><div class="testi-card-role">Real Estate Broker</div></div></div></div>
         </div>
@@ -309,11 +314,12 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <span>© 2026 Nexus. All rights reserved.</span>
+    <span>Â© 2026 Nexus. All rights reserved.</span>
     <span>Made with care for growing businesses.</span>
   </div>
 </footer>
 
+<script src="assets/js/i18n.js"></script>
 <script src="assets/js/site.js"></script>
 </body>
 </html>

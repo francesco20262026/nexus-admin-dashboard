@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nexus — Scheda Cliente</title>
+  <meta name="description" content="Scheda 360° del cliente: anagrafica, servizi, contratti, fatture, documenti, rinnovi, Windoc."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/css/dash.css?v=20"/>
+  <style>
+    /* Tab nav for detail page */
+    .detail-tabs { display:flex; gap:4px; flex-wrap:wrap; padding:0 0 0 0; border-bottom:1px solid var(--border); margin-bottom:0; }
+    .detail-tab  { padding:10px 16px; font-size:13px; font-weight:500; color:var(--gray-500); border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:color .15s,border-color .15s; white-space:nowrap; }
+    .detail-tab:hover  { color:var(--gray-800); }
+    .detail-tab.active { color:var(--brand-600); border-bottom-color:var(--brand-500); font-weight:600; }
+    .detail-panel { display:none; }
+    .detail-panel.active { display:block; }
+    /* info grid */
+    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    @media(max-width:640px){ .info-grid { grid-template-columns:1fr; } }
+    .info-field { display:flex; flex-direction:column; gap:3px; }
+    .info-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--gray-400); }
+    .info-val   { font-size:14px; color:var(--gray-900); }
+    /* summary KPI chips row */
+    .cd-chips { display:flex; gap:12px; flex-wrap:wrap; margin:16px 0; }
+    .cd-chip  { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 16px; display:flex; flex-direction:column; gap:2px; flex:1; min-width:100px; }
+    .cd-chip-val { font-size:22px; font-weight:700; color:var(--gray-900); }
+    .cd-chip-lbl { font-size:11px; color:var(--gray-500); }
+    /* windoc status colors */
+    .wdoc-ok   { color:var(--color-success); }
+    .wdoc-err  { color:var(--color-danger);  }
+    .wdoc-warn { color:var(--color-warning); }
+  </style>
+</head>
+<body>
+<div class="shell" id="shell">
+
+<!-- ==================== SIDEBAR ==================== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
+    </div>
+    <span class="brand-name">Nexus</span>
+  </div>
+  <nav class="sidebar-nav avatar-colors">
+    <div class="nav-section-label" data-i18n="nav.main">Principale</div>
+    <a class="nav-item" href="admin_dash.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
+    </a>
+    <a class="nav-item" href="admin_onboarding.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+      <span class="nav-label" data-i18n="nav.onboarding">Onboarding</span>
+    </a>
+    <div class="nav-section-label" data-i18n="nav.management">Gestione</div>
+    <a class="nav-item active" href="admin_clients.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+      <span class="nav-label" data-i18n="nav.clients">Clienti</span>
+    </a>
+    <a class="nav-item" href="admin_services.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+      <span class="nav-label" data-i18n="nav.services">Servizi</span>
+    </a>
+    <a class="nav-item" href="admin_contracts.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+      <span class="nav-label" data-i18n="nav.contracts">Contratti</span>
+    </a>
+    <a class="nav-item" href="admin_documents.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+      <span class="nav-label" data-i18n="nav.documents">Documenti</span>
+    </a>
+    <div class="nav-section-label" data-i18n="nav.finance">Finanza</div>
+    <a class="nav-item" href="admin_invoices.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
+      <span class="nav-label" data-i18n="nav.invoices">Fatture</span>
+      <span class="nav-badge" id="nav-badge-invoices" style="display:none"></span>
+    </a>
+    <a class="nav-item" href="admin_renewals.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+      <span class="nav-label" data-i18n="nav.renewals">Rinnovi</span>
+    </a>
+    <div class="nav-section-label" data-i18n="nav.analytics">Analisi</div>
+    <a class="nav-item" href="admin_reports.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+      <span class="nav-label" data-i18n="nav.reports">Report</span>
+    </a>
+    <div class="nav-section-label" data-i18n="nav.system">Sistema</div>
+    <a class="nav-item" href="admin_settings.html?v=20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+      <span class="nav-label" data-i18n="nav.settings">Impostazioni</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-item" style="gap:10px;">
+      <div class="avatar" style="width:30px;height:30px;font-size:11px;" id="sidebar-avatar">–</div>
+      <div style="overflow:hidden;">
+        <div class="nav-label" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="sidebar-name">—</div>
+        <div class="nav-label" style="color:var(--gray-500);font-size:11px;">Admin</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<script src="components/header.js?v=20"></script>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+
+  <!-- Page header -->
+  <div class="page-header" style="align-items:flex-start;">
+    <div style="flex:1;min-width:0;">
+      <a href="admin_clients.html?v=20" class="link-brand" style="font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;" data-i18n="cl.back">
+        <svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+        Clienti
+      </a>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <h1 class="page-title" id="cd-title" style="margin:0;">…</h1>
+        <span id="cd-status-pill"></span>
+      </div>
+      <p class="page-subtitle" id="cd-subtitle" style="margin:4px 0 0;">—</p>
+    </div>
+    <div class="page-header-actions">
+      <button class="btn btn-secondary" id="cd-btn-edit" data-i18n="common.edit">Modifica</button>
+    </div>
+  </div>
+
+  <!-- Summary KPI chips -->
+  <div class="cd-chips" id="cd-chips">
+    <div class="cd-chip"><div class="cd-chip-val" id="chip-services">—</div><div class="cd-chip-lbl" data-i18n="cl.chip_services">Servizi attivi</div></div>
+    <div class="cd-chip"><div class="cd-chip-val" id="chip-invoices">—</div><div class="cd-chip-lbl" data-i18n="cl.chip_invoices">Fatture aperte</div></div>
+    <div class="cd-chip"><div class="cd-chip-val" id="chip-contracts">—</div><div class="cd-chip-lbl" data-i18n="cl.chip_contracts">Contratti attivi</div></div>
+    <div class="cd-chip"><div class="cd-chip-val" id="chip-docs">—</div><div class="cd-chip-lbl" data-i18n="cl.chip_docs">Documenti</div></div>
+    <div class="cd-chip"><div class="cd-chip-val" id="chip-renewals">—</div><div class="cd-chip-lbl" data-i18n="cl.chip_renewals">Rinnovi</div></div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="detail-tabs" id="cd-tabs">
+    <button class="detail-tab active" data-panel="anagrafica" data-i18n="cl.tab_anagrafica">Anagrafica</button>
+    <button class="detail-tab" data-panel="contacts"   data-i18n="cl.tab_contacts">Contatti</button>
+    <button class="detail-tab" data-panel="services"   data-i18n="cl.tab_services">Servizi</button>
+    <button class="detail-tab" data-panel="contracts"  data-i18n="cl.tab_contracts">Contratti</button>
+    <button class="detail-tab" data-panel="documents"  data-i18n="cl.tab_documents">Documenti</button>
+    <button class="detail-tab" data-panel="invoices"   data-i18n="cl.tab_invoices">Fatture</button>
+    <button class="detail-tab" data-panel="renewals"   data-i18n="cl.tab_renewals">Rinnovi</button>
+    <button class="detail-tab" data-panel="windoc"     data-i18n="cl.tab_windoc">Windoc Sync</button>
+  </div>
+
+  <!-- ① ANAGRAFICA -->
+  <div class="detail-panel active" id="panel-anagrafica" style="padding-top:20px;">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title" data-i18n="cl.tab_anagrafica">Anagrafica</h2>
+        <button class="btn btn-ghost btn-sm" id="cd-btn-edit-anag" data-i18n="common.edit">Modifica</button>
+      </div>
+      <div style="padding:20px;" id="cd-anag-grid">
+        <div class="info-grid">
+          <div class="info-field"><div class="info-label skeleton skeleton-text short"></div><div class="info-val skeleton skeleton-text"></div></div>
+          <div class="info-field"><div class="info-label skeleton skeleton-text short"></div><div class="info-val skeleton skeleton-text"></div></div>
+          <div class="info-field"><div class="info-label skeleton skeleton-text short"></div><div class="info-val skeleton skeleton-text"></div></div>
+          <div class="info-field"><div class="info-label skeleton skeleton-text short"></div><div class="info-val skeleton skeleton-text"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② CONTATTI -->
+  <div class="detail-panel" id="panel-contacts" style="padding-top:20px;">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title" data-i18n="cl.tab_contacts">Contatti</h2>
+        <button class="btn btn-primary btn-sm" id="cd-btn-add-contact" data-i18n="cl.add_contact">Aggiungi contatto</button>
+      </div>
+      <div id="cd-contacts-list">
+        <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text skeleton"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ SERVIZI -->
+  <div class="detail-panel" id="panel-services" style="padding-top:20px;">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title" data-i18n="cl.tab_services">Servizi attivi</h2>
+        <button class="btn btn-primary btn-sm" id="cd-btn-add-service" data-i18n="cl.add_service">Aggiungi servizio</button>
+      </div>
+      <div id="cd-services-list">
+        <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text skeleton"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ CONTRATTI -->
+  <div class="detail-panel" id="panel-contracts" style="padding-top:20px;">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title" data-i18n="cl.tab_contracts">Contratti</h2>
+        <a class="btn btn-primary btn-sm" id="cd-link-contracts" href="#" data-i18n="cl.view_all_contracts">Vedi tutti</a>
+      </div>
+      <div id="cd-contracts-list">
+        <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text skeleton"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ DOCUMENTI -->
+  <div class="detail-panel" id="panel-documents" style="padding-top:20px;">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title" data-i18n="cl.tab_documents">Documenti</h2>
+        <a class="btn btn-primary btn-sm" id="cd-link-docs" href="#" data-i18n="cl.view_all_docs">Vedi tutti</a>
+      </div>
+      <div id="cd-docs-list">
+        <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text skeleton"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑥ FATTURE -->
+  <div class="detail-panel" id="panel-invoices" style="padding-top:20px;">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title" data-i18n="cl.tab_invoices">Fatture</h2>
+        <a class="btn btn-primary btn-sm" id="cd-link-invoices" href="#" data-i18n="cl.view_all_invoices">Vedi tutte</a>
+      </div>
+      <div id="cd-invoices-list">
+        <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text skeleton"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑦ RINNOVI -->
+  <div class="detail-panel" id="panel-renewals" style="padding-top:20px;">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title" data-i18n="cl.tab_renewals">Rinnovi</h2>
+        <a class="btn btn-secondary btn-sm" id="cd-link-renewals" href="#" data-i18n="cl.view_all_renewals">Vedi tutti i rinnovi</a>
+      </div>
+      <div id="cd-renewals-list">
+        <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text skeleton"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑧ WINDOC SYNC -->
+  <div class="detail-panel" id="panel-windoc" style="padding-top:20px;">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title" data-i18n="cl.tab_windoc">Windoc Sync</h2>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm" id="cd-btn-windoc-verify" data-i18n="cl.windoc_verify">Verifica sync</button>
+          <button class="btn btn-primary btn-sm"   id="cd-btn-windoc-sync"   data-i18n="cl.windoc_sync">Invia / Aggiorna</button>
+        </div>
+      </div>
+      <div style="padding:20px;" id="cd-windoc-body">
+        <div class="skeleton-text skeleton" style="height:100px;border-radius:var(--radius-md);"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div><!-- end .shell -->
+
+<!-- ===== ADD SERVICE MODAL ===== -->
+<div class="modal-overlay" id="modal-add-service" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:480px;width:100%;">
+    <div class="modal-header" style="padding:20px 24px 0;">
+      <div class="modal-title" data-i18n="cl.add_service">Aggiungi servizio</div>
+      <button class="icon-btn" onclick="document.getElementById('modal-add-service').classList.remove('open')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div class="form-group">
+        <label class="form-label" data-i18n="cl.f_service">Servizio</label>
+        <select class="form-input" id="f-service-id"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="cl.f_cycle">Ciclo di fatturazione</label>
+        <select class="form-input" id="f-service-cycle">
+          <option value="monthly" data-i18n="cl.cycle_monthly">Mensile</option>
+          <option value="quarterly" data-i18n="cl.cycle_quarterly">Trimestrale</option>
+          <option value="annual" data-i18n="cl.cycle_annual">Annuale</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="cl.f_start_date">Data inizio</label>
+        <input class="form-input" type="date" id="f-service-start"/>
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:0 24px 20px;">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-add-service').classList.remove('open')" data-i18n="modal.cancel">Annulla</button>
+      <button class="btn btn-primary" id="modal-service-save" data-i18n="modal.save">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADD CONTACT MODAL ===== -->
+<div class="modal-overlay" id="modal-add-contact" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:440px;width:100%;">
+    <div class="modal-header" style="padding:20px 24px 0;">
+      <div class="modal-title" data-i18n="cl.add_contact">Aggiungi contatto</div>
+      <button class="icon-btn" onclick="document.getElementById('modal-add-contact').classList.remove('open')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_contact_name">Nome *</label>
+          <input class="form-input" id="fc-name" type="text" placeholder="Mario Rossi"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_contact_role">Ruolo</label>
+          <input class="form-input" id="fc-role" type="text" placeholder="CEO, Amministratore…"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_email">Email</label>
+          <input class="form-input" id="fc-email" type="email" placeholder="mario@azienda.it"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="cl.f_phone">Telefono</label>
+          <input class="form-input" id="fc-phone" type="tel" placeholder="+39…"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:0 24px 20px;">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-add-contact').classList.remove('open')" data-i18n="modal.cancel">Annulla</button>
+      <button class="btn btn-primary" id="modal-contact-save" data-i18n="modal.save">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script src="assets/js/api.js?v=20"></script>
+<script src="assets/js/auth.js?v=20"></script>
+<script src="assets/js/ui.js?v=20"></script>
+<script src="assets/js/i18n.js?v=20"></script>
+<script src="assets/js/dash.js?v=20"></script>
+<script src="assets/js/admin_client_detail.js?v=20"></script>
+</body>
+</html>

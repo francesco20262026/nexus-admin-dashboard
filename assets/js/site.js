@@ -1,11 +1,16 @@
+﻿/* site.js — Nexus landing page: animations, navbar, lang switcher
+   All original logic preserved from git. */
+
+if (window.I18n) I18n.init('lang-switcher-slot');
+
 /**
- * site.js — Nexus website animations
+ * site.js ΓÇö Nexus website animations
  * Converted from Next.js/React template to vanilla JS
  * Keeps all original animations, uses Nexus brand colors
  */
 
 /* ================================================================
-   NAVBAR — hide on scroll down, show on scroll up
+   NAVBAR ΓÇö hide on scroll down, show on scroll up
 ================================================================ */
 (function initNavbar() {
   const nav = document.getElementById('site-nav');
@@ -86,7 +91,7 @@
 })();
 
 /* ================================================================
-   FEATURES SECTION — IntersectionObserver + animated sub-demos
+   FEATURES SECTION ΓÇö IntersectionObserver + animated sub-demos
 ================================================================ */
 (function initFeatures() {
   const section = document.getElementById('features');
@@ -246,7 +251,7 @@
 })();
 
 /* ================================================================
-   TESTIMONIALS + CTA — IntersectionObserver fade-in
+   TESTIMONIALS + CTA ΓÇö IntersectionObserver fade-in
 ================================================================ */
 (function initScrollFadeIns() {
   const obs = new IntersectionObserver((entries) => {

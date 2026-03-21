@@ -1,43 +1,31 @@
 /* ============================================================
-   NEXUS ADMIN — main.js
+   NEXUS ADMIN — dash.js
+   Shared app-shell behaviour for all admin and client pages.
    Vanilla JS — no dependencies
    ============================================================ */
 
 (function () {
   'use strict';
 
-  /* ---- Helpers ---- */
+  /* ──────────────────────────────────────────────────────────
+     Helpers
+  ────────────────────────────────────────────────────────── */
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
   const on = (el, ev, fn) => el && el.addEventListener(ev, fn);
 
-  /* ======================================================
-     0. SUPABASE CONFIGURATION
-  ====================================================== */
-  // Replace these with your actual Supabase project credentials
-  const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-  const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
-  
-  // The 'supabase' object is globally available from the CDN script in index.html
-  window.supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-  if (window.supabaseClient) {
-    console.log('✅ Supabase initialized successfully!');
-    // Example test query you can try later:
-    // async function testDb() { const { data } = await window.supabaseClient.from('clients').select('*'); console.log(data); }
-  } else {
-    console.warn('⚠️ Supabase JS library not loaded. Check index.html script tag.');
-  }
-
-  /* ======================================================
-     1. SIDEBAR TOGGLE (desktop collapse / mobile overlay)
-  ====================================================== */
-  const shell = $('#shell');
+  /* ──────────────────────────────────────────────────────────
+     1. SIDEBAR TOGGLE  (desktop collapse / mobile overlay)
+  ────────────────────────────────────────────────────────── */
+  const shell     = $('#shell');
   const toggleBtn = $('#sidebar-toggle');
 
   function isMobile() { return window.innerWidth <= 900; }
 
+  // All shell / sidebar operations are guarded — both elements
+  // are optional depending on the page layout.
   on(toggleBtn, 'click', () => {
+    if (!shell) return;
     if (isMobile()) {
       shell.classList.toggle('mobile-open');
     } else {
@@ -46,24 +34,22 @@
     }
   });
 
-  // Restore saved collapsed state on desktop
-  if (!isMobile() && localStorage.getItem('sidebar-collapsed') === 'true') {
+  if (shell && !isMobile() && localStorage.getItem('sidebar-collapsed') === 'true') {
     shell.classList.add('collapsed');
   }
 
   // Close mobile sidebar when clicking outside
   on(document, 'click', (e) => {
-    if (isMobile() && shell.classList.contains('mobile-open')) {
-      const sidebar = $('.sidebar');
-      if (!sidebar.contains(e.target) && e.target !== toggleBtn) {
-        shell.classList.remove('mobile-open');
-      }
+    if (!shell || !isMobile() || !shell.classList.contains('mobile-open')) return;
+    const sidebar = $('.sidebar');
+    if (sidebar && !sidebar.contains(e.target) && e.target !== toggleBtn) {
+      shell.classList.remove('mobile-open');
     }
   });
 
-  /* ======================================================
+  /* ──────────────────────────────────────────────────────────
      2. ACTIVE NAV ITEM
-  ====================================================== */
+  ────────────────────────────────────────────────────────── */
   $$('.nav-item').forEach(item => {
     on(item, 'click', () => {
       $$('.nav-item').forEach(n => n.classList.remove('active'));
@@ -71,9 +57,9 @@
     });
   });
 
-  /* ======================================================
+  /* ──────────────────────────────────────────────────────────
      3. DROPDOWN MENUS
-  ====================================================== */
+  ────────────────────────────────────────────────────────── */
   function closeAllDropdowns(except) {
     $$('.dropdown-wrap.open').forEach(d => {
       if (d !== except) d.classList.remove('open');
@@ -92,9 +78,9 @@
 
   on(document, 'click', () => closeAllDropdowns());
 
-  /* ======================================================
+  /* ──────────────────────────────────────────────────────────
      4. MODALS
-  ====================================================== */
+  ────────────────────────────────────────────────────────── */
   function openModal(id) {
     const overlay = $(`#${id}`);
     if (overlay) {
@@ -111,24 +97,20 @@
     }
   }
 
-  // Open triggers
   $$('[data-modal-open]').forEach(btn => {
     on(btn, 'click', () => openModal(btn.dataset.modalOpen));
   });
 
-  // Close triggers
   $$('[data-modal-close]').forEach(btn => {
     on(btn, 'click', () => closeModal(btn.dataset.modalClose));
   });
 
-  // Click overlay to close
   $$('.modal-overlay').forEach(overlay => {
     on(overlay, 'click', (e) => {
       if (e.target === overlay) closeModal(overlay.id);
     });
   });
 
-  // ESC key
   on(document, 'keydown', (e) => {
     if (e.key === 'Escape') {
       $$('.modal-overlay.open').forEach(o => closeModal(o.id));
@@ -136,9 +118,9 @@
     }
   });
 
-  /* ======================================================
+  /* ──────────────────────────────────────────────────────────
      5. TABS
-  ====================================================== */
+  ────────────────────────────────────────────────────────── */
   $$('.tabs').forEach(tabGroup => {
     $$('.tab-btn', tabGroup).forEach(btn => {
       on(btn, 'click', () => {
@@ -158,9 +140,9 @@
     });
   });
 
-  /* ======================================================
-     6. TABLE FILTERS (live search + select filter)
-  ====================================================== */
+  /* ──────────────────────────────────────────────────────────
+     6. TABLE FILTERS  (live search + select filter)
+  ────────────────────────────────────────────────────────── */
   $$('[data-filter-table]').forEach(container => {
     const tableId = container.dataset.filterTable;
     const table = $(`#${tableId}`);
@@ -197,22 +179,26 @@
     selects.forEach(s => on(s, 'change', applyFilters));
   });
 
-  /* ======================================================
+  /* ──────────────────────────────────────────────────────────
      7. SORTABLE TABLE HEADERS
-  ====================================================== */
+  ────────────────────────────────────────────────────────── */
   $$('th[data-sort]').forEach(th => {
     th.style.cursor = 'pointer';
-    th.title = 'Click to sort';
+    th.title = 'Ordina';
     on(th, 'click', () => {
       const table = th.closest('table');
-      const tbody = table.querySelector('tbody');
+      const tbody = table?.querySelector('tbody');
+      if (!tbody) return;
       const colIndex = [...th.parentElement.children].indexOf(th);
       const asc = th.dataset.sortDir !== 'asc';
       th.dataset.sortDir = asc ? 'asc' : 'desc';
 
-      // Reset all
       $$('th[data-sort]', table).forEach(t => {
-        if (t !== th) { t.dataset.sortDir = ''; t.querySelector('.sort-icon') && (t.querySelector('.sort-icon').textContent = ' ↕'); }
+        if (t !== th) {
+          t.dataset.sortDir = '';
+          const icon = t.querySelector('.sort-icon');
+          if (icon) icon.textContent = ' ↕';
+        }
       });
 
       const icon = th.querySelector('.sort-icon');
@@ -222,26 +208,28 @@
       rows.sort((a, b) => {
         const aVal = a.children[colIndex]?.textContent.trim() || '';
         const bVal = b.children[colIndex]?.textContent.trim() || '';
-        return asc ? aVal.localeCompare(bVal, undefined, {numeric: true}) : bVal.localeCompare(aVal, undefined, {numeric: true});
+        return asc
+          ? aVal.localeCompare(bVal, undefined, { numeric: true })
+          : bVal.localeCompare(aVal, undefined, { numeric: true });
       });
       rows.forEach(r => tbody.appendChild(r));
     });
   });
 
-  /* ======================================================
-     8. SIMPLE BAR CHART RENDERER
-  ====================================================== */
+  /* ──────────────────────────────────────────────────────────
+     8. BAR CHART RENDERER
+  ────────────────────────────────────────────────────────── */
   function renderBarChart(containerId, data, options = {}) {
     const container = $(`#${containerId}`);
     if (!container) return;
     const { color = 'var(--brand-500)', maxVal } = options;
     const max = maxVal || Math.max(...data.map(d => d.value));
 
-    const barsEl = $('.chart-placeholder', container);
+    const barsEl   = $('.chart-placeholder', container);
     const labelsEl = $('.chart-x-labels', container);
     if (!barsEl || !labelsEl) return;
 
-    barsEl.innerHTML = '';
+    barsEl.innerHTML   = '';
     labelsEl.innerHTML = '';
 
     data.forEach(d => {
@@ -264,38 +252,125 @@
     });
   }
 
-  // Dashboard revenue chart data
-  renderBarChart('revenue-chart', [
-    { label: 'Sep', value: 38000, secondary: true },
-    { label: 'Oct', value: 52000, secondary: true },
-    { label: 'Nov', value: 44000, secondary: true },
-    { label: 'Dec', value: 61000, secondary: true },
-    { label: 'Jan', value: 55000, secondary: true },
-    { label: 'Feb', value: 67000, secondary: true },
-    { label: 'Mar', value: 74000 },
-  ]);
+  window.renderBarChart = renderBarChart;
 
-  /* ======================================================
+  /* ──────────────────────────────────────────────────────────
      9. COMPANY SELECTOR
-  ====================================================== */
-  const companyItems = $$('[data-company]');
-  const companyLabel = $('#company-label');
+     Companies are loaded from the JWT token (stored at login as
+     'nexus_companies') and rendered dynamically.
+     "Tutte le aziende" is always shown first — it resets the
+     active company filter without triggering a backend switch.
+  ────────────────────────────────────────────────────────── */
+  (function initCompanySelector() {
+    const list         = $('#company-list');
+    const companyLabel = $('#company-label');
+    const dot          = $('#company-dot');
 
-  companyItems.forEach(item => {
-    on(item, 'click', () => {
-      if (companyLabel) companyLabel.textContent = item.dataset.company;
-      const dot = $('#company-dot');
-      if (dot && item.dataset.color) {
-        dot.style.background = item.dataset.color;
-        dot.textContent = item.dataset.company[0];
+    if (!list) return;
+
+    // ── Colour palette (cycles if more than N companies) ─────
+    const PALETTE = [
+      'var(--brand-500)',
+      'var(--violet-500)',
+      'var(--blue-500)',
+      'var(--success-500)',
+      'var(--warning-500)',
+    ];
+
+    // ── Read companies from login response stored in localStorage
+    let companies = [];
+    try {
+      const raw = localStorage.getItem('nexus_companies');
+      if (raw) companies = JSON.parse(raw);
+    } catch (_) {}
+
+    // ── Also try reading from JWT payload as fallback ─────────
+    if (!companies.length && window.Auth?.getPayload) {
+      const p = Auth.getPayload();
+      if (p?.active_company_id) {
+        companies = [{ company_id: p.active_company_id, name: p.company_name || p.active_company_id }];
       }
-      showToast(`Switched to ${item.dataset.company}`, 'info');
-    });
-  });
+    }
 
-  /* ======================================================
+    // ── Restore current selection from storage ────────────────
+    const savedId    = localStorage.getItem('nexus_active_company_id');
+    const savedName  = localStorage.getItem('nexus_active_company_name') || savedId || '-';
+    const savedColor = localStorage.getItem('nexus_active_company_color') || PALETTE[0];
+
+    if (companyLabel) companyLabel.textContent = savedName;
+    if (dot) {
+      dot.style.background = savedColor;
+      dot.textContent = savedName[0]?.toUpperCase() || '?';
+    }
+
+    // ── Click handler shared by all company buttons ───────────
+    function selectCompany(companyId, name, color) {
+      if (companyLabel) companyLabel.textContent = name;
+      if (dot) {
+        dot.style.background = color;
+        dot.textContent = name[0]?.toUpperCase() || '?';
+      }
+
+      localStorage.setItem('nexus_active_company_name',  name);
+      localStorage.setItem('nexus_active_company_color', color);
+
+      if (companyId === '__all__') {
+        // "Tutte" — clear active company filter, keep pages in read-all mode
+        localStorage.removeItem('nexus_active_company_id');
+        localStorage.removeItem('nexus_active_company');
+        window.dispatchEvent(new CustomEvent('companyChanged', { detail: null }));
+        showToast('Visualizzazione: tutte le aziende', 'info');
+      } else {
+        if (window.Auth?.setActiveCompany) {
+          Auth.setActiveCompany(companyId);
+        } else {
+          localStorage.setItem('nexus_active_company_id', companyId);
+          localStorage.setItem('nexus_active_company',    companyId);
+          window.dispatchEvent(new CustomEvent('companyChanged', { detail: companyId }));
+        }
+        const msg = window.I18n?.t('header.switch_company') || 'Azienda cambiata';
+        showToast(`${msg}: ${name}`, 'info');
+      }
+    }
+
+    // ── Build item HTML helper ────────────────────────────────
+    function buildItem(companyId, name, color) {
+      const btn = document.createElement('button');
+      btn.className = 'dropdown-item';
+      btn.innerHTML = `
+        <span class="company-dot" style="background:${color};width:16px;height:16px;font-size:9px;flex-shrink:0;">
+          ${name[0]?.toUpperCase() || '?'}
+        </span>
+        <span>${name}</span>
+      `;
+      btn.addEventListener('click', () => selectCompany(companyId, name, color));
+      return btn;
+    }
+
+    // ── Render ────────────────────────────────────────────────
+    list.innerHTML = '';
+
+    // "Tutte le aziende" always first
+    list.appendChild(buildItem('__all__', 'Tutte le aziende', 'var(--gray-400)'));
+
+    if (companies.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:6px 12px;font-size:12px;color:var(--gray-400);';
+      empty.textContent = 'Nessuna azienda disponibile';
+      list.appendChild(empty);
+    } else {
+      companies.forEach((c, i) => {
+        const name  = c.name || c.company_name || c.company_id || `Azienda ${i + 1}`;
+        const color = PALETTE[i % PALETTE.length];
+        list.appendChild(buildItem(c.company_id, name, color));
+      });
+    }
+  })();
+
+
+  /* ──────────────────────────────────────────────────────────
      10. TOAST NOTIFICATIONS
-  ====================================================== */
+  ────────────────────────────────────────────────────────── */
   function showToast(message, type = 'info', duration = 3500) {
     let container = $('.toast-container');
     if (!container) {
@@ -307,6 +382,7 @@
     const icons = {
       success: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`,
       error:   `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>`,
+      warning: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>`,
       info:    `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>`,
     };
 
@@ -323,26 +399,25 @@
     }, duration);
   }
 
-  // Expose globally so onclick attributes in HTML can call it
-  window.showToast = showToast;
-  window.openModal = openModal;
+  window.showToast  = showToast;
+  window.openModal  = openModal;
   window.closeModal = closeModal;
 
-  /* ======================================================
-     11. MARK INVOICE PAID (demo interaction)
-  ====================================================== */
-  $$('[data-action="mark-paid"]').forEach(btn => {
-    on(btn, 'click', () => {
-      const row = btn.closest('tr');
-      if (!row) return;
-      const badge = row.querySelector('.badge');
-      if (badge) {
-        badge.className = 'badge badge-active';
-        badge.textContent = 'Paid';
-      }
-      btn.remove();
-      showToast('Invoice marked as paid', 'success');
-    });
+  /* ──────────────────────────────────────────────────────────
+     11. FILTER TABS — unified quick-filter tab wiring
+     Dispatches 'filterchange' so each page's JS can listen.
+     Sets window._activeFilter for imperative access.
+  ────────────────────────────────────────────────────────── */
+  document.addEventListener('click', function (e) {
+    const tab = e.target.closest('.filter-tab');
+    if (!tab) return;
+    const container = tab.closest('.filter-tabs');
+    if (!container) return;
+    container.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filterValue = tab.dataset.filter || 'all';
+    window._activeFilter = filterValue;
+    document.dispatchEvent(new CustomEvent('filterchange', { detail: { filter: filterValue } }));
   });
 
 })();

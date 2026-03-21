@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Profile Ã¢€â€ Nexus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/css/dash.css"/>
+</head>
+<body>
+<div class="shell" id="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6Z"/></svg></div><span class="brand-name">Nexus</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label" data-i18n="nav.my_area">La mia Area</div>
+      <a class="nav-item" href="client_dash.html"><span class="nav-label" data-i18n="nav.dashboard">Dashboard</span></a>
+      <a class="nav-item" href="client_invoices.html"><span class="nav-label" data-i18n="nav.invoices">Fatture</span></a>
+      <a class="nav-item" href="client_contracts.html"><span class="nav-label" data-i18n="nav.contracts">Contratti</span></a>
+      <a class="nav-item" href="client_documents.html"><span class="nav-label" data-i18n="nav.documents">Documenti</span></a>
+      <a class="nav-item active" href="client_profile.html"><span class="nav-label" data-i18n="nav.profile">Il mio Profilo</span></a>
+    </nav>
+    <div class="sidebar-footer"><div class="nav-item" style="gap:10px;"><div class="avatar" style="width:30px;height:30px;font-size:11px;" id="sidebar-avatar">—</div><div><div class="nav-label" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;" id="sidebar-name">Caricamento…</div><div class="nav-label" style="color:var(--gray-500);font-size:11px;" data-i18n="role.client">Cliente</div></div></div></div>
+  </aside>
+  <header class="header">
+    <button class="header-toggle" id="sidebar-toggle"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg></button>
+    <div class="header-actions" style="margin-left:auto;"><div id="lang-switcher-slot"></div>
+    <div class="dropdown-wrap"><button class="profile-btn" data-dropdown-trigger><div class="avatar" id="header-avatar">—</div><div class="profile-info"><div class="profile-name" id="header-name">Caricamento…</div><div class="profile-role" data-i18n="role.client">Cliente</div></div></button><div class="dropdown-menu"><button class="dropdown-item danger" id="logout-btn" data-i18n="auth.sign_out">Esci</button></div></div></div>
+  </header>
+  <main class="main">
+
+    <!-- Alert for missing billing data -->
+    <div class="alert-card alert-card--error" id="billing-alert" style="display:none; margin-bottom: 24px;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+      <div>
+        <strong data-i18n="client.action_required">Dati di fatturazione incompleti</strong>
+        <span id="billing-alert-text">Per favore, completa la tua P.IVA, PEC o Codice SDI per consentirci di emettere fattura.</span>
+      </div>
+    </div>
+
+    <div class="page-header" style="justify-content: space-between; display: flex; align-items: flex-end;">
+      <div>
+        <h1 class="page-title" data-i18n="client.profile.title">Il mio Profilo</h1>
+        <p class="page-subtitle" data-i18n="client.profile.subtitle">Gestisci le informazioni della tua azienda e le preferenze</p>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="save-btn" data-i18n="client.profile.save" form="profile-form">Salva Modifiche</button>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="profile-error" style="display:none; text-align:center; padding: 40px;" class="card">
+      <p style="color:var(--gray-600); margin-bottom:16px;">Impossibile recuperare i dati del profilo in questo momento.</p>
+      <button class="btn btn-secondary" onclick="location.reload()">Riprova</button>
+    </div>
+
+    <div class="card" id="profile-content" style="display:block;">
+      <div class="profile-header">
+        <div class="profile-avatar-lg" id="profile-avatar-lg">?</div>
+        <div>
+          <div style="font-size:1.25rem;font-weight:700;color:var(--gray-900);" id="profile-fullname">Caricamento…</div>
+          <div style="font-size:.875rem;color:var(--gray-500);margin-top:2px;" id="profile-email-sub">—</div>
+        </div>
+      </div>
+
+      <form id="profile-form" style="margin-top: 32px;">
+        
+        <!-- A. Company / Client Identity -->
+        <h3 class="section-title">Identità Aziendale</h3>
+        <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:32px;">
+          <div class="field" style="grid-column: 1 / -1;">
+            <label>Ragione Sociale / Nome <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="p-company" required />
+          </div>
+          <div class="field">
+            <label>Partita IVA</label>
+            <input type="text" id="p-vat" />
+          </div>
+          <div class="field">
+            <label>Codice Fiscale</label>
+            <input type="text" id="p-tax" />
+          </div>
+        </div>
+
+        <!-- B. Contact Information -->
+        <h3 class="section-title">Contatti Operativi</h3>
+        <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:32px;">
+          <div class="field">
+            <label>Email principale (Login) <span style="color:var(--danger)">*</span></label>
+            <input type="email" id="p-email" required readonly title="Non modificabile direttamente" style="background:var(--gray-50); cursor:not-allowed;" />
+          </div>
+          <div class="field">
+            <label>Telefono</label>
+            <input type="tel" id="p-phone" />
+          </div>
+          <div class="field" style="grid-column: 1 / -1;">
+            <label>Indirizzo (Via, civico)</label>
+            <input type="text" id="p-address" />
+          </div>
+          <div class="field">
+            <label>Città</label>
+            <input type="text" id="p-city" />
+          </div>
+          <div class="field">
+            <label>CAP</label>
+            <input type="text" id="p-zip" />
+          </div>
+        </div>
+
+        <!-- C. Billing Information -->
+        <h3 class="section-title">Dati di Fatturazione Elettronica</h3>
+        <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:32px;">
+          <div class="field">
+            <label>Indirizzo PEC</label>
+            <input type="email" id="p-pec" />
+          </div>
+          <div class="field">
+            <label>Codice Destinatario (SDI)</label>
+            <input type="text" id="p-sdi" maxlength="7" pattern="[A-Z0-9]{7}" title="Codice SDI di 7 caratteri alfanumerici (o 0000000 se non applicabile)" />
+          </div>
+        </div>
+
+        <!-- D. Account Preferences -->
+        <h3 class="section-title">Preferenze</h3>
+        <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="field">
+            <label>Lingua preferita</label>
+            <select id="p-lang">
+              <option value="it">Italiano</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Protocollo Comunicazioni</label>
+            <select id="p-comms" disabled title="Coming soon">
+              <option value="all">Tutte le notifiche</option>
+              <option value="billing_only">Solo fatturazione</option>
+            </select>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </main>
+</div>
+<script src="assets/js/api.js"></script><script src="assets/js/auth.js"></script><script src="assets/js/ui.js"></script><script src="assets/js/i18n.js"></script>
+<script src="assets/js/dash.js"></script>
+<script src="assets/js/client_profile.js"></script>
+</body>
+</html>

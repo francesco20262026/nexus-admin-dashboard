@@ -1,0 +1,133 @@
+/* ================================================================
+   GLOBAL SEARCH — dropdown styles
+   ================================================================ */
+.gsearch-wrap {
+  position: relative;
+}
+
+.gsearch-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 380px;
+  background: #ffffff;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  z-index: 9999;
+  overflow: hidden;
+  max-height: 480px;
+  overflow-y: auto;
+}
+.gsearch-dropdown.open {
+  display: block;
+}
+
+.gsearch-section {
+  padding: 4px 0;
+}
+.gsearch-section + .gsearch-section {
+  border-top: 1px solid var(--gray-100);
+}
+.gsearch-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-400);
+  padding: 8px 14px 4px;
+}
+.gsearch-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 100ms ease;
+  text-decoration: none;
+  color: inherit;
+}
+.gsearch-item:hover {
+  background: var(--gray-50);
+}
+.gsearch-item-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.gsearch-item-icon svg {
+  width: 14px;
+  height: 14px;
+  color: var(--gray-500);
+}
+.gsearch-item-body {
+  flex: 1;
+  min-width: 0;
+}
+.gsearch-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gsearch-item-sub {
+  font-size: 11px;
+  color: var(--gray-400);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gsearch-item-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--gray-100);
+  color: var(--gray-500);
+  align-self: center;
+}
+mark.gsearch-hl {
+  background: #fef9c3;
+  color: var(--gray-900);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.gsearch-empty, .gsearch-loading {
+  padding: 20px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--gray-400);
+}
+.gsearch-footer {
+  padding: 8px 14px;
+  border-top: 1px solid var(--gray-100);
+  font-size: 11px;
+  color: var(--gray-400);
+  text-align: center;
+}
+.gsearch-footer kbd {
+  display: inline-block;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-family: inherit;
+}
