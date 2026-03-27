@@ -12,11 +12,14 @@
 'use strict';
 
 // ─── Constants ────────────────────────────────────────────────
-// In local dev (localhost/127.0.0.1) use the local backend so that
-// newly written router changes are immediately available without deploy.
-const _API_BASE  = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-  ? 'http://127.0.0.1:8000/api'
-  : 'https://api.delocanova.com/api';
+// In local dev (localhost/127.0.0.1) use the local backend directly.
+// In Replit or production, the API is served from the same origin under /api.
+function _resolveApiBase() {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://127.0.0.1:8000/api';
+  return `${location.protocol}//${location.host}/api`;
+}
+const _API_BASE  = _resolveApiBase();
 const _TOKEN_KEY = 'nexus_token';
 
 
