@@ -21,11 +21,12 @@
     /* ── HERO CARD ───────────────────────────────────────────── */
     .cd-hero {
       background: #fff;
-      border-radius: 16px;
+      border-radius: 16px 16px 0 0;
       box-shadow: 0 1px 4px rgba(15,23,42,0.06), 0 8px 32px rgba(15,23,42,0.06);
-      margin-bottom: 10px;
-      overflow: hidden;
+      margin-bottom: 0;
+      overflow: visible;
       border: 1px solid #e4eaf1;
+      border-bottom: none;
     }
 
     /* Accent bar at top */
@@ -34,6 +35,7 @@
       display: block;
       height: 4px;
       background: linear-gradient(90deg, #059669 0%, #10b981 60%, #34d399 100%);
+      border-radius: 16px 16px 0 0;
     }
 
     /* Breadcrumb */
@@ -141,7 +143,7 @@
     .cd-kpi-item:nth-child(3) .cd-kpi-val { color: #d97706; }
     .cd-kpi-item:nth-child(4) .cd-kpi-val { color: #7c3aed; }
 
-    /* ── TAB NAV BAR ─────────────────────────────────────────── */
+    /* ── TAB NAV BAR — connessa all'hero ────────────────────── */
     .profile-col {
       position: static !important;
       top: auto !important;
@@ -152,13 +154,14 @@
       align-items: stretch !important;
       z-index: auto !important;
       background: #fff !important;
-      border-bottom: 2px solid #e8edf2 !important;
       box-shadow: none !important;
       height: 46px !important;
       padding: 0 12px !important;
-      border-radius: 12px 12px 0 0 !important;
+      border-radius: 0 !important;
       border: 1px solid #e4eaf1 !important;
+      border-top: 1px solid #f1f5f9 !important;
       border-bottom: 2px solid #e4eaf1 !important;
+      box-sizing: border-box !important;
     }
     .profile-col.tab-stuck {
       position: fixed !important;
@@ -170,8 +173,8 @@
       border-radius: 0 !important;
       border-left: none !important;
       border-right: none !important;
-      border-top: none !important;
-      box-shadow: 0 4px 16px rgba(15,23,42,0.08) !important;
+      border-top: 1px solid #e4eaf1 !important;
+      box-shadow: 0 4px 20px rgba(15,23,42,0.10) !important;
     }
     .shell.collapsed .profile-col.tab-stuck {
       left: var(--sidebar-collapsed-w) !important;
@@ -259,21 +262,19 @@
     /* ── CARDS ───────────────────────────────────────────────── */
     .z-card {
       background: #fff;
-      border-radius: 0 0 14px 14px;
+      border-radius: 0 0 16px 16px;
       border: 1px solid #e4eaf1;
       border-top: none;
-      box-shadow: 0 2px 8px rgba(15,23,42,0.05), 0 8px 24px rgba(15,23,42,0.04);
+      box-shadow: 0 4px 16px rgba(15,23,42,0.07), 0 12px 32px rgba(15,23,42,0.04);
       overflow: hidden; margin-bottom: 16px;
     }
-    /* First card (Panoramica) has no top-radius because tab bar is above */
-    .z-card:first-child { border-radius: 0 0 14px 14px; }
-    /* Standalone cards shown in other tabs */
-    .z-card + .z-card,
+    /* Cards shown in secondary tabs (have space above) */
     #card-chiamate, #card-comunicazioni, #card-contatti,
     #card-servizi, #card-preventivi, #card-contratti,
     #card-documenti, #card-fatture {
-      border-radius: 14px !important;
+      border-radius: 16px !important;
       border-top: 1px solid #e4eaf1 !important;
+      margin-top: 4px;
     }
     .z-card-header {
       padding: 16px 22px;
