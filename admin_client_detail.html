@@ -559,7 +559,7 @@
       <ul class="z-nav-list" id="elenco-correlato">
         <li><a href="#" class="z-nav-item active" id="tab-panoramica" onclick="event.preventDefault();switchMainView('panoramica')">Panoramica</a></li>
         <li><a href="#card-note" class="z-nav-item">Note <span class="z-nav-badge" id="badge-note">0</span></a></li>
-        <li><a href="#card-chiamate" class="z-nav-item">Chiamate <span class="z-nav-badge" id="badge-call">0</span></a></li>
+        <li><a href="#card-chiamate" class="z-nav-item">Attività <span class="z-nav-badge" id="badge-call">0</span></a></li>
         <li><a href="#card-comunicazioni" class="z-nav-item">Comunicazioni <span class="z-nav-badge" id="badge-comms">0</span></a></li>
         <li><a href="#card-contatti" class="z-nav-item">Contatti <span class="z-nav-badge" id="badge-contact">0</span></a></li>
         <li><a href="#card-servizi" class="z-nav-item">Servizi <span class="z-nav-badge" id="badge-service">0</span></a></li>
@@ -593,24 +593,22 @@
         <div class="z-card" id="card-note">
           <div class="z-card-header">
             <h2 class="z-card-title">Note</h2>
+            <button class="btn btn-primary btn-sm" id="note-save-btn" onclick="saveNote()">+ Aggiungi nota</button>
           </div>
           <div class="z-card-body">
             <div class="z-note-compose">
               <textarea id="note-input" placeholder="Aggiungi una nota interna..."></textarea>
-              <div class="z-note-actions">
-                <button class="btn btn-primary btn-sm" id="note-save-btn" onclick="saveNote()">Aggiungi nota</button>
-              </div>
             </div>
             <div id="notes-list-container"></div>
           </div>
         </div>
 
-        <!-- Chiamate -->
+        <!-- Attività (ex Chiamate) -->
         <div class="z-card" id="card-chiamate">
           <div class="z-card-header">
             <h2 class="z-card-title">
               <svg style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z"/></svg>
-              Chiamate
+              Attività
             </h2>
             <button class="btn btn-primary btn-sm" onclick="openCallModal()">+ Nuova chiamata</button>
           </div>
@@ -668,7 +666,7 @@
         <div class="z-card" id="card-contatti">
           <div class="z-card-header">
             <h2 class="z-card-title">Contatti</h2>
-            <button class="btn btn-secondary btn-sm" id="cd-btn-add-contact">Nuovo</button>
+            <button class="btn btn-primary btn-sm" id="cd-btn-add-contact">+ Nuovo</button>
           </div>
           <div class="z-card-body" style="padding:0;">
             <div id="cd-contacts-list" class="cl-list"></div>
@@ -679,7 +677,7 @@
         <div class="z-card" id="card-servizi">
           <div class="z-card-header">
             <h2 class="z-card-title">Servizi Attivi</h2>
-            <button class="btn btn-secondary btn-sm" id="cd-btn-add-service">Assegna</button>
+            <button class="btn btn-primary btn-sm" id="cd-btn-add-service">+ Assegna</button>
           </div>
           <div class="z-card-body" style="padding:0;">
             <div id="cd-services-list" class="cl-list"></div>
@@ -690,7 +688,7 @@
         <div class="z-card" id="card-preventivi">
           <div class="z-card-header">
             <h2 class="z-card-title">Preventivi</h2>
-            <a class="btn btn-secondary btn-sm" id="cd-link-new-quote-card" href="admin_quotes.html?new=1">Nuovo</a>
+            <a class="btn btn-primary btn-sm" id="cd-link-new-quote-card" href="admin_quotes.html?new=1">+ Nuovo</a>
           </div>
           <div class="z-card-body" style="padding:0;">
             <div id="cd-quotes-list" class="cl-list"></div>
@@ -701,7 +699,7 @@
         <div class="z-card" id="card-contratti">
           <div class="z-card-header">
             <h2 class="z-card-title">Contratti</h2>
-            <a class="btn btn-secondary btn-sm" id="cd-link-contracts" href="#">Vedi tutti</a>
+            <a class="btn btn-primary btn-sm" id="cd-link-contracts" href="#">Vedi tutti</a>
           </div>
           <div class="z-card-body" style="padding:0;">
             <div id="cd-contracts-list" class="cl-list"></div>
@@ -712,7 +710,7 @@
         <div class="z-card" id="card-documenti">
           <div class="z-card-header">
             <h2 class="z-card-title">Documenti</h2>
-            <a class="btn btn-secondary btn-sm" id="cd-link-docs" href="#">Vedi tutti</a>
+            <a class="btn btn-primary btn-sm" id="cd-link-docs" href="#">Vedi tutti</a>
           </div>
           <div class="z-card-body" style="padding:0;">
             <div id="cd-docs-list" class="cl-list"></div>
@@ -723,7 +721,7 @@
         <div class="z-card" id="card-fatture">
           <div class="z-card-header">
             <h2 class="z-card-title">Fatture Recenti</h2>
-            <a class="btn btn-secondary btn-sm" id="cd-link-invoices" href="#">Vedi tutte</a>
+            <a class="btn btn-primary btn-sm" id="cd-link-invoices" href="#">Vedi tutte</a>
           </div>
           <div class="z-card-body" style="padding:0;">
             <div id="cd-invoices-list" class="cl-list"></div>
