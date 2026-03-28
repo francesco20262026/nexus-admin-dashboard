@@ -70,7 +70,7 @@
     .cd-hero {
       background: linear-gradient(140deg, #064e3b 0%, #047857 45%, #059669 100%);
       position: relative; overflow: hidden;
-      padding: 22px 24px 0;
+      padding: 14px 24px 0;
       border: none; border-radius: 0; margin: 0; box-shadow: none;
     }
     .cd-hero::before { display: none; }
@@ -92,12 +92,12 @@
 
     /* Avatar */
     .z-avatar {
-      width: 62px !important; height: 62px !important; border-radius: 16px !important;
+      width: 50px !important; height: 50px !important; border-radius: 13px !important;
       background: rgba(255,255,255,0.15) !important;
       border: 2px solid rgba(255,255,255,0.3) !important;
-      color: #fff !important; font-size: 20px !important; font-weight: 800 !important;
+      color: #fff !important; font-size: 17px !important; font-weight: 800 !important;
       display: flex !important; align-items: center !important; justify-content: center !important;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
       flex-shrink: 0 !important; letter-spacing: -0.5px;
     }
 
@@ -105,9 +105,9 @@
     .z-header {
       display: flex !important; align-items: center !important;
       justify-content: flex-start !important;
-      gap: 18px !important; flex-wrap: wrap !important;
+      gap: 14px !important; flex-wrap: wrap !important;
       background: transparent !important; border: none !important;
-      padding: 0 !important; margin: 0 0 16px !important;
+      padding: 0 !important; margin: 0 0 10px !important;
     }
     .z-header-left {
       display: flex !important; align-items: center !important;
@@ -116,8 +116,8 @@
     .z-header-right { display: none !important; }
 
     .z-title {
-      font-size: 21px !important; font-weight: 800 !important; color: #fff !important;
-      margin: 0 0 6px !important; letter-spacing: -0.02em !important;
+      font-size: 18px !important; font-weight: 800 !important; color: #fff !important;
+      margin: 0 0 4px !important; letter-spacing: -0.02em !important;
       display: flex !important; align-items: center !important;
       gap: 10px !important; flex-wrap: wrap !important; line-height: 1.2 !important;
     }
@@ -139,7 +139,7 @@
     /* Info strip (contact pills) */
     .z-info-strip {
       display: flex !important; flex-wrap: wrap !important;
-      gap: 16px !important; padding: 0 0 16px !important;
+      gap: 14px !important; padding: 0 0 10px !important;
       border-top: none !important; margin-top: 0 !important;
     }
     .z-info-pill {
@@ -151,52 +151,48 @@
 
     /* KPI glassmorphism strip */
     .cd-kpi-strip {
-      display: flex !important; gap: 12px !important;
+      display: flex !important; gap: 10px !important;
       padding: 0 !important; border-top: none !important; margin-top: 0 !important;
-      margin-bottom: 22px !important;
+      margin-bottom: 14px !important;
     }
     .cd-kpi-item {
       flex: 1 !important; min-width: 0 !important;
       background: rgba(255,255,255,0.11) !important;
       border: 1px solid rgba(255,255,255,0.2) !important;
-      border-radius: 12px !important; padding: 12px 14px !important;
+      border-radius: 10px !important; padding: 9px 13px !important;
       backdrop-filter: blur(8px) !important;
-      display: flex !important; flex-direction: column !important; gap: 0 !important;
+      display: flex !important; flex-direction: row !important;
+      align-items: center !important; justify-content: space-between !important;
+      gap: 10px !important;
     }
-    .cd-kpi-item-icon {
-      width: 26px; height: 26px; border-radius: 7px;
-      background: rgba(255,255,255,0.15);
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 8px; flex-shrink: 0;
-    }
-    .cd-kpi-item-icon svg { width: 13px; height: 13px; color: rgba(255,255,255,0.9); stroke: rgba(255,255,255,0.9); }
+    .cd-kpi-item-icon { display: none !important; }
     .cd-kpi-dot { display: none !important; }
     .cd-kpi-label {
       font-size: 10.5px !important; color: rgba(255,255,255,0.65) !important;
       font-weight: 500 !important; text-transform: uppercase !important;
-      letter-spacing: 0.04em !important;
+      letter-spacing: 0.04em !important; white-space: nowrap !important;
     }
     .cd-kpi-val {
-      font-size: 17px !important; font-weight: 800 !important;
+      font-size: 18px !important; font-weight: 800 !important;
       color: #fff !important; letter-spacing: -0.01em !important;
-      margin-top: 4px !important; line-height: 1.1 !important;
+      margin-top: 0 !important; line-height: 1 !important; flex-shrink: 0 !important;
     }
     .cd-kpi-item:nth-child(1) .cd-kpi-val,
     .cd-kpi-item:nth-child(2) .cd-kpi-val,
     .cd-kpi-item:nth-child(3) .cd-kpi-val,
     .cd-kpi-item:nth-child(4) .cd-kpi-val { color: #fff !important; }
-    .cd-kpi-sub { font-size: 10.5px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+    .cd-kpi-sub { display: none !important; }
 
     /* Hero tab strip (2 tabs on the green band) */
     .cd-hero-tabs {
       display: flex; gap: 0; position: relative; z-index: 1;
     }
     .cd-hero-tab-btn {
-      padding: 9px 22px;
+      padding: 7px 18px;
       background: transparent; border: none;
       border-bottom: 3px solid transparent;
       color: rgba(255,255,255,0.55);
-      font-weight: 500; font-size: 13px; cursor: pointer;
+      font-weight: 500; font-size: 12.5px; cursor: pointer;
       border-radius: 8px 8px 0 0;
       transition: all .15s; font-family: inherit;
     }
