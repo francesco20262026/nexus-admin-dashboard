@@ -6,9 +6,9 @@
   <title>Nova CRM — Clienti</title>
   <meta name="description" content="Gestisci tutti i clienti attivi dell'azienda."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preload" as="image" href="/assets/img/nova-crm-logo.jpeg">
+  <link rel="preload" as="image" href="/assets/img/nova-crm-logo-sidebar.svg">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/css/dash.css?v=90"/>
+  <link rel="stylesheet" href="assets/css/dash.css?v=91"/>
   <link rel="stylesheet" href="assets/css/global_search.css"/>
 </head>
 <body>
@@ -17,7 +17,7 @@
 <!-- ==================== SIDEBAR ==================== -->
 <aside class="sidebar">
   <div class="sidebar-brand">
-    <img src="/assets/img/nova-crm-logo.jpeg" alt="Nova CRM" class="sidebar-brand-logo" loading="eager" fetchpriority="high" width="140" height="46">
+    <img src="/assets/img/nova-crm-logo-sidebar.svg" alt="Nova CRM" class="sidebar-brand-logo" loading="eager" fetchpriority="high" width="140" height="46">
   </div>
   <nav class="sidebar-nav avatar-colors">
     <div class="nav-section-label" data-i18n="nav.main">Principale</div>
@@ -163,46 +163,48 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="cl-filter-search-icon" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
         <input type="text" id="cl-search" class="form-input cl-filter-search-input" placeholder="Cerca rag. sociale, email, tel, P.IVA…" autocomplete="off"/>
       </div>
-      <select id="cl-filter-city" class="form-input cl-filter-select">
-        <option value="">Tutte le città</option>
-      </select>
-      <select id="cl-filter-origin" class="form-input cl-filter-select">
-        <option value="">Tutte le origini</option>
-        <option value="windoc">Windoc</option>
-        <option value="manual">Manuale / Onboarding</option>
-      </select>
-      <select id="cl-filter-assignee" class="form-input cl-filter-select">
-        <option value="">Tutti gli assegnatari</option>
-      </select>
-      <select id="cl-filter-invoices" class="form-input cl-filter-select">
-        <option value="">Fatture: Tutte</option>
-        <option value="open">Con fatture aperte</option>
-        <option value="none">Senza fatture aperte</option>
-      </select>
-      <select id="cl-filter-renewal" class="form-input cl-filter-select">
-        <option value="">Rinnovi: Tutti</option>
-        <option value="near">In scadenza (30 gg)</option>
-        <option value="expired">Scaduti</option>
-      </select>
-      <select id="cl-filter-services" class="form-input cl-filter-select">
-        <option value="">Servizi: Tutti</option>
-        <option value="yes">Con attivazioni</option>
-        <option value="no">Senza servizi</option>
-      </select>
-      <select id="cl-filter-quotes" class="form-input cl-filter-select">
-        <option value="">Preventivi: Tutti</option>
-        <option value="open">Aperti / In attesa</option>
-        <option value="none">Nessun prev. aperto</option>
-      </select>
-      <select id="cl-filter-activities" class="form-input cl-filter-select">
-        <option value="">Attività: Tutte</option>
-        <option value="planned">Pianificate</option>
-        <option value="none">Nessuna att. in piano</option>
-      </select>
-      <button class="btn btn-ghost" id="btn-reset-filters" style="padding: 0 12px; height: 36px; gap: 6px; flex-shrink: 0;" title="Reimposta tutti i filtri">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-        <span>Reset</span>
-      </button>
+      <div class="cl-filter-selects-wrap">
+        <select id="cl-filter-city" class="form-input cl-filter-select">
+          <option value="">Tutte le città</option>
+        </select>
+        <select id="cl-filter-origin" class="form-input cl-filter-select">
+          <option value="">Tutte le origini</option>
+          <option value="windoc">Windoc</option>
+          <option value="manual">Manuale / Onboarding</option>
+        </select>
+        <select id="cl-filter-assignee" class="form-input cl-filter-select">
+          <option value="">Tutti gli assegnatari</option>
+        </select>
+        <select id="cl-filter-invoices" class="form-input cl-filter-select">
+          <option value="">Fatture: Tutte</option>
+          <option value="open">Con fatture aperte</option>
+          <option value="none">Senza fatture aperte</option>
+        </select>
+        <select id="cl-filter-renewal" class="form-input cl-filter-select">
+          <option value="">Rinnovi: Tutti</option>
+          <option value="near">In scadenza (30 gg)</option>
+          <option value="expired">Scaduti</option>
+        </select>
+        <select id="cl-filter-services" class="form-input cl-filter-select">
+          <option value="">Servizi: Tutti</option>
+          <option value="yes">Con attivazioni</option>
+          <option value="no">Senza servizi</option>
+        </select>
+        <select id="cl-filter-quotes" class="form-input cl-filter-select">
+          <option value="">Preventivi: Tutti</option>
+          <option value="open">Aperti / In attesa</option>
+          <option value="none">Nessun prev. aperto</option>
+        </select>
+        <select id="cl-filter-activities" class="form-input cl-filter-select">
+          <option value="">Attività: Tutte</option>
+          <option value="planned">Pianificate</option>
+          <option value="none">Nessuna att. in piano</option>
+        </select>
+        <button class="cl-filter-reset" id="btn-reset-filters" title="Reimposta tutti i filtri">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="12" height="12"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+          Reset
+        </button>
+      </div>
     </div>
 
     <!-- List (populated by admin_clients.js) -->

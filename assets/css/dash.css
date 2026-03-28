@@ -4826,7 +4826,6 @@ textarea.form-input {
   height: auto;
   min-height: 46px; /* Match the HTML height=46 attribute */
   object-fit: contain;
-  filter: hue-rotate(83deg) saturate(1.15) brightness(0.92);
 }
 
 
@@ -4888,15 +4887,15 @@ textarea.form-input {
 .cl-filter-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
   background: #f9fafb;
+  overflow: hidden;
 }
 .cl-filter-search-wrap {
-  flex: 1;
-  min-width: 220px;
+  flex-shrink: 0;
+  width: 224px;
   position: relative;
   display: flex;
   align-items: center;
@@ -4914,13 +4913,47 @@ textarea.form-input {
   font-size: 13px;
   height: 34px;
 }
+/* scrollable selects wrapper */
+.cl-filter-selects-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 1px;
+}
+.cl-filter-selects-wrap::-webkit-scrollbar { display: none; }
 .cl-filter-select {
   width: auto;
-  min-width: 120px;
+  min-width: 0;
   font-size: 12px;
-  height: 34px;
-  padding: 4px 28px 4px 10px;
+  height: 32px;
+  padding: 0 24px 0 8px;
+  flex-shrink: 0;
+  color: var(--gray-600);
+  border-radius: 6px;
 }
+/* Reset link-style button */
+.cl-filter-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 0 6px;
+  height: 32px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  border-radius: 6px;
+  transition: color .12s;
+}
+.cl-filter-reset:hover { color: #ef4444; }
 
 /* ── Compact client row (list item) ──────────────────────────── */
 .cl-list {
