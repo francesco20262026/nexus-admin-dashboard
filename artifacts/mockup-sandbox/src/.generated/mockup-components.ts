@@ -6,5 +6,8 @@ export const modules: ModuleMap = {
   "./components/mockups/crm-detail/VariantC.tsx": () => import("../components/mockups/crm-detail/VariantC.tsx"),
   "./components/mockups/crm-detail/VariantD.tsx": () => import("../components/mockups/crm-detail/VariantD.tsx"),
   "./components/mockups/crm-detail/VariantE.tsx": () => import("../components/mockups/crm-detail/VariantE.tsx"),
-  "./components/mockups/crm-detail/VariantF.tsx": () => import("../components/mockups/crm-detail/VariantF.tsx")
+  "./components/mockups/crm-detail/VariantF.tsx": () => import("../components/mockups/crm-detail/VariantF.tsx"),
+  "./components/mockups/crm-header/H1.tsx": () => import("../components/mockups/crm-header/H1.tsx"),
+  "./components/mockups/crm-header/H2.tsx": () => import("../components/mockups/crm-header/H2.tsx"),
+  "./components/mockups/crm-header/H3.tsx": () => import("../components/mockups/crm-header/H3.tsx")
 };
