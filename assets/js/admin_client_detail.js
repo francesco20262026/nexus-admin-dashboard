@@ -83,7 +83,8 @@
     const ed   = $('cd-link-docs');      if (ed)  ed.href = `admin_documents.html?client_id=${safe}`;
     const er   = $('cd-link-renewals');  if (er)  er.href = `admin_renewals.html?client_id=${safe}`;
     // Quick-create links with client pre-selected
-    const eq   = $('cd-link-new-quote');   if (eq)  eq.href = `admin_quotes.html?new=1&client_id=${safe}`;
+    const eq   = $('cd-link-new-quote');      if (eq)  eq.href = `admin_quotes.html?new=1&client_id=${safe}`;
+    const eqc  = $('cd-link-new-quote-card'); if (eqc) eqc.href = `admin_quotes.html?new=1&client_id=${safe}`;
     const einv = $('cd-link-new-invoice'); if (einv) einv.href = `admin_invoices.html?new=1&client_id=${safe}`;
     const epro = $('cd-link-new-proforma');if (epro) epro.href = `admin_invoices.html?new=1&type=proforma&client_id=${safe}`;
   }
@@ -112,38 +113,55 @@
 
   function renderHeader() {
     const c = CLIENT;
-    // Name and title
-    $('cd-title').textContent     = c.company_name || c.name || '—';
-    $('cd-subtitle').textContent  = c.email || '';
-    $('cd-status-pill').innerHTML = UI.pill(c.status);
-    document.title               = `${c.company_name || c.name} — Nexus Admin`;
+    // Name, title, breadcrumb
+    const displayName = c.company_name || c.name || '—';
+    if ($('cd-title'))        $('cd-title').textContent = displayName;
+    if ($('breadcrumb-name')) $('breadcrumb-name').textContent = displayName;
+    if ($('cd-status-pill'))  $('cd-status-pill').innerHTML = statusBadge(c.status);
+    document.title = `${displayName} — Nexus Admin`;
 
-    // Initials avatar
+    // subtitle: show "Nome contatto" if company is set, else nothing
+    if ($('cd-subtitle')) {
+      if (c.company_name && c.name && c.company_name !== c.name) {
+        $('cd-subtitle').textContent = `Referente: ${c.name}`;
+      } else {
+        $('cd-subtitle').textContent = c.email || '';
+      }
+    }
+
+    // Initials avatar (color based on first letter)
     const av = $('pc-avatar');
     if (av) {
       av.textContent = _initials(c.company_name || c.name);
+      const colors = ['#4f46e5','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
+      const idx = ((c.company_name || c.name || 'X').charCodeAt(0)) % colors.length;
+      av.style.background = `linear-gradient(135deg, ${colors[idx]} 0%, ${colors[(idx+2)%colors.length]} 100%)`;
     }
 
-    // Quick-info sidebar rows
-    const infoList = $('cd-anag-list');
-    if (infoList) {
-      const row = (icon, label, val, mono = false) => !val ? '' : `
-        <div class="profile-info-row">
-          <div class="profile-info-lbl">${icon} ${label}</div>
-          <div class="profile-info-val" style="${mono ? 'font-family:monospace;font-size:12px;' : ''}">${val}</div>
-        </div>`;
-
+    // Info strip: email, phone, city, VAT, created
+    const strip = $('cd-info-strip');
+    if (strip) {
+      const pill = (icon, val, href = null) => {
+        if (!val) return '';
+        const inner = href ? `<a href="${href}">${val}</a>` : val;
+        return `<span class="z-info-pill">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">${icon}</svg>
+          ${inner}</span>`;
+      };
+      const emailIcon = '<path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>';
+      const phoneIcon = '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6z"/>';
+      const cityIcon  = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>';
+      const vatIcon   = '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/>';
+      const createdIcon = '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>';
       const createdStr = c.created_at
         ? new Date(c.created_at).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' })
         : null;
-
-      infoList.innerHTML = [
-        row('📧', 'Email',       c.email),
-        row('📞', 'Telefono',    c.phone),
-        row('📍', 'Città',       c.city),
-        row('🏢', 'Rag. Sociale', c.company_name && c.name && c.company_name !== c.name ? c.company_name : null),
-        row('💳', 'P.IVA',       c.vat_number, true),
-        row('📅', 'Cliente dal', createdStr),
+      strip.innerHTML = [
+        pill(emailIcon, c.email, c.email ? `mailto:${c.email}` : null),
+        pill(phoneIcon, c.phone, c.phone ? `tel:${c.phone}` : null),
+        pill(cityIcon, c.city),
+        pill(vatIcon, c.vat_number ? `P.IVA ${c.vat_number}` : null),
+        pill(createdIcon, createdStr ? `Cliente dal ${createdStr}` : null),
       ].filter(Boolean).join('');
     }
   }
@@ -359,23 +377,51 @@
     try {
       const res  = await API.Clients.contacts?.(clientId);
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
+      const badge = $('badge-contact');
+      if (badge) badge.textContent = data.length;
       if (!data.length) {
-        el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('cl.no_contacts') || 'Nessun contatto aggiunto.')}</div>`;
+        el.innerHTML = `<div style="padding:32px 20px;text-align:center;color:var(--gray-400);font-size:13px;">Nessun contatto aggiunto. Usa "Nuovo" per aggiungerne uno.</div>`;
+        _renderSidebarContacts([]);
         return;
       }
-      el.innerHTML = data.map(ct => `
-        <div class="list-card">
-          <div class="list-card-header">
-            <div class="list-card-title">${ct.name || 0}${ct.role ? ` <span style="font-size:11px;color:var(--gray-500);font-weight:400;">· ${ct.role}</span>` : ''}</div>
+      el.innerHTML = data.map(ct => {
+        const initials = ct.name ? ct.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() : '?';
+        return `<div class="z-contact-row">
+          <div class="z-contact-avatar">${initials}</div>
+          <div class="z-contact-info">
+            <div class="z-contact-name">${ct.name || '—'}${ct.is_primary ? '<span style="font-size:10px;font-weight:700;color:#059669;background:#d1fae5;padding:1px 7px;border-radius:20px;margin-left:8px;">Principale</span>' : ''}</div>
+            ${ct.role ? `<div class="z-contact-role">${ct.role}</div>` : ''}
+            <div class="z-contact-links">
+              ${ct.email ? `<a href="mailto:${ct.email}" class="z-contact-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>${ct.email}</a>` : ''}
+              ${ct.phone ? `<a href="tel:${ct.phone}" class="z-contact-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6z"/></svg>${ct.phone}</a>` : ''}
+            </div>
           </div>
-          <div class="list-card-body">
-            ${ct.email ? `<div class="list-card-meta">${ct.email}</div>` : ''}
-            ${ct.phone ? `<div class="list-card-meta">${ct.phone}</div>` : ''}
-          </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
+      _renderSidebarContacts(data);
     } catch {
-      el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('error.generic') || 'Errore.')}</div>`;
+      el.innerHTML = `<div style="padding:20px;color:var(--gray-500);font-size:13px;">Errore nel caricamento contatti.</div>`;
     }
+  }
+
+  function _renderSidebarContacts(data) {
+    const el = $('sidebar-quick-contacts');
+    if (!el) return;
+    if (!data.length) { el.innerHTML = ''; return; }
+    const shown = data.slice(0, 3);
+    el.innerHTML = `
+      <div class="z-sidebar-quick">
+        <div class="z-sidebar-quick-title">Contatti</div>
+        ${shown.map(ct => `
+          <div class="z-qc-card">
+            <div class="z-qc-name">${ct.name || '—'}</div>
+            ${ct.role ? `<div class="z-qc-role">${ct.role}</div>` : ''}
+            <div class="z-qc-links">
+              ${ct.email ? `<a href="mailto:${ct.email}" class="z-qc-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>${ct.email}</a>` : ''}
+              ${ct.phone ? `<a href="tel:${ct.phone}" class="z-qc-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6z"/></svg>${ct.phone}</a>` : ''}
+            </div>
+          </div>`).join('')}
+      </div>`;
   }
 
   /* ── ③ Services ─────────────────────────────────────────────── */
@@ -488,17 +534,18 @@
         el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('cl.no_quotes') || 'Nessun preventivo.')}</div>`;
         return;
       }
-      el.innerHTML = data.map(q => `
-        <div class="list-card">
-          <div class="list-card-header">
-            <div class="list-card-title">${q.title || q.quote_number || q.number || 'Preventivo'}</div>
-            ${UI.pill(q.status)}
-          </div>
-          <div class="list-card-body">
-            <div class="list-card-meta" style="font-weight:700;color:var(--gray-900);">${UI.currency(q.total_amount || q.total || 0, q.currency)}</div>
-            <div class="list-card-meta">${I18n.t('cl.created_at') || 'Creato'}: ${UI.date(q.created_at)}</div>
-          </div>
-        </div>`).join('');
+      el.innerHTML = `<table class="z-rel-table">
+        <thead><tr>
+          <th>Titolo</th><th>Data</th><th>Importo</th><th>Stato</th><th></th>
+        </tr></thead>
+        <tbody>${data.map(q => `<tr>
+          <td class="z-rt-name">${q.title || q.quote_number || q.number || 'Preventivo'}</td>
+          <td class="z-rt-date">${q.created_at ? UI.date(q.created_at) : '—'}</td>
+          <td class="z-rt-amt">${UI.currency(q.total_amount || q.total || 0, q.currency)}</td>
+          <td>${UI.pill(q.status)}</td>
+          <td><a href="admin_quotes.html?id=${q.id}" class="z-rt-link">Apri →</a></td>
+        </tr>`).join('')}</tbody>
+      </table>`;
     } catch {
       el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('error.generic') || 'Errore.')}</div>`;
     }
@@ -521,17 +568,18 @@
         el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('cl.no_invoices') || 'Nessuna fattura.')}</div>`;
         return;
       }
-      el.innerHTML = data.map(i => `
-        <div class="list-card">
-          <div class="list-card-header">
-            <div class="list-card-title">${i.invoice_number || i.number || 0}</div>
-            ${UI.pill(i.status)}
-          </div>
-          <div class="list-card-body">
-            <div class="list-card-meta" style="font-weight:700;color:var(--gray-900);">${UI.currency(i.total_amount || i.total, i.currency)}</div>
-            <div class="list-card-meta">${UI.date(i.issue_date)} — ${I18n.t('cl.expires_at') || 'Scad.'}: ${UI.date(i.due_date)}</div>
-          </div>
-        </div>`).join('');
+      el.innerHTML = `<table class="z-rel-table">
+        <thead><tr>
+          <th>N° Fattura</th><th>Data</th><th>Scadenza</th><th>Importo</th><th>Stato</th>
+        </tr></thead>
+        <tbody>${data.map(i => `<tr>
+          <td class="z-rt-name">${i.invoice_number || i.number || '—'}</td>
+          <td class="z-rt-date">${i.issue_date ? UI.date(i.issue_date) : '—'}</td>
+          <td class="z-rt-date">${i.due_date ? UI.date(i.due_date) : '—'}</td>
+          <td class="z-rt-amt">${UI.currency(i.total_amount || i.total, i.currency)}</td>
+          <td>${UI.pill(i.status)}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
     } catch {
       el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('error.generic') || 'Errore.')}</div>`;
     }
@@ -751,7 +799,7 @@
   /* ── Edit button (top header) ───────────────────────────────── */
   $('cd-btn-edit')?.addEventListener('click', () => {
     _editingAnag = true;
-    activateTab('anagrafica');
+    switchMainView('panoramica');
     renderAnagForm();
   });
   $('cd-btn-edit-anag')?.addEventListener('click', () => {
