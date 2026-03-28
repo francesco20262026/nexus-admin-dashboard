@@ -14,244 +14,182 @@
        CLIENT DETAIL — ZOHO CRM STYLE
        ========================================================= */
 
-    /* Override main background */
-    body { background-color: #f3f6f9; }
-    .main { background: transparent; padding: 20px 24px; }
+    /* ── Page ───────────────────────────────────────────── */
+    body { background-color: #f1f5f9; }
+    .main { background: transparent; padding: 16px 24px; }
 
     /* ── Layout ─────────────────────────────────────────── */
-    .detail-layout {
-      display: flex;
-      align-items: flex-start;
-      gap: 24px;
-    }
-    .profile-col {
-      width: 240px;
-      flex-shrink: 0;
-      position: sticky;
-      top: 80px;
-    }
-    .data-col {
-      flex: 1;
-      min-width: 0;
-    }
+    .detail-layout { display: flex; align-items: flex-start; gap: 20px; }
+    .profile-col { width: 210px; flex-shrink: 0; position: sticky; top: 80px; }
+    .data-col { flex: 1; min-width: 0; }
     @media (max-width: 900px) {
       .detail-layout { flex-direction: column; gap: 16px; }
       .profile-col { width: 100%; position: static; }
     }
 
-    /* ── Header (Z-Header) ──────────────────────────────── */
+    /* ── Unified header card ─────────────────────────────── */
+    .cd-header-zone {
+      background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 12px; box-shadow: 0 2px 12px rgba(15,23,42,0.07);
+      margin-bottom: 20px; overflow: hidden;
+    }
+    .cd-breadcrumb {
+      padding: 13px 24px 0; font-size: 12.5px; color: #94a3b8;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .cd-breadcrumb a {
+      color: #64748b; font-weight: 600; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 4px; transition: color .15s;
+    }
+    .cd-breadcrumb a:hover { color: #4f46e5; }
+
+    /* ── Header row ─────────────────────────────────────── */
     .z-header {
-      background: #fff;
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--border);
+      background: transparent; padding: 16px 24px 12px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0; border: none; flex-wrap: wrap; gap: 12px;
     }
-    .z-header-left { display: flex; align-items: center; gap: 16px; }
-    .z-header-right { display: flex; align-items: center; gap: 12px; }
+    .z-header-left { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+    .z-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .z-avatar {
-      width: 48px; height: 48px; border-radius: 8px;
-      background: #e0f2fe; color: #0284c7;
+      width: 54px; height: 54px; border-radius: 50%;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: #fff; font-size: 18px; font-weight: 800; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px; font-weight: 700;
+      box-shadow: 0 4px 14px rgba(79,70,229,0.35); letter-spacing: -0.5px;
     }
-    .z-title { font-size: 20px; font-weight: 700; color: var(--gray-900); margin: 0; line-height: 1.2; }
-    .z-subtitle { font-size: 13px; color: #2563eb; margin-top: 4px; }
-    .z-subtitle a { color: inherit; text-decoration: none; }
+    .z-title {
+      font-size: 20px; font-weight: 800; color: #0f172a;
+      margin: 0 0 3px; display: flex; align-items: center;
+      gap: 8px; flex-wrap: wrap; line-height: 1.25;
+    }
+    .z-subtitle { font-size: 12.5px; color: #64748b; margin: 0; }
+    .z-subtitle a { color: #4f46e5; text-decoration: none; font-weight: 500; }
     .z-subtitle a:hover { text-decoration: underline; }
-
-    /* Z-Badge Status */
     .z-badge {
-      font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 4px;
-      display: inline-block; margin-left: 12px; text-transform: uppercase;
+      font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+      display: inline-flex; align-items: center; gap: 4px; margin-left: 4px;
     }
 
-    /* ── Elenco Correlato (Left Sidebar) ────────────────── */
-    .z-sidebar {
-      background: transparent;
-      padding: 0 16px;
-      margin: 0;
+    /* ── Info strip ─────────────────────────────────────── */
+    .z-info-strip {
+      display: flex; flex-wrap: wrap; gap: 0;
+      padding: 0 24px 12px; border-top: 1px solid #f8fafc; margin-bottom: 0;
     }
+    .z-info-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12.5px; color: #64748b; white-space: nowrap;
+      padding: 0 16px 0 0; margin-right: 16px;
+    }
+    .z-info-pill:not(:last-child) { border-right: 1px solid #e2e8f0; }
+    .z-info-pill svg { color: #94a3b8; flex-shrink: 0; width: 13px; height: 13px; }
+    .z-info-pill a { color: #4f46e5; text-decoration: none; font-weight: 500; }
+    .z-info-pill a:hover { text-decoration: underline; }
+
+    /* ── KPI strip ──────────────────────────────────────── */
+    .cd-kpi-strip {
+      display: flex; align-items: center;
+      padding: 8px 24px 10px; border-top: 1px solid #f1f5f9; background: transparent;
+    }
+    .cd-kpi-item {
+      display: flex; align-items: center; gap: 7px;
+      padding: 0 18px 0 0; margin-right: 18px;
+      border-right: 1px solid #f1f5f9; font-size: 12px; color: #94a3b8; white-space: nowrap;
+    }
+    .cd-kpi-item:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+    .cd-kpi-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .cd-kpi-label { font-weight: 500; color: #64748b; }
+    .cd-kpi-val { font-weight: 700; font-size: 13.5px; color: #0f172a; }
+
+    /* ── Action bar ─────────────────────────────────────── */
+    .z-action-bar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 24px 12px; border-top: 1px solid #f1f5f9;
+      margin: 0; background: #fafbfd;
+      overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none;
+    }
+    .z-action-bar::-webkit-scrollbar { display: none; }
+    .z-action-btn {
+      display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px;
+      border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; color: #475569;
+      font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s;
+      white-space: nowrap; flex-shrink: 0; font-family: inherit; text-decoration: none;
+    }
+    .z-action-btn:hover { background: #eff6ff; border-color: #c7d2fe; color: #4338ca; }
+    .z-action-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .z-action-sep { width: 1px; height: 20px; background: #e2e8f0; margin: 0 4px; flex-shrink: 0; }
+
+    /* ── Sidebar ────────────────────────────────────────── */
+    .z-sidebar { background: transparent; padding: 0; margin: 0; }
     .z-sidebar-title {
-      font-size: 13px; font-weight: 700; color: var(--gray-900);
-      padding: 0 12px 12px; border-bottom: none;
-      margin-bottom: 8px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #94a3b8; padding: 0 8px 10px;
     }
     .z-nav-list { list-style: none; padding: 0; margin: 0; }
     .z-nav-item {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 12px; font-size: 13px; color: var(--gray-700); font-weight: 500;
-      text-decoration: none; transition: all .15s; border-radius: 6px;
+      padding: 8px 10px; font-size: 13px; color: #64748b; font-weight: 500;
+      text-decoration: none; transition: all .15s; border-radius: 7px;
     }
-    .z-nav-item:hover { background: #e2e8f0; color: #0f62fe; }
-    .z-nav-item.active { background: #ebf5ff; color: #0f62fe; font-weight: 600; }
-    .z-nav-badge { background: #f1f5f9; color: var(--gray-600); font-size: 11px; padding: 2px 6px; border-radius: 10px; font-weight: 600; }
+    .z-nav-item:hover { background: #f1f5f9; color: #1e293b; }
+    .z-nav-item.active { background: #eff6ff; color: #4f46e5; font-weight: 600; }
+    .z-nav-badge { background: #f1f5f9; color: #94a3b8; font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight: 600; }
+    .z-nav-item.active .z-nav-badge { background: #e0e7ff; color: #4f46e5; }
+    #sidebar-quick-contacts { margin-top: 20px; }
 
-    /* ── Main View Toggles — defer to dash.css tab-underline ─── */
+    /* ── Main View Toggles — defer to dash.css ──────────── */
 
-    /* ── Cards (Panoramica content) ─────────────────────── */
+    /* ── Cards ──────────────────────────────────────────── */
     .z-card {
-      background: #fff; border: 1px solid #e2e8f0;
-      border-radius: 8px; margin-bottom: 20px;
-      box-shadow: 0 1px 2px rgba(0,0,0,.03); scroll-margin-top: 100px;
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+      margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.04); scroll-margin-top: 100px;
     }
     .z-card-header {
       padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
       display: flex; justify-content: space-between; align-items: center;
     }
-    .z-card-title { font-size: 15px; font-weight: 700; color: var(--gray-900); margin: 0; }
-    
-    /* Small outline buttons in cards */
+    .z-card-title { font-size: 14px; font-weight: 700; color: #0f172a; margin: 0; }
     .z-btn-outline {
       background: transparent; border: 1px solid #3b82f6; color: #3b82f6;
-      border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 600;
+      border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 600;
       cursor: pointer; transition: all .15s;
     }
     .z-btn-outline:hover { background: #eff6ff; }
-    
     .z-card-body { padding: 20px; }
-    
-    /* Grid details inside card */
-    .z-details-grid {
-      display: grid; grid-template-columns: minmax(180px, max-content) 1fr; gap: 12px 24px;
-      align-items: center;
-    }
+    .z-details-grid { display: grid; grid-template-columns: minmax(180px, max-content) 1fr; gap: 12px 24px; align-items: center; }
     .z-detail-label { font-size: 13px; color: var(--gray-500); font-weight: 500; text-align: right; }
     .z-detail-value { font-size: 14px; color: var(--gray-900); font-weight: 500; word-break: break-word; }
 
-    /* Timeline (Sequenza temporale) */
-    .z-timeline { position: relative; padding-left: 100px; margin-top: 10px; }
-    .z-timeline::before {
-      content: ''; position: absolute; left: 130px; top: 0; bottom: 0;
-      width: 1px; background: #e2e8f0;
-    }
-    .z-timeline-date {
-      position: absolute; left: 0; top: -10px;
-      background: #fff; border: 1px solid #e2e8f0; border-radius: 4px;
-      padding: 4px 12px; font-size: 12px; color: var(--gray-700); font-weight: 600;
-      z-index: 2;
-    }
-    .z-timeline-item { position: relative; margin-bottom: 32px; margin-top: 32px; display: flex; align-items: flex-start; }
-    .z-timeline-time { position: absolute; left: -100px; width: 60px; text-align: right; font-size: 12px; color: var(--gray-500); top: 6px; }
-    .z-timeline-icon {
-      position: absolute; left: -16px; top: 2px; width: 32px; height: 32px;
-      border-radius: 50%; background: #f8fafc; border: 1px solid #cbd5e1;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--gray-600); z-index: 2;
-    }
-    .z-timeline-icon svg { width: 14px; height: 14px; }
-    .z-timeline-content { margin-left: 36px; padding-top: 6px; }
-    .z-timeline-meta { font-size: 13px; color: var(--gray-900); font-weight: 600; margin-bottom: 4px; display: flex; gap: 4px; align-items: center; }
-    .z-timeline-meta span.blue { color: #2563eb; font-weight: 400; }
-    .z-timeline-text { font-size: 12px; color: var(--gray-500); margin: 0; }
-
-    /* Note compose minimal */
-    .z-note-compose { border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-bottom: 24px; background: #fff; }
-    .z-note-compose textarea {
-      width: 100%; border: none; padding: 12px; font-size: 13px; min-height: 80px; resize: none; background: transparent;
-    }
+    /* ── Note compose ───────────────────────────────────── */
+    .z-note-compose { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 20px; background: #fff; }
+    .z-note-compose textarea { width: 100%; border: none; padding: 12px; font-size: 13px; min-height: 80px; resize: none; background: transparent; font-family: inherit; }
     .z-note-compose textarea:focus { outline: none; }
-    .z-note-actions {
-      border-top: 1px solid #e2e8f0; padding: 8px 12px; display: flex; justify-content:flex-end; background:#f8fafc;
-    }
+    .z-note-actions { border-top: 1px solid #f1f5f9; padding: 8px 12px; display: flex; justify-content: flex-end; background: #f8fafc; }
 
-    /* Views container */
+    /* ── Views ──────────────────────────────────────────── */
     #view-panoramica, #view-timeline { display: none; }
     #view-panoramica.active, #view-timeline.active { display: block; animation: fade .3s; }
     @keyframes fade { from{opacity:0;transform:translateY(4px);} to{opacity:1;transform:translateY(0);} }
-    
-    /* KPI compact strip */
-    .cd-kpi-strip {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      padding: 0 24px;
-      background: #fff;
-      border-bottom: 1px solid var(--gray-100);
-    }
-    .cd-kpi-item {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 8px 18px 8px 0;
-      margin-right: 18px;
-      border-right: 1px solid var(--gray-100);
-      font-size: 12px;
-      color: var(--gray-500);
-      white-space: nowrap;
-    }
-    .cd-kpi-item:last-child { border-right: none; }
-    .cd-kpi-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .cd-kpi-label { font-weight: 500; }
-    .cd-kpi-val {
-      font-weight: 700;
-      font-size: 14px;
-      color: var(--gray-900);
-    }
 
-    /* ── Zoho-style field rows ───────────────────────────────── */
-    .zf-section + .zf-section {
-      margin-top: 20px; padding-top: 20px;
-      border-top: 1px solid #f1f5f9;
-    }
-    .zf-section-hd {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 10px;
-    }
-    .zf-section-title {
-      font-size: 11px; font-weight: 700; color: var(--gray-400);
-      text-transform: uppercase; letter-spacing: 0.7px;
-    }
+    /* ── Zoho-style field rows ───────────────────────────── */
+    .zf-section + .zf-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+    .zf-section-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .zf-section-title { font-size: 11px; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.7px; }
     .zf-edit-link {
-      font-size: 12px; font-weight: 600; color: #2563eb;
-      background: none; border: 1px solid transparent; border-radius: 4px;
-      cursor: pointer; display: flex; align-items: center; gap: 4px;
-      padding: 3px 8px; transition: all .15s;
+      display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
+      color: #4f46e5; background: #eff6ff; border: 1px solid #c7d2fe;
+      border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all .15s; font-family: inherit;
     }
-    .zf-edit-link:hover { background: #eff6ff; border-color: #bfdbfe; }
-    .zf-cols {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px;
-    }
+    .zf-edit-link:hover { background: #e0e7ff; border-color: #a5b4fc; }
+    .zf-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
     @media (max-width: 700px) { .zf-cols { grid-template-columns: 1fr; } }
-    .zf-row {
-      display: grid; grid-template-columns: 130px 1fr;
-      gap: 6px; padding: 8px 0; border-bottom: 1px solid #f8fafc;
-      align-items: start;
-    }
+    .zf-row { display: grid; grid-template-columns: 140px 1fr; gap: 8px 16px; padding: 8px 0; border-bottom: 1px solid #f8fafc; align-items: start; }
     .zf-row:last-child { border-bottom: none; }
-    .zf-lbl {
-      font-size: 12px; color: var(--gray-400); font-weight: 500;
-      line-height: 1.4; padding-top: 1px;
-    }
-    .zf-val {
-      font-size: 13.5px; color: var(--gray-900); font-weight: 400;
-      line-height: 1.4; word-break: break-word;
-    }
+    .zf-lbl { font-size: 12px; color: var(--gray-400); font-weight: 500; line-height: 1.4; padding-top: 1px; }
+    .zf-val { font-size: 13.5px; color: var(--gray-900); font-weight: 400; line-height: 1.4; word-break: break-word; }
     .zf-val a { color: #2563eb; text-decoration: none; }
     .zf-val a:hover { text-decoration: underline; }
     .zf-val.mono { font-family: monospace; font-size: 12.5px; }
-
-    /* ── Z-Header action bar ─────────────────────────────────── */
-    .z-action-bar {
-      background: #f8fafc; border-bottom: 1px solid #e2e8f0;
-      padding: 8px 24px; display: flex; align-items: center; gap: 8px;
-      flex-wrap: wrap;
-    }
-    .z-action-btn {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 12px; font-weight: 600; color: var(--gray-700);
-      background: #fff; border: 1px solid #e2e8f0; border-radius: 5px;
-      padding: 5px 12px; cursor: pointer; transition: all .15s;
-    }
-    .z-action-btn:hover { background: #f1f5f9; border-color: #cbd5e1; color: var(--gray-900); }
-    .z-action-btn svg { width: 13px; height: 13px; }
-    .z-action-sep { width: 1px; height: 20px; background: #e2e8f0; margin: 0 2px; }
   </style>
 </head>
 <body>
@@ -342,14 +280,17 @@
 <!-- ===== MAIN ===== -->
 <main class="main">
 
+  <!-- Header zone (unified card: breadcrumb + header + info strip + kpi + action bar) -->
+  <div class="cd-header-zone">
+
   <!-- Breadcrumb -->
-  <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--gray-500);margin-bottom:12px;">
-    <a href="admin_clients.html" style="color:var(--brand-600);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+  <div class="cd-breadcrumb">
+    <a href="admin_clients.html">
       <svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
       Clienti
     </a>
-    <svg style="width:12px;height:12px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-    <span id="breadcrumb-name" style="color:var(--gray-800);font-weight:500;">Caricamento...</span>
+    <svg style="width:11px;height:11px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+    <span id="breadcrumb-name">Caricamento...</span>
   </div>
 
   <div class="z-header">
@@ -423,6 +364,8 @@
       Nuovo preventivo
     </a>
   </div>
+
+  </div><!-- /cd-header-zone -->
 
   <div class="detail-layout">
     <!-- LEFT PROFILE -->
