@@ -79,7 +79,8 @@ async def login(body: LoginRequest):
         res = supabase_auth.auth.sign_in_with_password(
             {"email": body.email, "password": body.password}
         )
-    except Exception:
+    except Exception as e:
+        logger.warning("Supabase sign_in_with_password failed for %s: %s", body.email, e)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
 
     sb_user = res.user
