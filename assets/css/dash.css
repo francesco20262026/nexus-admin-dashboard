@@ -4853,11 +4853,11 @@ textarea.form-input {
   cursor: pointer; transition: all .15s;
 }
 .cl-status-pill:hover { background: var(--gray-100); }
-.cl-status-pill.active { background: #eff6ff; color: #1d4ed8; font-weight: 600; border-color: #bfdbfe; }
+.cl-status-pill.active { background: #ede9fe; color: #4f46e5; font-weight: 600; border-color: #c4b5fd; }
 .cl-status-pill .badge {
   background: var(--gray-200); color: var(--gray-700); font-size: 11px; padding: 2px 6px; border-radius: 999px;
 }
-.cl-status-pill.active .badge { background: #bfdbfe; color: #1e3a8a; }
+.cl-status-pill.active .badge { background: #c4b5fd; color: #3730a3; }
 
 /* Quick-filter badges */
 .cl-quick-badges {
@@ -4933,14 +4933,14 @@ textarea.form-input {
   grid-template-columns: 2.5fr 1.5fr 1.5fr 1.5fr 1fr 140px;
   align-items: center;
   gap: 16px;
-  padding: 8px 16px;
+  padding: 11px 16px;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   background: var(--surface);
   transition: background .12s;
 }
 .cl-row:last-child { border-bottom: none; }
-.cl-row:hover { background: var(--gray-50); }
+.cl-row:hover { background: #f5f3ff; }
 
 /* Column Helpers */
 .cl-col {
@@ -4989,9 +4989,9 @@ textarea.form-input {
 }
 .cl-row-identity-body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .cl-row-name {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
-  color: var(--gray-900);
+  color: #0f172a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5014,7 +5014,7 @@ a.cl-row-link {
   color: var(--gray-500);
   text-decoration: none;
 }
-a.cl-row-link:hover { color: var(--brand-600); text-decoration: underline; }
+a.cl-row-link:hover { color: #4f46e5; text-decoration: underline; }
 
 /* In-table KPI pills */
 .cl-mini-kpi {
@@ -5036,9 +5036,9 @@ a.cl-row-link:hover { color: var(--brand-600); text-decoration: underline; }
   line-height: 1.2;
 }
 .cl-windoc-ok {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
+  background: #ede9fe;
+  color: #4f46e5;
+  border: 1px solid #c4b5fd;
 }
 .cl-windoc-push {
   background: transparent;
