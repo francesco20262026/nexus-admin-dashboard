@@ -67,60 +67,49 @@
     .cd-topbar-btn-danger:hover { background: #fee2e2; border-color: #fca5a5; }
 
     /* ══════════════════════════════════════════════════════════
-       CLIENT HEADER — Premium redesign
-       Layout: subtle tinted wash | avatar + info | stat bar | tabs
+       CLIENT HEADER — Clean & refined
        ══════════════════════════════════════════════════════════ */
     .cd-hero {
-      background: linear-gradient(180deg, #f8fffe 0%, #ffffff 72%);
+      background: #fff;
       position: relative; overflow: visible;
-      padding: 22px 28px 0 32px;
-      border: none; border-radius: 0; margin: 0;
+      padding: 20px 24px 0;
       border-bottom: 1px solid #e2e8f0;
     }
-    /* Verde accent — bordo sinistro */
-    .cd-hero::after {
-      content: ''; position: absolute;
-      left: 0; top: 0; bottom: 0; width: 4px;
-      background: linear-gradient(180deg, #059669 0%, #10b981 100%);
-      border-radius: 0 2px 2px 0;
-    }
     .cd-hero::before { display: none; }
-    .cd-hero-dots { display: none; }
-    .cd-hero-glow { display: none; }
-    .cd-hero-inner { position: relative; z-index: 1; }
+    .cd-hero::after  { display: none; }
+    .cd-hero-dots    { display: none; }
+    .cd-hero-glow    { display: none; }
+    .cd-hero-inner   { position: relative; z-index: 1; }
 
     /* ── Avatar ── */
     .z-avatar {
-      width: 56px !important; height: 56px !important; border-radius: 16px !important;
-      background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-      border: none !important;
-      color: #fff !important; font-size: 19px !important; font-weight: 800 !important;
+      width: 52px !important; height: 52px !important; border-radius: 13px !important;
+      background: #059669 !important; border: none !important;
+      color: #fff !important; font-size: 18px !important; font-weight: 800 !important;
       display: flex !important; align-items: center !important; justify-content: center !important;
-      box-shadow: 0 0 0 3px #fff, 0 0 0 5px #a7f3d0, 0 6px 16px rgba(5,150,105,0.22) !important;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12), 0 4px 14px rgba(5,150,105,0.18) !important;
       flex-shrink: 0 !important; letter-spacing: -0.5px;
     }
 
-    /* ── Nome + meta row ── */
+    /* ── Nome + meta ── */
     .z-header {
-      display: flex !important; align-items: flex-start !important;
-      justify-content: space-between !important;
+      display: flex !important; align-items: center !important;
       gap: 16px !important; flex-wrap: wrap !important;
       background: transparent !important; border: none !important;
-      padding: 0 !important; margin: 0 0 14px !important;
+      padding: 0 !important; margin: 0 0 12px !important;
     }
     .z-header-left {
-      display: flex !important; align-items: flex-start !important;
+      display: flex !important; align-items: center !important;
       gap: 16px !important; flex: 1 !important; min-width: 0 !important;
     }
     .z-header-right { display: none !important; }
 
     .z-title {
-      font-size: 20px !important; font-weight: 800 !important; color: #0f172a !important;
-      margin: 0 0 5px !important; letter-spacing: -0.04em !important;
+      font-size: 19px !important; font-weight: 700 !important; color: #0f172a !important;
+      margin: 0 0 3px !important; letter-spacing: -0.025em !important;
       display: flex !important; align-items: center !important;
-      gap: 12px !important; flex-wrap: wrap !important; line-height: 1.1 !important;
+      gap: 10px !important; flex-wrap: wrap !important; line-height: 1.2 !important;
     }
-    /* Status badge — colori nativi */
     .z-badge {
       background: transparent !important; color: inherit !important;
       padding: 0 !important; border-radius: 0 !important;
@@ -129,89 +118,75 @@
     }
     .z-badge span { background: inherit !important; }
 
-    .z-subtitle {
-      font-size: 12px; color: #94a3b8; margin: 0;
-      font-weight: 400; letter-spacing: 0.01em;
-    }
+    .z-subtitle { font-size: 12px; color: #94a3b8; margin: 0; }
     .z-subtitle a { color: #059669; text-decoration: none; font-weight: 500; }
     .z-subtitle a:hover { text-decoration: underline; }
 
     /* ── Info strip ── */
     .z-info-strip {
       display: flex !important; flex-wrap: wrap !important;
-      gap: 0 !important; padding: 0 0 16px !important;
-      border-top: none !important; margin-top: 8px !important;
+      gap: 16px !important; padding: 0 0 14px !important;
+      border-top: none !important; margin-top: 0 !important;
     }
     .z-info-pill {
       display: flex !important; align-items: center !important; gap: 5px !important;
-      padding: 4px 12px !important; margin: 0 !important;
-      font-size: 12px !important; color: #475569 !important; font-weight: 500 !important;
-      border-right: 1px solid #e8edf2 !important;
+      padding: 0 !important; margin: 0 !important; border-right: none !important;
+      font-size: 12.5px !important; color: #475569 !important; font-weight: 400 !important;
     }
-    .z-info-pill:first-child { padding-left: 0 !important; }
-    .z-info-pill:last-child { border-right: none !important; }
-    .z-info-pill svg { color: #059669 !important; width: 12px !important; height: 12px !important; }
+    .z-info-pill svg { color: #94a3b8 !important; width: 13px !important; height: 13px !important; }
 
-    /* ── KPI — stat bar, zero card borders ── */
+    /* ── KPI — 4 schede orizzontali, label sinistra, valore destra ── */
     .cd-kpi-strip {
-      display: flex !important; gap: 0 !important;
-      border-top: 1px solid #e8edf2 !important;
-      border-bottom: none !important;
-      margin: 0 -28px 0 -32px !important;
-      padding: 0 !important;
+      display: flex !important; gap: 10px !important;
+      border-top: 1px solid #f1f5f9 !important;
+      padding: 14px 0 0 !important; margin: 0 !important;
     }
     .cd-kpi-item {
       flex: 1 !important; min-width: 0 !important;
-      background: transparent !important;
-      border: none !important; border-radius: 0 !important;
-      border-right: 1px solid #e8edf2 !important;
-      padding: 14px 22px !important;
-      display: flex !important; flex-direction: column !important;
-      align-items: flex-start !important; gap: 3px !important;
-      transition: background .14s !important;
+      background: #f8fafc !important;
+      border: 1px solid #e8edf2 !important; border-radius: 10px !important;
+      padding: 12px 16px !important; backdrop-filter: none !important;
+      display: flex !important; flex-direction: row !important;
+      align-items: center !important; justify-content: space-between !important;
+      gap: 12px !important; transition: border-color .14s, box-shadow .14s !important;
     }
-    .cd-kpi-item:last-child { border-right: none !important; }
-    .cd-kpi-item:hover { background: #f0fdf4 !important; }
+    .cd-kpi-item:hover {
+      border-color: #a7f3d0 !important;
+      box-shadow: 0 2px 8px rgba(5,150,105,0.08) !important;
+    }
     .cd-kpi-item-icon { display: none !important; }
-    .cd-kpi-dot { display: none !important; }
+    .cd-kpi-dot      { display: none !important; }
     .cd-kpi-label {
-      font-size: 9.5px !important; color: #94a3b8 !important;
-      font-weight: 700 !important; text-transform: uppercase !important;
-      letter-spacing: 0.08em !important; white-space: nowrap !important;
-      order: 2 !important;
+      font-size: 10px !important; color: #94a3b8 !important;
+      font-weight: 600 !important; text-transform: uppercase !important;
+      letter-spacing: 0.06em !important; line-height: 1.3 !important;
     }
     .cd-kpi-val {
-      font-size: 26px !important; font-weight: 800 !important;
-      letter-spacing: -0.04em !important; line-height: 1 !important;
-      margin: 0 !important; order: 1 !important; flex-shrink: 0 !important;
+      font-size: 20px !important; font-weight: 700 !important; color: #1e293b !important;
+      letter-spacing: -0.03em !important; line-height: 1 !important;
+      margin: 0 !important; flex-shrink: 0 !important;
     }
-    /* Colori per ogni metrica */
-    .cd-kpi-item:nth-child(1) .cd-kpi-val { color: #059669 !important; }
-    .cd-kpi-item:nth-child(2) .cd-kpi-val { color: #2563eb !important; }
-    .cd-kpi-item:nth-child(3) .cd-kpi-val { color: #d97706 !important; }
-    .cd-kpi-item:nth-child(4) .cd-kpi-val { color: #7c3aed !important; }
+    .cd-kpi-item:nth-child(1) .cd-kpi-val,
+    .cd-kpi-item:nth-child(2) .cd-kpi-val,
+    .cd-kpi-item:nth-child(3) .cd-kpi-val,
+    .cd-kpi-item:nth-child(4) .cd-kpi-val { color: #1e293b !important; }
     .cd-kpi-sub { display: none !important; }
 
     /* ── Tab strip ── */
     .cd-hero-tabs {
       display: flex; gap: 0; position: relative; z-index: 1;
-      margin: 0 -28px 0 -32px; padding: 0 28px 0 32px;
+      margin-top: 12px;
     }
     .cd-hero-tab-btn {
-      padding: 10px 20px;
-      background: transparent; border: none;
+      padding: 9px 20px; background: transparent; border: none;
       border-bottom: 2px solid transparent;
-      color: #94a3b8; font-weight: 500; font-size: 13px;
-      cursor: pointer; border-radius: 0; letter-spacing: 0.005em;
-      transition: color .14s, border-color .14s; font-family: inherit;
+      color: #64748b; font-weight: 500; font-size: 13px;
+      cursor: pointer; border-radius: 0; transition: all .14s; font-family: inherit;
     }
     .cd-hero-tab-btn.active {
-      color: #059669; font-weight: 700;
-      border-bottom-color: #059669;
+      color: #059669; font-weight: 600; border-bottom-color: #059669;
     }
-    .cd-hero-tab-btn:hover:not(.active) {
-      color: #334155; border-bottom-color: #e2e8f0;
-    }
+    .cd-hero-tab-btn:hover:not(.active) { color: #1e293b; }
 
     /* ── BODY: sidebar + content ────────────────────────────── */
     .cd-body { display: flex; align-items: flex-start; }
