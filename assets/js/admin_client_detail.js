@@ -173,61 +173,61 @@
 
     const grid = $('cd-anag-grid') || $('cd-anag-list');
     if (!grid) return;
-    grid.innerHTML = `
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; align-items: start;">
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Stato lifecycle</div>
-          <div>${statusBadge(c.status)}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Ragione sociale</div>
-          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.company_name || '—'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Nome contatto</div>
-          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.name || '—'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Email</div>
-          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.email || '—'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Telefono</div>
-          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.phone || '—'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Partita IVA</div>
-          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.vat_number || '—'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">PEC</div>
-          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.pec || '—'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Codice SDI</div>
-          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.dest_code || '—'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">IBAN</div>
-          <div style="font-family:monospace;font-size:14px;font-weight:500;color:var(--gray-900);">${c.iban || '—'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Indirizzo</div>
-          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${[c.address, c.city].filter(Boolean).join(', ') || '—'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Lingua</div>
-          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${(c.lang || 'it').toUpperCase()}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Creato il</div>
-          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.created_at ? UI.date(c.created_at) : '—'}</div>
-        </div>
-        ${c.notes ? `<div style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1;margin-top:8px;padding-top:16px;border-top:1px dashed var(--border);">
-          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Note</div>
-          <div style="font-size:14px;line-height:1.5;color:var(--gray-800);white-space:pre-wrap;">${c.notes}</div>
-        </div>` : ''}
+
+    const f = (label, val, cls = '') => `
+      <div class="zf-row">
+        <div class="zf-lbl">${label}</div>
+        <div class="zf-val ${cls}">${val || '—'}</div>
       </div>`;
+
+    const editPencil = `<button class="zf-edit-link" onclick="document.getElementById('cd-btn-edit').click()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:11px;height:11px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+      Modifica</button>`;
+
+    grid.innerHTML = `
+      <div class="zf-section">
+        <div class="zf-section-hd">
+          <div class="zf-section-title">Informazioni Principali</div>
+          ${editPencil}
+        </div>
+        <div class="zf-cols">
+          <div>
+            ${f('Stato', statusBadge(c.status))}
+            ${f('Ragione sociale', c.company_name ? `<strong>${c.company_name}</strong>` : null)}
+            ${f('Nome contatto', c.name)}
+            ${f('Email', c.email ? `<a href="mailto:${c.email}">${c.email}</a>` : null)}
+            ${f('Telefono', c.phone ? `<a href="tel:${c.phone}">${c.phone}</a>` : null)}
+            ${f('Lingua', (c.lang || 'it').toUpperCase())}
+          </div>
+          <div>
+            ${f('Partita IVA', c.vat_number, 'mono')}
+            ${f('Codice SDI', c.dest_code, 'mono')}
+            ${f('PEC', c.pec)}
+            ${f('IBAN', c.iban, 'mono')}
+            ${f('Cliente dal', c.created_at ? UI.date(c.created_at) : null)}
+          </div>
+        </div>
+      </div>
+
+      <div class="zf-section">
+        <div class="zf-section-hd">
+          <div class="zf-section-title">Indirizzo</div>
+        </div>
+        <div class="zf-cols">
+          <div>
+            ${f('Via / Indirizzo', c.address)}
+            ${f('Città', c.city)}
+          </div>
+          <div></div>
+        </div>
+      </div>
+
+      ${c.notes ? `<div class="zf-section">
+        <div class="zf-section-hd">
+          <div class="zf-section-title">Note interne</div>
+        </div>
+        <div style="font-size:13.5px;line-height:1.6;color:var(--gray-700);white-space:pre-wrap;padding:2px 0;">${c.notes}</div>
+      </div>` : ''}`;
   }
 
   function renderAnagForm() {
@@ -237,12 +237,19 @@
 
     const grid = $('cd-anag-grid') || $('cd-anag-list');
     if (!grid) return;
+    const sec = (title) => `<div class="zf-section-hd" style="margin-top:20px;margin-bottom:8px;padding-top:16px;border-top:1px solid #f1f5f9;"><div class="zf-section-title">${title}</div></div>`;
+
     grid.innerHTML = `
-      <div class="form-grid" style="gap:16px;">
-        <div class="form-group">
+      <div class="zf-section-hd" style="margin-bottom:12px;"><div class="zf-section-title">Modifica anagrafica</div></div>
+      <div class="form-grid" style="gap:14px;">
+        <div class="form-group form-grid--full">
           <label class="form-label">Stato lifecycle</label>
           <select class="form-input" id="anag-status">${statusOpts}</select>
         </div>
+      </div>
+
+      ${sec('Dati Azienda')}
+      <div class="form-grid" style="gap:14px;">
         <div class="form-group">
           <label class="form-label">Ragione sociale</label>
           <input class="form-input" id="anag-company-name" type="text" value="${c.company_name||''}"/>
@@ -260,8 +267,19 @@
           <input class="form-input" id="anag-phone" type="tel" value="${c.phone||''}"/>
         </div>
         <div class="form-group">
+          <label class="form-label">Lingua</label>
+          <select class="form-input" id="anag-lang">
+            <option value="it" ${c.lang==='it'?'selected':''}>Italiano</option>
+            <option value="en" ${c.lang==='en'?'selected':''}>English</option>
+          </select>
+        </div>
+      </div>
+
+      ${sec('Dati Fiscali')}
+      <div class="form-grid" style="gap:14px;">
+        <div class="form-group">
           <label class="form-label">Partita IVA</label>
-          <input class="form-input" id="anag-vat" type="text" value="${c.vat_number||''}"/>
+          <input class="form-input" id="anag-vat" type="text" value="${c.vat_number||''}" style="font-family:monospace;"/>
         </div>
         <div class="form-group">
           <label class="form-label">PEC</label>
@@ -269,12 +287,16 @@
         </div>
         <div class="form-group">
           <label class="form-label">Codice SDI</label>
-          <input class="form-input" id="anag-sdi" type="text" value="${c.dest_code||''}" maxlength="7"/>
+          <input class="form-input" id="anag-sdi" type="text" value="${c.dest_code||''}" maxlength="7" style="font-family:monospace;"/>
         </div>
         <div class="form-group">
           <label class="form-label">IBAN</label>
-          <input class="form-input" id="anag-iban" type="text" value="${c.iban||''}" placeholder="IT60X0542811101000000123456"/>
+          <input class="form-input" id="anag-iban" type="text" value="${c.iban||''}" placeholder="IT60X0542811101000000123456" style="font-family:monospace;"/>
         </div>
+      </div>
+
+      ${sec('Indirizzo')}
+      <div class="form-grid" style="gap:14px;">
         <div class="form-group">
           <label class="form-label">Indirizzo</label>
           <input class="form-input" id="anag-address" type="text" value="${c.address||''}"/>
@@ -283,20 +305,18 @@
           <label class="form-label">Città</label>
           <input class="form-input" id="anag-city" type="text" value="${c.city||''}"/>
         </div>
-        <div class="form-group">
-          <label class="form-label">Lingua</label>
-          <select class="form-input" id="anag-lang">
-            <option value="it" ${c.lang==='it'?'selected':''}>Italiano</option>
-            <option value="en" ${c.lang==='en'?'selected':''}>English</option>
-          </select>
-        </div>
-        <div class="form-group" style="grid-column:1/-1;">
-          <label class="form-label">Note</label>
-          <textarea class="form-input" id="anag-notes" rows="3">${c.notes||''}</textarea>
-        </div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:16px;">
-        <button class="btn btn-primary" id="anag-save-btn">💾 Salva</button>
+
+      ${sec('Note interne')}
+      <div class="form-group" style="margin-top:4px;">
+        <textarea class="form-input" id="anag-notes" rows="3" placeholder="Note visibili solo agli admin...">${c.notes||''}</textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;">
+        <button class="btn btn-primary" id="anag-save-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          Salva modifiche
+        </button>
         <button class="btn btn-ghost" id="anag-cancel-btn">Annulla</button>
       </div>`;
 
