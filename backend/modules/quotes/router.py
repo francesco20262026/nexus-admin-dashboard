@@ -690,7 +690,10 @@ async def send_quote_notify(quote_id: UUID, user: CurrentUser = Depends(require_
                 "total_amount": f"{q_full.get('total', 0.0):.2f}",
                 "services_summary": services_summary,
                 "client_portal_url": action_link
-            }
+            },
+            client_id=str(q_full["client_id"]) if q_full.get("client_id") else None,
+            reference_type="quote",
+            reference_id=str(quote_id),
         )
     except Exception as exc:
         logger.error("send_quote_notify: Email sending failed quote=%s: %s", quote_id, exc)

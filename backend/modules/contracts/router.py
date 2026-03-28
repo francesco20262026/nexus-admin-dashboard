@@ -581,7 +581,10 @@ async def send_for_signature(
                 "client_name": client_name,
                 "client_portal_url": frontend_url
             },
-            attachments=[(f"Contratto_{contract_id}.pdf", pdf_bytes)]
+            attachments=[(f"Contratto_{contract_id}.pdf", pdf_bytes)],
+            client_id=str(contract.get("client_id")) if contract.get("client_id") else None,
+            reference_type="contract",
+            reference_id=str(contract_id),
         )
     except Exception as exc:
         logger.error("send_for_signature: Email sending failed contract=%s: %s", contract_id, exc)

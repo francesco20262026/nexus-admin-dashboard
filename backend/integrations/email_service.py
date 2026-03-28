@@ -212,10 +212,13 @@ async def send_templated_email(
     lang: str,
     variables: dict,
     attachments: List[Tuple[str, str]] = None,
+    client_id: str = None,
+    reference_type: str = None,
+    reference_id: str = None,
 ) -> bool:
     """
     Fetch template from DB/Fallback, render variables, and send via SMTP.
-    Logs success/failure to Supabase email_logs.
+    Logs success/failure to Supabase email_logs and client_communications.
     """
     template = await get_email_template(company_id, template_type, lang)
     if not template:
@@ -271,7 +274,7 @@ async def send_templated_email(
         attachments=attachments,
     )
 
-    # Log to DB
+    # Log to email_logs
     try:
         supabase.table("email_logs").insert({
             "company_id": company_id,
@@ -283,10 +286,29 @@ async def send_templated_email(
     except Exception as e:
         logger.error(f"Failed to log email to DB: {e}")
 
+    # Log to client_communications when client_id is known
+    if client_id:
+        try:
+            comm_row = {
+                "company_id":    company_id,
+                "client_id":     client_id,
+                "channel":       "email",
+                "direction":     "outbound",
+                "subject":       subject,
+                "body_preview":  body_html[:400] if body_html else None,
+                "template_type": template_type,
+                "status":        "sent" if success else "failed",
+            }
+            if reference_type: comm_row["reference_type"] = reference_type
+            if reference_id:   comm_row["reference_id"]   = reference_id
+            supabase.table("client_communications").insert(comm_row).execute()
+        except Exception as e:
+            logger.error(f"Failed to log to client_communications: {e}")
+
     return success
 
 
-async def send_reminder_email(invoice: dict, company_id: str, level: int):
+async def send_reminder_email(invoice: dict, company_id: str, level: int, client_id: str = None):
     client = invoice.get("clients") or {}
     lang = client.get("lang", "it")
     variables = {
@@ -294,12 +316,16 @@ async def send_reminder_email(invoice: dict, company_id: str, level: int):
         "invoice_number": invoice.get("number", ""),
         "amount": invoice.get("total", ""),
         "due_date": invoice.get("due_date", ""),
-        "company_name": "" # will be populated
+        "company_name": ""
     }
+    effective_client_id = client_id or invoice.get("client_id")
     await send_templated_email(
         to_email=client.get("email", ""),
         template_type=f"reminder_{level}",
         company_id=company_id,
         lang=lang,
         variables=variables,
+        client_id=str(effective_client_id) if effective_client_id else None,
+        reference_type="invoice",
+        reference_id=str(invoice.get("id")) if invoice.get("id") else None,
     )

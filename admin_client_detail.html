@@ -266,6 +266,62 @@
     .call-badge.done { background: #dcfce7; color: #16a34a; }
     .call-badge.missed { background: #f3f4f6; color: #6b7280; }
 
+    /* ── COMUNICAZIONI TIMELINE ─────────────────────────────── */
+    .comms-filter-bar {
+      display: flex; gap: 6px; padding: 12px 20px;
+      border-bottom: 1px solid #f1f5f9; flex-wrap: wrap;
+    }
+    .comms-filter-btn {
+      border: 1px solid #e2e8f0; background: #fff; border-radius: 20px;
+      padding: 4px 12px; font-size: 11.5px; font-weight: 600;
+      color: #64748b; cursor: pointer; transition: all .13s;
+    }
+    .comms-filter-btn:hover { border-color: #059669; color: #059669; }
+    .comms-filter-btn.active { background: #059669; color: #fff; border-color: #059669; }
+    .comms-timeline { padding: 0 20px 8px; }
+    .comms-empty { font-size: 12.5px; color: #94a3b8; text-align: center; padding: 28px 0; }
+    .comms-item {
+      display: grid; grid-template-columns: 40px 1fr;
+      gap: 12px; padding: 14px 0;
+      border-bottom: 1px solid #f8fafc; align-items: start;
+    }
+    .comms-item:last-child { border-bottom: none; }
+    .comms-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
+    }
+    .comms-icon.email     { background: #dbeafe; color: #2563eb; }
+    .comms-icon.sms       { background: #fce7f3; color: #db2777; }
+    .comms-icon.whatsapp  { background: #dcfce7; color: #16a34a; }
+    .comms-icon.phone     { background: #fef9c3; color: #ca8a04; }
+    .comms-icon.letter    { background: #f3e8ff; color: #9333ea; }
+    .comms-icon.portal    { background: #e0f2fe; color: #0284c7; }
+    .comms-icon.other     { background: #f1f5f9; color: #64748b; }
+    .comms-body { min-width: 0; }
+    .comms-label {
+      font-size: 13px; font-weight: 700; color: #1e293b;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .comms-subject { font-size: 12px; color: #475569; margin-top: 2px; }
+    .comms-preview { font-size: 11.5px; color: #94a3b8; margin-top: 3px;
+                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .comms-meta {
+      display: flex; gap: 10px; align-items: center;
+      flex-wrap: wrap; margin-top: 6px; font-size: 11px; color: #94a3b8;
+    }
+    .comms-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      border-radius: 5px; padding: 1px 7px; font-size: 10.5px; font-weight: 700;
+    }
+    .comms-badge.sent      { background: #dbeafe; color: #2563eb; }
+    .comms-badge.failed    { background: #fee2e2; color: #dc2626; }
+    .comms-badge.delivered { background: #dcfce7; color: #16a34a; }
+    .comms-badge.opened    { background: #d1fae5; color: #059669; }
+    .comms-badge.outbound  { background: #f0f9ff; color: #0284c7; }
+    .comms-badge.inbound   { background: #fef3c7; color: #d97706; }
+    .comms-badge.automated { background: #f3f4f6; color: #6b7280; }
+
     /* ── OVERDUE ALERT POPUP ─────────────────────────────────── */
     .calls-alert-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -479,6 +535,7 @@
         <li><a href="#" class="z-nav-item active" id="tab-panoramica" onclick="event.preventDefault();switchMainView('panoramica')">Panoramica</a></li>
         <li><a href="#card-note" class="z-nav-item">Note <span class="z-nav-badge" id="badge-note">0</span></a></li>
         <li><a href="#card-chiamate" class="z-nav-item">Chiamate <span class="z-nav-badge" id="badge-call">0</span></a></li>
+        <li><a href="#card-comunicazioni" class="z-nav-item">Comunicazioni <span class="z-nav-badge" id="badge-comms">0</span></a></li>
         <li><a href="#card-contatti" class="z-nav-item">Contatti <span class="z-nav-badge" id="badge-contact">0</span></a></li>
         <li><a href="#card-servizi" class="z-nav-item">Servizi <span class="z-nav-badge" id="badge-service">0</span></a></li>
         <li><a href="#card-preventivi" class="z-nav-item">Preventivi <span class="z-nav-badge" id="badge-quote">0</span></a></li>
@@ -554,6 +611,30 @@
                   <div class="calls-empty">Nessuna chiamata completata</div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comunicazioni -->
+        <div class="z-card" id="card-comunicazioni">
+          <div class="z-card-header">
+            <h2 class="z-card-title">
+              <svg style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
+              Comunicazioni
+            </h2>
+            <button class="btn btn-primary btn-sm" onclick="openCommsModal()">+ Aggiungi</button>
+          </div>
+          <div class="z-card-body" style="padding:0;">
+            <div class="comms-filter-bar">
+              <button class="comms-filter-btn active" data-filter="" onclick="setCommsFilter(this,'')">Tutte</button>
+              <button class="comms-filter-btn" data-filter="email"    onclick="setCommsFilter(this,'email')">Email</button>
+              <button class="comms-filter-btn" data-filter="whatsapp" onclick="setCommsFilter(this,'whatsapp')">WhatsApp</button>
+              <button class="comms-filter-btn" data-filter="phone"    onclick="setCommsFilter(this,'phone')">Telefono</button>
+              <button class="comms-filter-btn" data-filter="sms"      onclick="setCommsFilter(this,'sms')">SMS</button>
+              <button class="comms-filter-btn" data-filter="letter"   onclick="setCommsFilter(this,'letter')">Lettera</button>
+            </div>
+            <div id="comms-timeline" class="comms-timeline">
+              <div class="comms-empty">Nessuna comunicazione registrata</div>
             </div>
           </div>
         </div>
@@ -710,6 +791,71 @@
   </div>
 </div>
 
+<!-- ── MODAL NUOVA COMUNICAZIONE ──────────────────────────────── -->
+<div class="modal-overlay" id="modal-add-comm" onclick="if(event.target===this)closeCommsModal()">
+  <div class="modal-sheet" style="max-width:520px;">
+    <div class="modal-header" style="padding:20px 24px 0;">
+      <h3 style="font-size:16px;font-weight:700;color:#1e293b;">
+        <svg style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
+        Nuova comunicazione
+      </h3>
+      <button class="icon-btn" onclick="closeCommsModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Canale <span style="color:#dc2626">*</span></label>
+          <select id="comm-channel" class="form-input">
+            <option value="email">📧 Email</option>
+            <option value="phone">📞 Telefono</option>
+            <option value="whatsapp">💬 WhatsApp</option>
+            <option value="sms">📱 SMS</option>
+            <option value="letter">📄 Lettera</option>
+            <option value="portal">🌐 Portale</option>
+            <option value="other">📌 Altro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Direzione</label>
+          <select id="comm-direction" class="form-input">
+            <option value="outbound">→ Uscente (a cliente)</option>
+            <option value="inbound">← Entrante (da cliente)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Oggetto / Titolo</label>
+        <input type="text" id="comm-subject" class="form-input" placeholder="Es. Risposta a preventivo, Richiesta supporto…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contenuto / Note</label>
+        <textarea id="comm-body" class="form-input" rows="3" placeholder="Riepilogo o preview del contenuto…" style="resize:vertical;"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Stato</label>
+          <select id="comm-status" class="form-input">
+            <option value="sent">Inviata</option>
+            <option value="delivered">Consegnata</option>
+            <option value="opened">Aperta</option>
+            <option value="failed">Fallita</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data e ora</label>
+          <input type="datetime-local" id="comm-sent-at" class="form-input">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:0 24px 20px;">
+      <button class="btn btn-ghost" onclick="closeCommsModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveComm()">Salva comunicazione</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── MODAL NUOVA CHIAMATA ────────────────────────────────────── -->
 <div class="modal-overlay" id="modal-add-call" onclick="if(event.target===this)closeCallModal()">
   <div class="modal-sheet" style="max-width:500px;">
@@ -780,6 +926,7 @@
 <script src="assets/js/router.js?v=96"></script>
 <script src="assets/js/activity_timeline.js?v=96"></script>
 <script src="assets/js/admin_client_calls.js?v=97"></script>
+<script src="assets/js/admin_client_comms.js?v=97"></script>
 <script src="assets/js/admin_client_detail.js?v=97"></script>
 </body>
 </html>

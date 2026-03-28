@@ -928,6 +928,9 @@
       setTimeout(checkOverdueCalls, 1200);
     }, 400);
 
+    // Comunicazioni — load full communications history
+    setTimeout(() => { initCommsModule(clientId); }, 450);
+
     // Timeline will lazy load when view is switched via switchMainView()
   });
 

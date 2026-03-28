@@ -15,6 +15,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/clients", tags=["calls"])
 
+_TABLE_MISSING_CODE = "PGRST205"
+
+
+def _is_table_missing(exc) -> bool:
+    """Return True when the Supabase error indicates the table does not exist yet."""
+    msg = str(exc)
+    return _TABLE_MISSING_CODE in msg or "client_calls" in msg and "schema cache" in msg
+
 
 class CallCreate(BaseModel):
     title: str
@@ -37,17 +45,23 @@ async def list_calls(
     status: Optional[str] = None,
     user: CurrentUser = Depends(require_admin),
 ):
-    q = (
-        supabase.table("client_calls")
-        .select("*")
-        .eq("company_id", str(user.active_company_id))
-        .eq("client_id", str(client_id))
-        .order("scheduled_at", desc=False)
-    )
-    if status:
-        q = q.eq("status", status)
-    res = q.execute()
-    return res.data or []
+    try:
+        q = (
+            supabase.table("client_calls")
+            .select("*")
+            .eq("company_id", str(user.active_company_id))
+            .eq("client_id", str(client_id))
+            .order("scheduled_at", desc=False)
+        )
+        if status:
+            q = q.eq("status", status)
+        res = q.execute()
+        return res.data or []
+    except Exception as exc:
+        if _is_table_missing(exc):
+            logger.warning("client_calls table not found — migration pending")
+            return []
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(exc))
 
 
 @router.get("/{client_id}/calls/overdue")
@@ -55,18 +69,23 @@ async def overdue_calls(
     client_id: UUID,
     user: CurrentUser = Depends(require_admin),
 ):
-    now = datetime.now(timezone.utc).isoformat()
-    res = (
-        supabase.table("client_calls")
-        .select("*")
-        .eq("company_id", str(user.active_company_id))
-        .eq("client_id", str(client_id))
-        .eq("status", "scheduled")
-        .lt("scheduled_at", now)
-        .order("scheduled_at", desc=False)
-        .execute()
-    )
-    return res.data or []
+    try:
+        now = datetime.now(timezone.utc).isoformat()
+        res = (
+            supabase.table("client_calls")
+            .select("*")
+            .eq("company_id", str(user.active_company_id))
+            .eq("client_id", str(client_id))
+            .eq("status", "scheduled")
+            .lt("scheduled_at", now)
+            .order("scheduled_at", desc=False)
+            .execute()
+        )
+        return res.data or []
+    except Exception as exc:
+        if _is_table_missing(exc):
+            return []
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(exc))
 
 
 @router.post("/{client_id}/calls", status_code=status.HTTP_201_CREATED)

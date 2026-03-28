@@ -167,6 +167,9 @@ async def send_renewal_alert(
                 "service_name": service_name,
                 "renewal_date": renewal.get("renewal_date", ""),
             },
+            client_id=str(renewal.get("client_id")) if renewal.get("client_id") else None,
+            reference_type="renewal",
+            reference_id=str(renewal_id),
         )
     except Exception as exc:
         logger.error("send_renewal_alert failed renewal=%s: %s", renewal_id, exc)
