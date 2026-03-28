@@ -106,7 +106,7 @@
     .z-action-bar {
       display: flex; align-items: center; gap: 6px;
       padding: 6px 0 14px; border-top: none;
-      margin: 0; background: transparent;
+      border-bottom: 1px solid #e8ecf0; margin: 0 0 20px; background: transparent;
       overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none;
     }
     .z-action-bar::-webkit-scrollbar { display: none; }
@@ -116,8 +116,12 @@
       font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s;
       white-space: nowrap; flex-shrink: 0; font-family: inherit; text-decoration: none;
     }
-    .z-action-btn:hover { background: #eff6ff; border-color: #c7d2fe; color: #4338ca; }
+    .z-action-btn:hover { background: #eef0fb; border-color: #c7d2fe; color: #4f46e5; }
     .z-action-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .z-action-btn.primary-action {
+      background: #4f46e5; color: #fff; border-color: #4f46e5; font-weight: 600;
+    }
+    .z-action-btn.primary-action:hover { background: #4338ca; border-color: #4338ca; color: #fff; }
     .z-action-sep { width: 1px; height: 20px; background: #e2e8f0; margin: 0 4px; flex-shrink: 0; }
 
     /* ── Sidebar ────────────────────────────────────────── */
@@ -132,7 +136,7 @@
       padding: 8px 10px; font-size: 13px; color: #64748b; font-weight: 500;
       text-decoration: none; transition: all .15s; border-radius: 7px;
     }
-    .z-nav-item:hover { background: #f1f5f9; color: #1e293b; }
+    .z-nav-item:hover { background: #eef0fb; color: #4f46e5; }
     .z-nav-item.active { background: #eff6ff; color: #4f46e5; font-weight: 600; }
     .z-nav-badge { background: #f1f5f9; color: #94a3b8; font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight: 600; }
     .z-nav-item.active .z-nav-badge { background: #e0e7ff; color: #4f46e5; }
@@ -145,7 +149,7 @@
     }
     .z-view-toggles {
       display: inline-flex; gap: 2px;
-      background: #e8ecf0; border-radius: 8px; padding: 3px;
+      background: #ece9fb; border-radius: 8px; padding: 3px;
     }
     .z-view-btn {
       padding: 7px 18px; font-size: 13px; font-weight: 600;
@@ -153,10 +157,10 @@
       border-radius: 6px; cursor: pointer; transition: all .15s;
       border-bottom: none; margin-bottom: 0; font-family: inherit;
     }
-    .z-view-btn:hover { color: #1e293b; background: rgba(255,255,255,0.5); }
+    .z-view-btn:hover { color: #4f46e5; background: rgba(255,255,255,0.7); }
     .z-view-btn.active {
-      color: #fff; background: #1e293b;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      color: #fff; background: #4f46e5;
+      box-shadow: 0 2px 8px rgba(79,70,229,0.30);
     }
 
     /* ── Cards ──────────────────────────────────────────── */
@@ -326,7 +330,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
         Elimina
       </button>
-      <button class="btn btn-primary" id="cd-btn-edit">
+      <button class="btn btn-primary" id="cd-btn-edit" style="background:#4f46e5;border-color:#4f46e5;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
         Modifica
       </button>
@@ -379,7 +383,7 @@
       Task
     </button>
     <div class="z-action-sep"></div>
-    <a class="z-action-btn" id="cd-link-new-quote" href="admin_quotes.html?new=1">
+    <a class="z-action-btn primary-action" id="cd-link-new-quote" href="admin_quotes.html?new=1">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
       Nuovo preventivo
     </a>
