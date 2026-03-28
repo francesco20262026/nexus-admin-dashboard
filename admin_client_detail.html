@@ -185,20 +185,6 @@
       overflow-y: auto; overflow-x: hidden;
       transition: width .22s cubic-bezier(.4,0,.2,1);
     }
-    .profile-col.collapsed { width: 0; box-shadow: none; }
-
-    /* Toggle button */
-    .cd-sidebar-toggle {
-      position: absolute; right: -13px; top: 18px;
-      width: 26px; height: 26px; border-radius: 50%;
-      background: #fff; border: 1px solid #e2e8f0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.10);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; z-index: 20; color: #64748b; transition: all .18s; padding: 0;
-    }
-    .cd-sidebar-toggle:hover { background: #059669; color: #fff; border-color: #059669; }
-    .cd-sidebar-toggle svg { width: 13px; height: 13px; }
-    .profile-col.collapsed .cd-sidebar-toggle svg { transform: scaleX(-1); }
 
     /* Sidebar nav */
     .z-sidebar { padding: 14px 10px; min-width: 190px; }
@@ -268,7 +254,6 @@
     @media (max-width: 900px) {
       .detail-layout { flex-direction: column; gap: 12px; }
       .profile-col { width: 100% !important; position: static; border-radius: 12px; }
-      .cd-sidebar-toggle { display: none; }
     }
   </style>
 </head>
@@ -460,9 +445,6 @@
   <div class="detail-layout">
     <!-- LEFT PROFILE — COLLAPSIBLE -->
     <div class="profile-col" id="cd-profile-col">
-      <button class="cd-sidebar-toggle" id="cd-sidebar-toggle" title="Comprimi sidebar" aria-label="Comprimi sidebar">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
-      </button>
       <nav class="z-sidebar">
         <div class="z-sidebar-title">Elenco Correlato</div>
         <ul class="z-nav-list" id="elenco-correlato">
@@ -675,20 +657,6 @@
 <script src="assets/js/router.js?v=96"></script>
 <script src="assets/js/activity_timeline.js?v=96"></script>
 <script src="assets/js/admin_client_detail.js?v=96"></script>
-<script>
-(function(){
-  var col = document.getElementById('cd-profile-col');
-  var btn = document.getElementById('cd-sidebar-toggle');
-  if (!col || !btn) return;
-  var ICON_COLLAPSE = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>';
-  var ICON_EXPAND   = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>';
-  btn.addEventListener('click', function(){
-    var collapsed = col.classList.toggle('collapsed');
-    btn.innerHTML  = collapsed ? ICON_EXPAND : ICON_COLLAPSE;
-    btn.title      = collapsed ? 'Espandi sidebar' : 'Comprimi sidebar';
-  });
-})();
-</script>
 </body>
 </html>
 
