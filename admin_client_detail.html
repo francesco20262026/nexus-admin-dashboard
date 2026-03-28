@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preload" as="image" href="/assets/img/nova-crm-logo-sidebar.svg">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/css/dash.css?v=98"/>
+  <link rel="stylesheet" href="assets/css/dash.css?v=99"/>
   <style>
     /* =========================================================
        CLIENT DETAIL — NOVA CRM — STANDARD CRM LAYOUT
@@ -137,10 +137,13 @@
       right: 0 !important;
       width: auto !important;
       flex-direction: row !important;
+      align-items: center !important;
       z-index: 90 !important;
-      background: #fff !important;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
-      border-bottom: 1px solid #e8edf2 !important;
+      background: #f8fafc !important;
+      box-shadow: 0 1px 0 #e2e8f0 !important;
+      border-bottom: none !important;
+      height: 50px !important;
+      padding: 0 6px !important;
     }
     .shell.collapsed .profile-col {
       left: var(--sidebar-collapsed-w) !important;
@@ -151,10 +154,10 @@
       display: block !important;
       width: 100% !important;
       grid-template-columns: none !important;
-      padding-top: 58px !important;
+      padding-top: 66px !important;
     }
 
-    .z-sidebar { padding: 0 8px !important; }
+    .z-sidebar { padding: 0 !important; }
     .z-sidebar-title { display: none !important; }
     .z-nav-list {
       list-style: none !important;
@@ -164,51 +167,60 @@
       flex-direction: row !important;
       flex-wrap: nowrap !important;
       overflow-x: auto !important;
-      gap: 0 !important;
+      gap: 2px !important;
       scrollbar-width: none !important;
+      align-items: center !important;
+      height: 100% !important;
     }
     .z-nav-list::-webkit-scrollbar { display: none; }
-    .z-nav-list li { flex-shrink: 0 !important; }
+    .z-nav-list li { flex-shrink: 0 !important; display: flex !important; align-items: center !important; }
     .z-nav-item {
       display: inline-flex !important;
       align-items: center !important;
       justify-content: flex-start !important;
-      gap: 6px !important;
-      padding: 13px 16px !important;
+      gap: 5px !important;
+      padding: 5px 12px !important;
       color: #64748b !important;
       font-size: 13px !important;
       font-weight: 500 !important;
       text-decoration: none !important;
       cursor: pointer !important;
       white-space: nowrap !important;
-      border-bottom: 2px solid transparent !important;
-      border-radius: 0 !important;
+      border-bottom: none !important;
+      border-radius: 7px !important;
       background: transparent !important;
-      transition: color .12s, border-color .12s !important;
+      transition: color .15s, background .15s !important;
+      line-height: 1 !important;
+      height: 34px !important;
     }
     .z-nav-item:hover {
       color: #1e293b !important;
-      border-bottom-color: #cbd5e1 !important;
-      background: transparent !important;
+      background: #e9eef4 !important;
+      border-bottom-color: transparent !important;
     }
     .z-nav-item.active {
       color: #059669 !important;
-      font-weight: 700 !important;
-      border-bottom-color: #059669 !important;
-      background: transparent !important;
+      font-weight: 600 !important;
+      background: #fff !important;
+      border-bottom: none !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 0 0 1px rgba(5,150,105,0.15) !important;
     }
     .z-nav-badge {
-      background: #f1f5f9 !important;
+      background: #e2e8f0 !important;
       color: #64748b !important;
-      border-radius: 10px !important;
-      padding: 1px 7px !important;
-      font-size: 10.5px !important;
+      border-radius: 20px !important;
+      padding: 1px 6px !important;
+      font-size: 10px !important;
       font-weight: 700 !important;
-      min-width: 20px !important;
+      min-width: 18px !important;
       text-align: center !important;
       height: auto !important;
+      line-height: 1.6 !important;
     }
-    .z-nav-item.active .z-nav-badge { background: #059669 !important; color: #fff !important; }
+    .z-nav-item.active .z-nav-badge {
+      background: #d1fae5 !important;
+      color: #059669 !important;
+    }
     #sidebar-quick-contacts { display: none !important; }
 
     /* ── DATA COL ────────────────────────────────────────────── */
