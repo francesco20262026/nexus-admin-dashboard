@@ -4826,6 +4826,7 @@ textarea.form-input {
   height: auto;
   min-height: 46px; /* Match the HTML height=46 attribute */
   object-fit: contain;
+  filter: hue-rotate(83deg) saturate(1.15) brightness(0.92);
 }
 
 
