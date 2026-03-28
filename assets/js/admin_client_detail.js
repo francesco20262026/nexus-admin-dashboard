@@ -30,14 +30,12 @@
     $('view-panoramica')?.classList.toggle('active', viewId === 'panoramica');
     $('view-timeline')?.classList.toggle('active', viewId === 'timeline');
 
-    // Sync sidebar Panoramica / Cronologia active states
+    // Sync sidebar Panoramica active state
     const sidebarList = $('elenco-correlato');
     if (sidebarList) {
       sidebarList.querySelectorAll('.z-nav-item').forEach(el => el.classList.remove('active'));
       if (viewId === 'panoramica') {
         sidebarList.querySelector('li:first-child .z-nav-item')?.classList.add('active');
-      } else if (viewId === 'timeline') {
-        $('sidebar-btn-timeline')?.classList.add('active');
       }
     }
 

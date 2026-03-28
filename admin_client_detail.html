@@ -422,11 +422,6 @@
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
       Nuovo preventivo
     </a>
-    <div class="z-action-sep"></div>
-    <button class="z-action-btn" onclick="switchMainView('timeline')">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-      Sequenza temporale
-    </button>
   </div>
 
   <div class="detail-layout">
@@ -435,8 +430,7 @@
       <nav class="z-sidebar">
         <div class="z-sidebar-title">Elenco Correlato</div>
         <ul class="z-nav-list" id="elenco-correlato">
-          <li><a href="#" class="z-nav-item" onclick="event.preventDefault();switchMainView('panoramica')">Panoramica</a></li>
-          <li><a href="#" class="z-nav-item" id="sidebar-btn-timeline" onclick="event.preventDefault();switchMainView('timeline')">Cronologia</a></li>
+          <li><a href="#" class="z-nav-item active" onclick="event.preventDefault();switchMainView('panoramica')">Panoramica</a></li>
           <li><a href="#card-note" class="z-nav-item">Note <span class="z-nav-badge" id="badge-note">0</span></a></li>
           <li><a href="#card-contatti" class="z-nav-item">Contatti <span class="z-nav-badge" id="badge-contact">0</span></a></li>
           <li><a href="#card-servizi" class="z-nav-item">Servizi <span class="z-nav-badge" id="badge-service">0</span></a></li>
@@ -644,14 +638,14 @@
 <div id="toast-container" class="toast-container"></div>
 
 <!-- ==================== SCRIPTS ==================== -->
-<script src="assets/js/api.js?v=95"></script>
-<script src="assets/js/auth.js?v=95"></script>
-<script src="assets/js/ui.js?v=95"></script>
-<script src="assets/js/i18n.js?v=95"></script>
-<script src="assets/js/dash.js?v=95"></script>
-<script src="assets/js/router.js?v=95"></script>
-<script src="assets/js/activity_timeline.js?v=95"></script>
-<script src="assets/js/admin_client_detail.js?v=95"></script>
+<script src="assets/js/api.js?v=96"></script>
+<script src="assets/js/auth.js?v=96"></script>
+<script src="assets/js/ui.js?v=96"></script>
+<script src="assets/js/i18n.js?v=96"></script>
+<script src="assets/js/dash.js?v=96"></script>
+<script src="assets/js/router.js?v=96"></script>
+<script src="assets/js/activity_timeline.js?v=96"></script>
+<script src="assets/js/admin_client_detail.js?v=96"></script>
 </body>
 </html>
 
