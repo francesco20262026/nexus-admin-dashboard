@@ -66,57 +66,61 @@
     }
     .cd-topbar-btn-danger:hover { background: #fee2e2; border-color: #fca5a5; }
 
-    /* ── CLIENT HEADER — elegant white ─────────────────────── */
+    /* ══════════════════════════════════════════════════════════
+       CLIENT HEADER — Premium redesign
+       Layout: subtle tinted wash | avatar + info | stat bar | tabs
+       ══════════════════════════════════════════════════════════ */
     .cd-hero {
-      background: #fff;
+      background: linear-gradient(180deg, #f8fffe 0%, #ffffff 72%);
       position: relative; overflow: visible;
-      padding: 20px 28px 0;
+      padding: 22px 28px 0 32px;
       border: none; border-radius: 0; margin: 0;
-      box-shadow: 0 1px 0 #e8edf2;
+      border-bottom: 1px solid #e2e8f0;
     }
-    /* Sottile accent line verde a sinistra */
+    /* Verde accent — bordo sinistro */
     .cd-hero::after {
       content: ''; position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 3px; background: #059669;
+      left: 0; top: 0; bottom: 0; width: 4px;
+      background: linear-gradient(180deg, #059669 0%, #10b981 100%);
+      border-radius: 0 2px 2px 0;
     }
     .cd-hero::before { display: none; }
     .cd-hero-dots { display: none; }
     .cd-hero-glow { display: none; }
     .cd-hero-inner { position: relative; z-index: 1; }
 
-    /* Avatar — verde pieno con alone */
+    /* ── Avatar ── */
     .z-avatar {
-      width: 52px !important; height: 52px !important; border-radius: 14px !important;
-      background: linear-gradient(140deg, #059669 0%, #047857 100%) !important;
+      width: 56px !important; height: 56px !important; border-radius: 16px !important;
+      background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
       border: none !important;
-      color: #fff !important; font-size: 18px !important; font-weight: 800 !important;
+      color: #fff !important; font-size: 19px !important; font-weight: 800 !important;
       display: flex !important; align-items: center !important; justify-content: center !important;
-      box-shadow: 0 0 0 4px #d1fae5, 0 4px 12px rgba(5,150,105,0.2) !important;
+      box-shadow: 0 0 0 3px #fff, 0 0 0 5px #a7f3d0, 0 6px 16px rgba(5,150,105,0.22) !important;
       flex-shrink: 0 !important; letter-spacing: -0.5px;
     }
 
-    /* Name + meta row */
+    /* ── Nome + meta row ── */
     .z-header {
-      display: flex !important; align-items: center !important;
-      justify-content: flex-start !important;
+      display: flex !important; align-items: flex-start !important;
+      justify-content: space-between !important;
       gap: 16px !important; flex-wrap: wrap !important;
       background: transparent !important; border: none !important;
-      padding: 0 !important; margin: 0 0 12px !important;
+      padding: 0 !important; margin: 0 0 14px !important;
     }
     .z-header-left {
-      display: flex !important; align-items: center !important;
+      display: flex !important; align-items: flex-start !important;
       gap: 16px !important; flex: 1 !important; min-width: 0 !important;
     }
     .z-header-right { display: none !important; }
 
     .z-title {
-      font-size: 18px !important; font-weight: 800 !important; color: #0f172a !important;
-      margin: 0 0 4px !important; letter-spacing: -0.03em !important;
+      font-size: 20px !important; font-weight: 800 !important; color: #0f172a !important;
+      margin: 0 0 5px !important; letter-spacing: -0.04em !important;
       display: flex !important; align-items: center !important;
-      gap: 10px !important; flex-wrap: wrap !important; line-height: 1.15 !important;
+      gap: 12px !important; flex-wrap: wrap !important; line-height: 1.1 !important;
     }
-    /* Status badge: lascia i colori nativi del componente */
+    /* Status badge — colori nativi */
     .z-badge {
       background: transparent !important; color: inherit !important;
       padding: 0 !important; border-radius: 0 !important;
@@ -125,88 +129,88 @@
     }
     .z-badge span { background: inherit !important; }
 
-    .z-subtitle { font-size: 12px; color: #94a3b8; margin: 0; letter-spacing: 0.01em; }
+    .z-subtitle {
+      font-size: 12px; color: #94a3b8; margin: 0;
+      font-weight: 400; letter-spacing: 0.01em;
+    }
     .z-subtitle a { color: #059669; text-decoration: none; font-weight: 500; }
     .z-subtitle a:hover { text-decoration: underline; }
 
-    /* Info strip */
+    /* ── Info strip ── */
     .z-info-strip {
       display: flex !important; flex-wrap: wrap !important;
-      gap: 18px !important; padding: 0 0 14px !important;
-      border-top: none !important; margin-top: 0 !important;
+      gap: 0 !important; padding: 0 0 16px !important;
+      border-top: none !important; margin-top: 8px !important;
     }
     .z-info-pill {
       display: flex !important; align-items: center !important; gap: 5px !important;
-      padding: 0 !important; margin: 0 !important; border-right: none !important;
+      padding: 4px 12px !important; margin: 0 !important;
       font-size: 12px !important; color: #475569 !important; font-weight: 500 !important;
+      border-right: 1px solid #e8edf2 !important;
     }
-    .z-info-pill svg { color: #059669 !important; width: 13px !important; height: 13px !important; }
+    .z-info-pill:first-child { padding-left: 0 !important; }
+    .z-info-pill:last-child { border-right: none !important; }
+    .z-info-pill svg { color: #059669 !important; width: 12px !important; height: 12px !important; }
 
-    /* KPI strip */
+    /* ── KPI — stat bar, zero card borders ── */
     .cd-kpi-strip {
-      display: flex !important; gap: 10px !important;
-      border-top: 1px solid #f1f5f9 !important; padding-top: 12px !important;
-      margin-top: 0 !important; margin-bottom: 0 !important; padding-bottom: 0 !important;
+      display: flex !important; gap: 0 !important;
+      border-top: 1px solid #e8edf2 !important;
+      border-bottom: none !important;
+      margin: 0 -28px 0 -32px !important;
+      padding: 0 !important;
     }
     .cd-kpi-item {
       flex: 1 !important; min-width: 0 !important;
-      background: #fff !important;
-      border: 1px solid #e8edf2 !important;
-      border-left: 3px solid #e8edf2 !important;
-      border-radius: 10px !important; padding: 10px 14px !important;
-      backdrop-filter: none !important;
+      background: transparent !important;
+      border: none !important; border-radius: 0 !important;
+      border-right: 1px solid #e8edf2 !important;
+      padding: 14px 22px !important;
       display: flex !important; flex-direction: column !important;
-      align-items: flex-start !important; justify-content: center !important;
-      gap: 2px !important;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
-      transition: border-left-color .15s, box-shadow .15s !important;
+      align-items: flex-start !important; gap: 3px !important;
+      transition: background .14s !important;
     }
-    .cd-kpi-item:hover {
-      border-left-color: #059669 !important;
-      box-shadow: 0 2px 8px rgba(5,150,105,0.1) !important;
-    }
-    .cd-kpi-item:nth-child(1) { border-left-color: #059669 !important; }
-    .cd-kpi-item:nth-child(2) { border-left-color: #3b82f6 !important; }
-    .cd-kpi-item:nth-child(3) { border-left-color: #f59e0b !important; }
-    .cd-kpi-item:nth-child(4) { border-left-color: #8b5cf6 !important; }
+    .cd-kpi-item:last-child { border-right: none !important; }
+    .cd-kpi-item:hover { background: #f0fdf4 !important; }
     .cd-kpi-item-icon { display: none !important; }
     .cd-kpi-dot { display: none !important; }
     .cd-kpi-label {
       font-size: 9.5px !important; color: #94a3b8 !important;
       font-weight: 700 !important; text-transform: uppercase !important;
-      letter-spacing: 0.07em !important; white-space: nowrap !important;
+      letter-spacing: 0.08em !important; white-space: nowrap !important;
+      order: 2 !important;
     }
     .cd-kpi-val {
-      font-size: 22px !important; font-weight: 800 !important;
-      color: #0f172a !important; letter-spacing: -0.03em !important;
-      margin-top: 0 !important; line-height: 1.1 !important; flex-shrink: 0 !important;
+      font-size: 26px !important; font-weight: 800 !important;
+      letter-spacing: -0.04em !important; line-height: 1 !important;
+      margin: 0 !important; order: 1 !important; flex-shrink: 0 !important;
     }
+    /* Colori per ogni metrica */
     .cd-kpi-item:nth-child(1) .cd-kpi-val { color: #059669 !important; }
     .cd-kpi-item:nth-child(2) .cd-kpi-val { color: #2563eb !important; }
     .cd-kpi-item:nth-child(3) .cd-kpi-val { color: #d97706 !important; }
     .cd-kpi-item:nth-child(4) .cd-kpi-val { color: #7c3aed !important; }
     .cd-kpi-sub { display: none !important; }
 
-    /* Tab strip — elegante */
+    /* ── Tab strip ── */
     .cd-hero-tabs {
-      display: flex; gap: 4px; position: relative; z-index: 1;
-      margin-top: 14px;
+      display: flex; gap: 0; position: relative; z-index: 1;
+      margin: 0 -28px 0 -32px; padding: 0 28px 0 32px;
     }
     .cd-hero-tab-btn {
-      padding: 8px 20px;
+      padding: 10px 20px;
       background: transparent; border: none;
       border-bottom: 2px solid transparent;
-      color: #94a3b8;
-      font-weight: 500; font-size: 13px; cursor: pointer;
-      border-radius: 0; letter-spacing: 0.01em;
-      transition: all .15s; font-family: inherit;
+      color: #94a3b8; font-weight: 500; font-size: 13px;
+      cursor: pointer; border-radius: 0; letter-spacing: 0.005em;
+      transition: color .14s, border-color .14s; font-family: inherit;
     }
     .cd-hero-tab-btn.active {
       color: #059669; font-weight: 700;
       border-bottom-color: #059669;
     }
     .cd-hero-tab-btn:hover:not(.active) {
-      color: #475569; border-bottom-color: #e2e8f0;
+      color: #334155; border-bottom-color: #e2e8f0;
     }
 
     /* ── BODY: sidebar + content ────────────────────────────── */
