@@ -181,31 +181,36 @@
     #view-panoramica.active, #view-timeline.active { display: block; animation: fade .3s; }
     @keyframes fade { from{opacity:0;transform:translateY(4px);} to{opacity:1;transform:translateY(0);} }
     
-    /* KPI Chips Layout */
-    .cd-chips {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-    }
-    .cd-chip {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 16px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    /* KPI compact strip */
+    .cd-kpi-strip {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
+      align-items: center;
+      gap: 0;
+      padding: 0 24px;
+      background: #fff;
+      border-bottom: 1px solid var(--gray-100);
     }
-    .cd-chip-lbl {
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    .cd-kpi-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 18px 8px 0;
+      margin-right: 18px;
+      border-right: 1px solid var(--gray-100);
+      font-size: 12px;
+      color: var(--gray-500);
+      white-space: nowrap;
     }
-    .cd-chip-val {
-      font-size: 24px;
+    .cd-kpi-item:last-child { border-right: none; }
+    .cd-kpi-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .cd-kpi-label { font-weight: 500; }
+    .cd-kpi-val {
       font-weight: 700;
+      font-size: 14px;
       color: var(--gray-900);
     }
 
@@ -389,23 +394,27 @@
   <!-- Info strip: quick contact facts -->
   <div class="z-info-strip" id="cd-info-strip"></div>
 
-  <!-- KPI chips -->
-  <div class="cd-chips" id="cd-chips">
-    <div class="cd-chip" style="border-top:3px solid #059669;">
-      <div class="cd-chip-lbl" style="color:#059669;">Servizi attivi</div>
-      <div class="cd-chip-val" id="chip-services-kpi">—</div>
+  <!-- KPI compact strip -->
+  <div class="cd-kpi-strip" id="cd-chips">
+    <div class="cd-kpi-item">
+      <span class="cd-kpi-dot" style="background:#059669;"></span>
+      <span class="cd-kpi-label">Servizi attivi</span>
+      <span class="cd-kpi-val" id="chip-services-kpi">—</span>
     </div>
-    <div class="cd-chip" style="border-top:3px solid #2563eb;">
-      <div class="cd-chip-lbl" style="color:#2563eb;">Contratti</div>
-      <div class="cd-chip-val" id="chip-contracts-kpi">—</div>
+    <div class="cd-kpi-item">
+      <span class="cd-kpi-dot" style="background:#2563eb;"></span>
+      <span class="cd-kpi-label">Contratti attivi</span>
+      <span class="cd-kpi-val" id="chip-contracts-kpi">—</span>
     </div>
-    <div class="cd-chip" style="border-top:3px solid #d97706;">
-      <div class="cd-chip-lbl" style="color:#d97706;">Fatture aperte</div>
-      <div class="cd-chip-val" id="chip-invoices-kpi">—</div>
+    <div class="cd-kpi-item">
+      <span class="cd-kpi-dot" style="background:#d97706;"></span>
+      <span class="cd-kpi-label">Fatture aperte</span>
+      <span class="cd-kpi-val" id="chip-invoices-kpi">—</span>
     </div>
-    <div class="cd-chip" style="border-top:3px solid #7c3aed;">
-      <div class="cd-chip-lbl" style="color:#7c3aed;">Rinnovi</div>
-      <div class="cd-chip-val" id="chip-renewals-kpi">—</div>
+    <div class="cd-kpi-item">
+      <span class="cd-kpi-dot" style="background:#7c3aed;"></span>
+      <span class="cd-kpi-label">Rinnovi</span>
+      <span class="cd-kpi-val" id="chip-renewals-kpi">—</span>
     </div>
   </div>
 
@@ -653,14 +662,14 @@
 <div id="toast-container" class="toast-container"></div>
 
 <!-- ==================== SCRIPTS ==================== -->
-<script src="assets/js/api.js?v=92"></script>
-<script src="assets/js/auth.js?v=92"></script>
-<script src="assets/js/ui.js?v=92"></script>
-<script src="assets/js/i18n.js?v=92"></script>
-<script src="assets/js/dash.js?v=92"></script>
-<script src="assets/js/router.js?v=92"></script>
-<script src="assets/js/activity_timeline.js?v=92"></script>
-<script src="assets/js/admin_client_detail.js?v=92"></script>
+<script src="assets/js/api.js?v=93"></script>
+<script src="assets/js/auth.js?v=93"></script>
+<script src="assets/js/ui.js?v=93"></script>
+<script src="assets/js/i18n.js?v=93"></script>
+<script src="assets/js/dash.js?v=93"></script>
+<script src="assets/js/router.js?v=93"></script>
+<script src="assets/js/activity_timeline.js?v=93"></script>
+<script src="assets/js/admin_client_detail.js?v=93"></script>
 </body>
 </html>
 
