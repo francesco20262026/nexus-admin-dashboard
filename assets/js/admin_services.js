@@ -25,7 +25,7 @@
   const infoEl        = $('srv-info');
   const paginationEl  = $('srv-pagination');
   const filterCat     = $('srv-filter-category');
-  const tabBar        = $('srv-tab-bar');
+  const tabBar        = $('srv-pipeline-bar');
   const btnNew        = $('btn-new-service');
   const btnRefresh    = $('btn-refresh-services');
   const modalSvc      = $('modal-service');
@@ -42,7 +42,7 @@
 
   /* ── Restore saved state ───────────────────────────────────── */
   if (searchEl && saved.search) searchEl.value = saved.search;
-  tabBar?.querySelectorAll('.filter-tab').forEach(b =>
+  tabBar?.querySelectorAll('.cl-status-pill').forEach(b =>
     b.classList.toggle('active', b.dataset.tab === activeTab)
   );
 
@@ -56,9 +56,9 @@
 
   /* ── Tab clicks ─────────────────────────────────────────────── */
   tabBar?.addEventListener('click', e => {
-    const btn = e.target.closest('.filter-tab');
+    const btn = e.target.closest('.cl-status-pill');
     if (!btn) return;
-    tabBar.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    tabBar.querySelectorAll('.cl-status-pill').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeTab   = btn.dataset.tab;
     currentPage = 1;
@@ -66,11 +66,11 @@
   });
 
   /* ── Filter listeners ───────────────────────────────────────── */
-  searchEl?.addEventListener('input',    () => { currentPage = 1; applyFilters(); });
+  searchEl?.addEventListener('input',    debounce(() => { currentPage = 1; applyFilters(); }, 200));
     filterCat?.addEventListener('change',    () => { currentPage = 1; applyFilters(); });
   
   /* ── Refresh ────────────────────────────────────────────────── */
-  btnRefresh?.addEventListener('click', () => load(true));
+  btnRefresh?.addEventListener('click', () => { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
   window.addEventListener('companyChanged', () => load(true));
   window._reloadServices = () => load(true);
 
@@ -193,48 +193,43 @@
       const cat        = s.category || '';
 
       return `
-      <div class="list-card fade-in" data-id="${s.id}">
-        <div class="list-card-header">
-          <div class="list-card-title" style="display:flex;align-items:center;gap:8px;">
-            <div>
-              <div>${s.name || 0}</div>
-              ${cat ? `<div style="font-size:11px;color:var(--gray-500);font-weight:400;">${cat}</div>` : ''}
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-            <span style="font-size:11px;background:var(--gray-100);color:var(--gray-600);padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;">${cycleLabel}</span>
-            ${UI.pill(s.status || 'inactive')}
-          </div>
+      <div class="cl-row fade-in" data-id="${s.id}" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s;">
+        <!-- Colonna 1: Nome e Categoria -->
+        <div class="cl-col" style="flex:2; min-width:0;">
+          <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name || '—'}</div>
+          ${cat ? `<div class="cl-row-meta" style="font-size:12px; color:var(--gray-500); margin-top:2px;">${cat}</div>` : ''}
+          ${s.description ? `<div style="font-size:12px; color:var(--gray-400); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${s.description.replace(/"/g,'&quot;')}">${s.description}</div>` : ''}
         </div>
-        <div class="list-card-body" style="gap:16px;flex-wrap:wrap;">
-          ${s.description ? `<div class="list-card-meta" style="flex:1 1 100%;color:var(--gray-600);">${s.description}</div>` : ''}
-          <div class="list-card-meta" title="${I18n.t('srv.f_price') || 'Prezzo base'}">
-            <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-            <span style="font-weight:700;color:var(--gray-900);">${price}</span>
-          </div>
-          ${clientsN !== '' ? `<div class="list-card-meta" title="${I18n.t('srv.clients_count') || 'Clienti attivi'}">
-            <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-            <span>${clientsN} ${I18n.t('srv.clients_active') || 'clienti attivi'}</span>
-          </div>` : ''}
-          <div class="row-actions" style="width:100%;justify-content:flex-end;margin-top:4px;">
-            <button class="btn btn-ghost btn-sm" onclick="viewSubscriptions('${s.id}')" title="${I18n.t('srv.action_subs') || 'Sottoscrizioni'}">
-              <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-              <span>${I18n.t('srv.action_subs') || 'Sottoscrizioni'}</span>
-            </button>
-            <button class="btn btn-ghost btn-sm" onclick="editService('${s.id}')" title="${I18n.t('common.edit') || 'Modifica'}">
-              <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.89 1.12l-2.83.893.893-2.83a4.5 4.5 0 0 1 1.12-1.89l12.75-12.75Z"/></svg>
-              <span>${I18n.t('common.edit') || 'Modifica'}</span>
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="toggleService('${s.id}','${s.status}')">
-              ${s.status === 'active'
-                ? (I18n.t('srv.action_deactivate') || 'Disattiva')
-                : (I18n.t('srv.action_activate')   || 'Attiva')}
-            </button>
-            ${(clientsN === 0 || clientsN === '') ? `
-            <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="deleteService('${s.id}','${(s.name||'').replace(/'/g,'')}')" title="${I18n.t('common.delete') || 'Elimina'}">
-              <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
-            </button>` : ''}
-          </div>
+
+        <!-- Colonna 2: Info (Ciclo, Clienti) -->
+        <div class="cl-col" style="flex:1.5; min-width:0;">
+          <div style="font-size:12px; color:var(--gray-600);"><span style="font-weight:600; text-transform:uppercase;">${cycleLabel}</span></div>
+          ${clientsN !== '' ? `<div style="font-size:12px; color:var(--gray-600); margin-top:2px;">👥 ${clientsN} ${I18n.t('srv.clients_active') || 'clienti attivi'}</div>` : ''}
+        </div>
+
+        <!-- Colonna 3: Prezzo e Stato -->
+        <div class="cl-col" style="flex:1; min-width:0;">
+          <div class="cl-data-val" style="font-size:14px; font-weight:700; color:var(--gray-900);">${price}</div>
+          <div style="margin-top:4px;">${UI.pill(s.status || 'inactive')}</div>
+        </div>
+
+        <!-- Colonna 4: Azioni -->
+        <div class="cl-col cl-col-actions" style="flex-shrink:0; display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
+          <button class="btn btn-ghost btn-sm" onclick="viewSubscriptions('${s.id}')" title="${I18n.t('srv.action_subs') || 'Sottoscrizioni'}">
+            <svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+            <span class="sr-only">Sottoscrizioni</span>
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="editService('${s.id}')" title="${I18n.t('common.edit') || 'Modifica'}">
+            <svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.89 1.12l-2.83.893.893-2.83a4.5 4.5 0 0 1 1.12-1.89l12.75-12.75Z"/></svg>
+            <span class="sr-only">Menu</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="toggleService('${s.id}','${s.status}')">
+            ${s.status === 'active' ? (I18n.t('srv.action_deactivate') || 'Disattiva') : (I18n.t('srv.action_activate') || 'Attiva')}
+          </button>
+          ${(clientsN === 0 || clientsN === '') ? `
+          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="deleteService('${s.id}','${(s.name||'').replace(/'/g,'')}')" title="${I18n.t('common.delete') || 'Elimina'}">
+            <svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+          </button>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -265,6 +260,9 @@
     $('fs-currency').value = serviceObj?.currency    || 'EUR';
     $('fs-notes').value    = serviceObj?.notes       || '';
 
+    const tv = serviceObj?.template_vars || {};
+    $('fs-clauses').value  = tv.servizio_clausole || '';
+
     modalSvc?.classList.add('open');
     $('fs-name')?.focus();
   }
@@ -276,6 +274,7 @@
     if (isNaN(price) || price < 0) { UI.toast(I18n.t('srv.form_price') || 'Prezzo non valido', 'warning'); return; }
 
     btnSave.disabled = true;
+    const tvClauses = $('fs-clauses')?.value?.trim() || '';
     const payload = {
       name,
       description:   $('fs-desc')?.value?.trim()     || null,
@@ -285,15 +284,16 @@
       currency:      $('fs-currency')?.value         || 'EUR',
       notes:         $('fs-notes')?.value?.trim()    || null,
       status:        'active',
+      template_vars: tvClauses ? { servizio_clausole: tvClauses } : null
     };
 
     try {
       if (editingId) {
-        await API.Services.update(editingId, payload);
+        await API.Services.updateService(editingId, payload);
         ALL_CATALOG = ALL_CATALOG.map(s => s.id === editingId ? { ...s, ...payload, id: editingId } : s);
         UI.toast(I18n.t('srv.updated_ok') || 'Servizio aggiornato', 'success');
       } else {
-        const created = await API.Services.create(payload);
+        const created = await API.Services.createService(payload);
         if (created) ALL_CATALOG.unshift(created);
         UI.toast(I18n.t('srv.created_ok') || 'Servizio creato', 'success');
       }
@@ -387,7 +387,7 @@
   };
 
   /* ── Init ───────────────────────────────────────────────────── */
-  document.addEventListener('DOMContentLoaded', async () => {
+  window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');
     load();
   });

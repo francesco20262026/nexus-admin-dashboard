@@ -28,6 +28,7 @@ class ServiceCreate(BaseModel):
     billing_cycle: str              # monthly | quarterly | annual | one_off
     currency:      str              = "EUR"
     is_active:     bool             = True
+    template_vars: Optional[dict]   = None
 
     @field_validator("billing_cycle")
     @classmethod
@@ -51,6 +52,7 @@ class ServiceUpdate(BaseModel):
     billing_cycle: Optional[str]   = None
     currency:      Optional[str]   = None
     is_active:     Optional[bool]  = None
+    template_vars: Optional[dict]  = None  # per-service contract clause overrides
 
     @field_validator("billing_cycle")
     @classmethod
@@ -222,7 +224,10 @@ async def list_subscriptions(
     )
     # Clients can only see their own subscriptions
     if not user.is_admin:
+        if not user.client_id:
+            return []
         q = q.eq("client_id", str(user.client_id))
+
     elif client_id:
         # Admin filtering by client — verify client belongs to this company first
         client_check = (

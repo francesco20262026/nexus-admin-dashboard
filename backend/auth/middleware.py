@@ -12,16 +12,18 @@ bearer = HTTPBearer()
 
 class CurrentUser:
     def __init__(self, user_id: UUID, active_company_id: UUID,
-                 role: str, client_id: UUID | None, email: str):
+                 role: str, client_id: UUID | None, email: str,
+                 onboarding_id: UUID | None = None):
         self.user_id = user_id
         self.active_company_id = active_company_id
         self.role = role
         self.client_id = client_id
         self.email = email
+        self.onboarding_id = onboarding_id
 
     @property
     def is_admin(self) -> bool:
-        return self.role == "admin"
+        return self.role in ("admin", "super_admin")
 
 
 def get_current_user(
@@ -45,6 +47,7 @@ def get_current_user(
         role=payload["role"],
         client_id=UUID(payload["client_id"]) if payload.get("client_id") else None,
         email=payload.get("email", ""),
+        onboarding_id=UUID(payload["onboarding_id"]) if payload.get("onboarding_id") else None,
     )
 
 
@@ -57,4 +60,10 @@ def require_admin(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
 def require_client(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
     if not user.client_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Client access required")
+    return user
+
+
+def require_internal(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+    if user.role == "client":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Internal access required")
     return user

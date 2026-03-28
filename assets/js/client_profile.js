@@ -134,7 +134,7 @@
       checkBillingData();
 
       const isIncomplete = els.alert?.style.display !== 'none';
-      window.showToast?.(
+      UI.toast(
         isIncomplete ? 'Profilo salvato, ma mancano i dati di fatturazione.' : 'Profilo salvato con successo',
         isIncomplete ? 'warning' : 'success'
       );
@@ -146,7 +146,7 @@
       }
     } catch (err) {
       console.error('[client_profile] save error:', err);
-      window.showToast?.(err?.message || 'Errore durante il salvataggio del profilo', 'error');
+      UI.toast(err?.message || 'Errore durante il salvataggio del profilo', 'error');
     } finally {
       if (els.saveBtn) { els.saveBtn.disabled = false; els.saveBtn.textContent = 'Salva Modifiche'; }
     }

@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nexus — Clienti</title>
+  <title>Nova CRM — Clienti</title>
   <meta name="description" content="Gestisci tutti i clienti attivi dell'azienda."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preload" as="image" href="/assets/img/nova-crm-logo.jpeg">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/css/dash.css?v=21"/>
+  <link rel="stylesheet" href="assets/css/dash.css?v=88"/>
   <link rel="stylesheet" href="assets/css/global_search.css"/>
 </head>
 <body>
@@ -16,65 +17,70 @@
 <!-- ==================== SIDEBAR ==================== -->
 <aside class="sidebar">
   <div class="sidebar-brand">
-    <div class="brand-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
-    </div>
-    <span class="brand-name">Nexus</span>
+    <img src="/assets/img/nova-crm-logo.jpeg" alt="Nova CRM" class="sidebar-brand-logo" loading="eager" fetchpriority="high" width="140" height="46">
   </div>
   <nav class="sidebar-nav avatar-colors">
     <div class="nav-section-label" data-i18n="nav.main">Principale</div>
-    <a class="nav-item" href="admin_dash.html?v=21">
+    <a class="nav-item" href="admin_dash.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
     </a>
-    <a class="nav-item" href="admin_onboarding.html?v=21">
+    <a class="nav-item" href="admin_onboarding.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
       <span class="nav-label" data-i18n="nav.onboarding">Onboarding</span>
     </a>
     <div class="nav-section-label" data-i18n="nav.management">Gestione</div>
-    <a class="nav-item active" href="admin_clients.html?v=21">
+    <a class="nav-item" href="admin_clients.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
       <span class="nav-label" data-i18n="nav.clients">Clienti</span>
     </a>
-    <a class="nav-item" href="admin_services.html?v=21">
+    <a class="nav-item" href="admin_quotes.html?v=88">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+      <span class="nav-label" data-i18n="nav.quotes">Preventivi</span>
+    </a>
+    <a class="nav-item" href="admin_services.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
       <span class="nav-label" data-i18n="nav.services">Servizi</span>
     </a>
-    <a class="nav-item" href="admin_contracts.html?v=21">
+    <a class="nav-item" href="admin_contracts.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
       <span class="nav-label" data-i18n="nav.contracts">Contratti</span>
     </a>
-    <a class="nav-item" href="admin_documents.html?v=21">
+    <a class="nav-item" href="admin_documents.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
       <span class="nav-label" data-i18n="nav.documents">Documenti</span>
     </a>
     <div class="nav-section-label" data-i18n="nav.finance">Finanza</div>
-    <a class="nav-item" href="admin_invoices.html?v=21">
+    <a class="nav-item" href="admin_invoices.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
       <span class="nav-label" data-i18n="nav.invoices">Fatture</span>
       <span class="nav-badge" id="nav-badge-invoices" style="display:none"></span>
     </a>
-    <a class="nav-item" href="admin_renewals.html?v=21">
+    <a class="nav-item" href="admin_renewals.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
       <span class="nav-label" data-i18n="nav.renewals">Rinnovi</span>
     </a>
-    <div class="nav-section-label" data-i18n="nav.analytics">Analisi</div>
-    <a class="nav-item" href="admin_reports.html?v=21">
+        <div class="nav-section-label" data-i18n="nav.tools">Strumenti</div>
+    <a class="nav-item" href="admin_calendar.html?v=88">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"/></svg>
+      <span class="nav-label" data-i18n="nav.calendar">Calendario</span>
+    </a>
+    <a class="nav-item" href="admin_activities.html?v=88">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375M9 15l2.25 2.25L15 12"/></svg>
+      <span class="nav-label" data-i18n="nav.activities">Attività</span>
+    </a>
+<div class="nav-section-label" data-i18n="nav.analytics">Analisi</div>
+    <a class="nav-item" href="admin_reports.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
       <span class="nav-label" data-i18n="nav.reports">Report</span>
     </a>
-    <div class="nav-section-label"
     <div class="nav-section-label" data-i18n="nav.system">Sistema</div>
-          <a class="nav-item" href="admin_companies.html?v=21">
+          <a class="nav-item" href="admin_companies.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
       <span class="nav-label" data-i18n="nav.companies">Aziende</span>
-    </a><a class="nav-item" href="admin_users.html?v=21">
+    </a><a class="nav-item" href="admin_users.html?v=88">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
       <span class="nav-label" data-i18n="nav.users">Utenti</span>
-    </a>
-    <a class="nav-item" href="admin_settings.html?v=21">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-      <span class="nav-label" data-i18n="nav.settings">Impostazioni</span>
     </a>
   </nav>
   <div class="sidebar-footer">
@@ -88,7 +94,7 @@
   </div>
 </aside>
 
-<script src="components/header.js?v=21"></script>
+<script src="components/header.js?v=88"></script>
 
 <!-- ===== MAIN ===== -->
 <main class="main">
@@ -97,12 +103,16 @@
   <div class="page-header">
     <div>
       <h1 class="page-title" data-i18n="cl.title">Clienti</h1>
-      <p class="page-subtitle" data-i18n="cl.subtitle">Area di gestione clienti attivi</p>
+      <p class="page-subtitle">Clienti convertiti da onboarding · attivi, sospesi, cessati</p>
     </div>
     <div class="page-header-actions">
       <button class="btn btn-secondary" id="btn-refresh-clients">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
         <span data-i18n="common.refresh">Aggiorna</span>
+      </button>
+      <button class="btn btn-secondary" id="btn-import-windoc" title="Importa contatti dalla rubrica Windoc">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+        <span>Importa da Windoc</span>
       </button>
       <button class="btn btn-primary" id="btn-add-client">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
@@ -111,82 +121,92 @@
     </div>
   </div>
 
-  <!-- ① KPI cards -->
-  <div class="stat-grid stat-grid--sm">
-    <div class="stat-card stat-card--brand">
-      <div class="stat-card-top">
-        <div class="stat-card-label" data-i18n="cl.kpi_total">Totale clienti</div>
-        <div class="stat-card-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-        </div>
-      </div>
-      <div class="stat-card-val" id="kpi-cl-total"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
-      <div class="stat-card-meta" id="kpi-cl-total-meta"><div class="skeleton-text skeleton short"></div></div>
+  <!-- ① Compact Status Tabs + Quick Filters -->
+  <div class="cl-tab-filter-bar">
+    <!-- Status pills (Prospect removed — those are in Onboarding) -->
+    <div class="cl-status-pills" id="cl-pipeline-bar">
+      <button class="cl-status-pill active" data-tab="all">
+        Tutti <span class="badge" id="kpi-cl-all">0</span>
+      </button>
+      <button class="cl-status-pill" data-tab="active">
+        Attivi <span class="badge" id="kpi-cl-active">0</span>
+      </button>
+      <button class="cl-status-pill" data-tab="suspended">
+        Sospesi <span class="badge" id="kpi-cl-suspended">0</span>
+      </button>
+      <button class="cl-status-pill" data-tab="ceased">
+        Cessati <span class="badge" id="kpi-cl-ceased">0</span>
+      </button>
     </div>
-
-    <div class="stat-card stat-card--success">
-      <div class="stat-card-top">
-        <div class="stat-card-label" data-i18n="cl.kpi_active">Attivi</div>
-        <div class="stat-card-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"/></svg>
-        </div>
-      </div>
-      <div class="stat-card-val" id="kpi-cl-active"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
-      <div class="stat-card-meta" id="kpi-cl-active-meta"><div class="skeleton-text skeleton short"></div></div>
-    </div>
-
-    <div class="stat-card stat-card--amber">
-      <div class="stat-card-top">
-        <div class="stat-card-label" data-i18n="cl.kpi_inactive">Sospesi / Inattivi</div>
-        <div class="stat-card-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
-        </div>
-      </div>
-      <div class="stat-card-val" id="kpi-cl-inactive"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
-      <div class="stat-card-meta" id="kpi-cl-inactive-meta"><div class="skeleton-text skeleton short"></div></div>
-    </div>
-
-    <div class="stat-card stat-card--purple">
-      <div class="stat-card-top">
-        <div class="stat-card-label" data-i18n="cl.kpi_new_month">Nuovi questo mese</div>
-        <div class="stat-card-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg>
-        </div>
-      </div>
-      <div class="stat-card-val" id="kpi-cl-new-month"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
-      <div class="stat-card-meta" id="kpi-cl-new-month-meta"><div class="skeleton-text skeleton short"></div></div>
+    <!-- Quick-filter badges -->
+    <div class="cl-quick-badges">
+      <button class="cl-quick-badge active" data-qf="all">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="11" height="11"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
+        Tutti <span id="kpi-cl-all-quick">0</span>
+      </button>
+      <button class="cl-quick-badge" data-qf="windoc">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="11" height="11"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+        Windoc sync <span id="kpi-cl-windoc">0</span>
+      </button>
+      <button class="cl-quick-badge" data-qf="no_windoc">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="11" height="11"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5M21 7.5h-3.75"/></svg>
+        Non sync <span id="kpi-cl-nowindoc">0</span>
+      </button>
     </div>
   </div>
 
-  <!-- ② Filters + List -->
-  <div class="card">
-    <!-- Filters -->
-    <div class="filter-bar" style="flex-direction:column;align-items:stretch;border-bottom:none;padding-bottom:8px;">
-      <!-- Row 1: search + secondary selects -->
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <select id="cl-filter-sector" class="form-input" style="width:auto;min-width:140px;max-width:180px;">
-          <option value="" data-i18n="cl.all_sectors">Tutti i settori</option>
-        </select>
-        <select id="cl-filter-city" class="form-input" style="width:auto;min-width:130px;max-width:170px;">
-          <option value="" data-i18n="cl.all_cities">Tutte le città</option>
-        </select>
+  <!-- ② Filter bar + list -->
+  <div class="card" style="margin-top:0;">
+    <!-- Filter row: search prominent + selects inline -->
+    <div class="cl-filter-row">
+      <div class="cl-filter-search-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="cl-filter-search-icon" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <input type="text" id="cl-search" class="form-input cl-filter-search-input" placeholder="Cerca rag. sociale, email, tel, P.IVA…" autocomplete="off"/>
       </div>
+      <select id="cl-filter-city" class="form-input cl-filter-select">
+        <option value="">Tutte le città</option>
+      </select>
+      <select id="cl-filter-origin" class="form-input cl-filter-select">
+        <option value="">Tutte le origini</option>
+        <option value="windoc">Windoc</option>
+        <option value="manual">Manuale / Onboarding</option>
+      </select>
+      <select id="cl-filter-assignee" class="form-input cl-filter-select">
+        <option value="">Tutti gli assegnatari</option>
+      </select>
+      <select id="cl-filter-invoices" class="form-input cl-filter-select">
+        <option value="">Fatture: Tutte</option>
+        <option value="open">Con fatture aperte</option>
+        <option value="none">Senza fatture aperte</option>
+      </select>
+      <select id="cl-filter-renewal" class="form-input cl-filter-select">
+        <option value="">Rinnovi: Tutti</option>
+        <option value="near">In scadenza (30 gg)</option>
+        <option value="expired">Scaduti</option>
+      </select>
+      <select id="cl-filter-services" class="form-input cl-filter-select">
+        <option value="">Servizi: Tutti</option>
+        <option value="yes">Con attivazioni</option>
+        <option value="no">Senza servizi</option>
+      </select>
+      <select id="cl-filter-quotes" class="form-input cl-filter-select">
+        <option value="">Preventivi: Tutti</option>
+        <option value="open">Aperti / In attesa</option>
+        <option value="none">Nessun prev. aperto</option>
+      </select>
+      <select id="cl-filter-activities" class="form-input cl-filter-select">
+        <option value="">Attività: Tutte</option>
+        <option value="planned">Pianificate</option>
+        <option value="none">Nessuna att. in piano</option>
+      </select>
+      <button class="btn btn-ghost" id="btn-reset-filters" style="padding: 0 12px; height: 36px; gap: 6px; flex-shrink: 0;" title="Reimposta tutti i filtri">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+        <span>Reset</span>
+      </button>
     </div>
 
-    <!-- Tab pills -->
-    <div class="filter-tabs" id="cl-tab-bar" style="padding:4px 20px 12px;border-bottom:1px solid var(--border);">
-      <button class="filter-tab active" data-tab="all"       data-i18n="filter.all">Tutti</button>
-      <button class="filter-tab"        data-tab="active"    data-i18n="filter.active">Attivi</button>
-      <button class="filter-tab"        data-tab="inactive"  data-i18n="filter.inactive">Inattivi</button>
-      <button class="filter-tab"        data-tab="suspended" data-i18n="cl.suspended">Sospesi</button>
-    </div>
-
-    <!-- List -->
-    <div id="cl-list">
-      <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
-      <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
-      <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
-    </div>
+    <!-- List (populated by admin_clients.js) -->
+    <div id="cl-list" class="cl-list"></div>
 
     <!-- Footer -->
     <div class="table-footer" style="padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
@@ -199,91 +219,157 @@
 </div><!-- end .shell -->
 
 <!-- ===== MODAL: Nuovo Cliente ===== -->
-<div class="modal-overlay" id="modal-add-client" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal" style="max-width:680px;width:100%;">
-    <div class="modal-header" style="padding:20px 24px 0;">
-      <div class="modal-title" id="modal-client-title" data-i18n="cl.modal_new">Nuovo cliente</div>
+<div class="modal-overlay" id="modal-add-client" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="modal" style="max-width:700px;width:95vw;">
+    <div class="modal-header" style="padding:20px 24px 16px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#dcfce3;color:#16a34a;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px;height:24px"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+        </div>
+        <div>
+          <div class="modal-title" id="modal-client-title" style="font-size:20px;font-weight:800;color:#111827;margin-bottom:2px;" data-i18n="cl.modal_new">Nuovo cliente</div>
+          <div style="font-size:12px;color:#6b7280;">Gestisci le informazioni del cliente selezionato</div>
+        </div>
+      </div>
       <button class="icon-btn" onclick="document.getElementById('modal-add-client').classList.remove('open')">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div class="modal-body" style="padding:20px 24px;">
-      <div class="form-grid">
-        <!-- Sezione anagrafica -->
-        <div class="form-group form-grid--full" style="margin-bottom:0;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);padding:4px 0 2px;" data-i18n="cl.section_company">Anagrafica azienda</div>
-          <hr style="border:none;border-top:1px solid var(--border);margin:2px 0 10px;"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="cl.f_name">Ragione sociale *</label>
-          <input class="form-input" id="f-name" type="text" placeholder="Es. Rossi Srl"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="cl.f_vat">Partita IVA</label>
-          <input class="form-input" id="f-vat" type="text" placeholder="IT12345678901"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="cl.f_sdi">Codice destinatario (SDI)</label>
-          <input class="form-input" id="f-sdi" type="text" placeholder="XXXXXXX" maxlength="7"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="cl.f_sector">Settore</label>
-          <input class="form-input" id="f-sector" type="text" placeholder="Es. Tecnologia, Edilizia…"/>
-        </div>
-
-        <!-- Sezione contatto -->
-        <div class="form-group form-grid--full" style="margin-bottom:0;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);padding:8px 0 2px;" data-i18n="cl.section_contact">Contatto principale</div>
-          <hr style="border:none;border-top:1px solid var(--border);margin:2px 0 10px;"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="cl.f_referente">Nome referente</label>
-          <input class="form-input" id="f-referente" type="text" placeholder="Mario Rossi"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="cl.f_email">Email *</label>
-          <input class="form-input" id="f-email" type="email" placeholder="info@azienda.it"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="cl.f_pec">PEC</label>
-          <input class="form-input" id="f-pec" type="email" placeholder="azienda@pec.it"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="cl.f_phone">Telefono</label>
-          <input class="form-input" id="f-phone" type="tel" placeholder="+39 02…"/>
-        </div>
-
-        <!-- Sezione indirizzo -->
-        <div class="form-group form-grid--full" style="margin-bottom:0;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);padding:8px 0 2px;" data-i18n="cl.section_address">Indirizzo</div>
-          <hr style="border:none;border-top:1px solid var(--border);margin:2px 0 10px;"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="cl.f_city">Città</label>
-          <input class="form-input" id="f-city" type="text" placeholder="Milano"/>
-        </div>
-        <div class="form-group form-grid--full">
-          <label class="form-label" data-i18n="cl.f_address">Indirizzo completo</label>
-          <input class="form-input" id="f-address" type="text" placeholder="Via Esempio 12, 20121 Milano"/>
-        </div>
-        <div class="form-group form-grid--full">
-          <label class="form-label" data-i18n="cl.f_notes">Note</label>
-          <textarea class="form-input" id="f-notes" rows="2" style="resize:vertical;" placeholder="Eventuali note…"></textarea>
-        </div>
-
-        <!-- Invito portale -->
-        <label class="form-group form-grid--full" style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:12px;background:var(--brand-50);border:1px solid rgba(10,92,54,.15);border-radius:var(--radius-md);margin-top:4px;">
-          <input type="checkbox" id="f-portal" style="margin-top:3px;accent-color:var(--brand-500);"/>
-          <div>
-            <div style="font-size:13px;font-weight:600;color:var(--brand-600);" data-i18n="cl.f_invite_title">Crea utente portale</div>
-            <div style="font-size:12px;color:var(--gray-600);" data-i18n="cl.f_invite_desc">Invia invito email al cliente per accedere al portale</div>
+    
+    <div class="modal-body" style="max-height:calc(90vh - 148px);overflow-y:auto;padding:20px 24px;">
+      
+      <!-- Sezione 1 -->
+      <div class="modal-section-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+        Anagrafica Azienda
+      </div>
+      <div style="margin-bottom:24px;">
+        <div class="form-grid">
+          <!-- Azienda fornitrice: evidenziata come nel mockup -->
+          <div class="form-group form-grid--full" style="border:1.5px solid #f59e0b;border-radius:10px;padding:10px 12px;background:#fffbeb;">
+            <label class="form-label" style="color:#92400e;">
+              Azienda fornitrice <span style="color:#ef4444;font-weight:700;">*</span>
+            </label>
+            <select class="form-input" id="f-company-id" style="background:transparent;border:none;padding:4px 0;font-weight:600;">
+              <option value="">Seleziona fornitrice...</option>
+            </select>
           </div>
-        </label>
+
+          <div class="form-group">
+            <label class="form-label" data-i18n="cl.f_name">Ragione sociale *</label>
+            <input class="form-input" id="f-name" type="text" placeholder="Es. Rossi Srl"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="cl.f_vat">Partita IVA</label>
+            <input class="form-input" id="f-vat" type="text" placeholder="IT12345678901"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="cl.f_sdi">Codice destinatario (SDI)</label>
+            <input class="form-input" id="f-sdi" type="text" placeholder="XXXXXXX" maxlength="7"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="cl.f_sector">Settore</label>
+            <input class="form-input" id="f-sector" type="text" placeholder="Es. Tecnologia, Edilizia…"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione 2 -->
+      <div class="modal-section-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+        Contatto principale
+      </div>
+      <div style="margin-bottom:24px;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" data-i18n="cl.f_referente">Nome referente</label>
+            <input class="form-input" id="f-referente" type="text" placeholder="Mario Rossi"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="cl.f_email">Email *</label>
+            <input class="form-input" id="f-email" type="email" placeholder="info@azienda.it"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="cl.f_pec">PEC</label>
+            <input class="form-input" id="f-pec" type="email" placeholder="azienda@pec.it"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="cl.f_phone">Telefono</label>
+            <input class="form-input" id="f-phone" type="tel" placeholder="+39 02…"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione 3 -->
+      <div class="modal-section-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+        Indirizzo &amp; Altro
+      </div>
+      <div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" data-i18n="cl.f_city">Città</label>
+            <input class="form-input" id="f-city" type="text" placeholder="Milano"/>
+          </div>
+          <div class="form-group form-grid--full">
+            <label class="form-label" data-i18n="cl.f_address">Indirizzo completo</label>
+            <input class="form-input" id="f-address" type="text" placeholder="Via Esempio 12, 20121 Milano"/>
+          </div>
+          <div class="form-group form-grid--full">
+            <label class="form-label" data-i18n="cl.f_notes">Note</label>
+            <textarea class="form-input" id="f-notes" rows="2" style="resize:vertical;" placeholder="Eventuali note…"></textarea>
+          </div>
+          <label class="form-group form-grid--full" style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:12px;background:var(--brand-50);border:1px solid rgba(10,92,54,.15);border-radius:10px;margin-top:4px;">
+            <input type="checkbox" id="f-portal" style="margin-top:3px;accent-color:var(--brand-500);"/>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--brand-600);" data-i18n="cl.f_invite_title">Crea utente portale</div>
+              <div style="font-size:12px;color:var(--gray-600);" data-i18n="cl.f_invite_desc">Invia invito email al cliente per accedere al portale</div>
+            </div>
+          </label>
+        </div>
       </div>
     </div>
-    <div class="modal-footer" style="padding:0 24px 20px;">
+    <div class="modal-footer" style="padding:16px 24px;display:flex;justify-content:flex-end;gap:12px;border-top:1px solid #e5e7eb;background-color:#f9fafb;border-bottom-left-radius:12px;border-bottom-right-radius:12px;">
       <button class="btn btn-ghost" onclick="document.getElementById('modal-add-client').classList.remove('open')" data-i18n="modal.cancel">Annulla</button>
-      <button class="btn btn-primary" id="modal-save-btn" data-i18n="modal.save">Salva</button>
+      <button class="btn btn-primary" id="modal-save-btn" data-i18n="modal.save">Salva informazioni</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== WINDOC IMPORT MODAL ==================== -->
+<div class="modal-overlay" id="modal-windoc-import" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="modal" style="max-width:720px;width:95vw;">
+    <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #e5e7eb;">
+      <div>
+        <div style="font-size:17px;font-weight:700;color:#111827;">Importa da Windoc Rubrica</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:2px;">Seleziona i contatti da importare come clienti nel CRM</div>
+      </div>
+      <button onclick="document.getElementById('modal-windoc-import').classList.remove('open')" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:20px;line-height:1;">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <!-- Search -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input class="form-input" id="windoc-search" type="text" placeholder="Cerca per ragione sociale o P.IVA…" style="flex:1;" />
+        <button class="btn btn-secondary" id="btn-windoc-search">Cerca</button>
+      </div>
+      <!-- List -->
+      <div id="windoc-contact-list" style="max-height:380px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px;">
+        <div style="padding:40px;text-align:center;color:#9ca3af;font-size:14px;">Clicca "Cerca" per caricare i contatti da Windoc</div>
+      </div>
+      <!-- Select all + count -->
+      <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:#374151;">
+          <input type="checkbox" id="windoc-select-all" /> Seleziona tutti
+        </label>
+        <span id="windoc-selected-count" style="font-size:13px;color:#6b7280;"></span>
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:16px 24px;display:flex;justify-content:flex-end;gap:12px;border-top:1px solid #e5e7eb;background-color:#f9fafb;border-radius:0 0 12px 12px;">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-windoc-import').classList.remove('open')">Annulla</button>
+      <button class="btn btn-primary" id="btn-windoc-import-confirm" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+        Importa selezionati
+      </button>
     </div>
   </div>
 </div>
@@ -291,12 +377,15 @@
 <div id="toast-container" class="toast-container"></div>
 
 <!-- ==================== SCRIPTS ==================== -->
-<script src="assets/js/api.js?v=21"></script>
-<script src="assets/js/auth.js?v=21"></script>
-<script src="assets/js/ui.js?v=21"></script>
-<script src="assets/js/i18n.js?v=21"></script>
-<script src="assets/js/dash.js?v=21"></script>
-<script src="assets/js/admin_clients.js?v=21"></script>
+<script src="assets/js/api.js?v=88"></script>
+<script src="assets/js/auth.js?v=88"></script>
+<script src="assets/js/ui.js?v=88"></script>
+<script src="assets/js/i18n.js?v=88"></script>
+<script src="assets/js/dash.js?v=88"></script>
+<script src="assets/js/router.js?v=88"></script>
+<script src="assets/js/admin_clients.js?v=88"></script>
 <script src="assets/js/global_search.js"></script>
 </body>
 </html>
+
+

@@ -1,4 +1,4 @@
-"""
+﻿"""
 modules/companies/router.py — Multi-tenant companies management
 GET    /companies                           — list companies accessible by current user
 POST   /companies                           — create new company (admin only)
@@ -31,6 +31,17 @@ class UpdateCompanyRequest(BaseModel):
     name: Optional[str] = None
     slug: Optional[str] = None
     default_lang: Optional[str] = None
+    email: Optional[str] = None
+    vat_number: Optional[str] = None
+    pec: Optional[str] = None
+    dest_code: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    iban: Optional[str] = None
+    bank_name: Optional[str] = None
+    swift_bic: Optional[str] = None
+    payment_beneficiary: Optional[str] = None
+    logo_url: Optional[str] = None
 
 class WindocConfig(BaseModel):
     token_app: str
@@ -43,11 +54,16 @@ class ZohoConfig(BaseModel):
     domain: str = "eu"
 
 class SmtpConfig(BaseModel):
-    host: str
-    port: int
-    username: str
-    password: str
+    host: Optional[str] = None
+    port: Optional[int] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
     from_email: str
+
+class BrevoConfig(BaseModel):
+    api_key: str
+    from_email: str
+    from_name: Optional[str] = "Nova CRM"
 
 class IntegrationUpdate(BaseModel):
     config: dict
@@ -150,16 +166,20 @@ async def create_company(
 
     slug = body.slug or _slugify(name)
 
-    # Ensure slug is unique
-    existing = (
-        supabase.table("companies")
-        .select("id")
-        .eq("slug", slug)
-        .maybe_single()
-        .execute()
-    )
-    if existing.data:
-        slug = f"{slug}-{str(user.user_id)[:4]}"
+    # Ensure slug is unique (use limit instead of maybe_single to avoid NoneType issues)
+    try:
+        existing = (
+            supabase.table("companies")
+            .select("id")
+            .eq("slug", slug)
+            .limit(1)
+            .execute()
+        )
+        if existing and existing.data:
+            slug = f"{slug}-{str(user.user_id)[:4]}"
+    except Exception:
+        pass  # Non-fatal: proceed with slug as-is if check fails
+
 
     try:
         comp_res = supabase.table("companies").insert({
@@ -168,10 +188,15 @@ async def create_company(
             "default_lang": "it",
             "settings":     {},
         }).execute()
+        if not comp_res or not comp_res.data:
+            raise ValueError("Insert returned no data — possible RLS policy or DB constraint.")
+    except HTTPException:
+        raise
     except Exception as exc:
+        logger.error("create_company insert failed: %s", exc)
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Errore creazione azienda: {exc}")
 
-    new_company = comp_res.data[0] if comp_res.data else {}
+    new_company = comp_res.data[0]
     new_id = new_company.get("id")
 
     # Assign creator as admin
@@ -208,6 +233,12 @@ async def update_company(
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Lingua non valida.")
         updates["default_lang"] = body.default_lang
 
+    allow_extra: dict = {}
+    for field in ("email", "vat_number", "pec", "dest_code", "address", "phone", "iban", "bank_name", "swift_bic", "payment_beneficiary", "logo_url"):
+        val = getattr(body, field, None)
+        if val is not None:
+            updates[field] = val.strip() if isinstance(val, str) else val
+
     if not updates:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Nessun campo da aggiornare.")
 
@@ -217,6 +248,42 @@ async def update_company(
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Errore aggiornamento: {exc}")
 
     return res.data[0] if res.data else {"message": "Updated"}
+
+
+# ── GET /companies/{id} ───────────────────────────────────────
+
+@router.get("/{company_id}")
+async def get_company(
+    company_id: str,
+    user: CurrentUser = Depends(require_admin),
+):
+    """Return full company data + integration status."""
+    from database import safe_single
+    
+    query = supabase.table("companies").select("*").eq("id", company_id).maybe_single()
+    res = safe_single(query)
+    
+    if not res.data:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Company not found")
+    company = res.data
+
+    int_res = (
+        supabase.table("integrations")
+        .select("type, is_active, last_sync_at")
+        .eq("company_id", company_id)
+        .execute()
+    )
+    by_type: dict = {}
+    for row in (int_res.data or []):
+        by_type[row["type"]] = {"is_active": row["is_active"], "last_sync_at": row.get("last_sync_at")}
+
+    company["integrations"] = {
+        "windoc":    by_type.get("windoc",    {"is_active": False}),
+        "zoho_sign": by_type.get("zoho_sign", {"is_active": False}),
+        "brevo":     by_type.get("brevo",     {"is_active": False}),
+        "email":     by_type.get("smtp", by_type.get("email", {"is_active": False})),
+    }
+    return company
 
 
 # ── DELETE /companies/{id} ────────────────────────────────────
@@ -231,19 +298,74 @@ async def delete_company(
     if company_id == str(user.active_company_id):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Non puoi eliminare l'azienda attiva.")
 
-    # Guard: check clients
-    clients = supabase.table("clients").select("id").eq("company_id", company_id).limit(1).execute()
-    if clients.data:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Impossibile eliminare: l'azienda ha clienti associati.")
+    try:
+        # 1. Clean up multi-level dependencies (Lines linked to entities in this company)
+        # Fetch entities so we can delete their dependent inner lines if DB doesn't cascade
+        invoices = supabase.table("invoices").select("id").eq("company_id", company_id).execute()
+        if invoices.data:
+            for inv in invoices.data:
+                supabase.table("invoice_lines").delete().eq("invoice_id", inv["id"]).execute()
+                supabase.table("payment_logs").delete().eq("invoice_id", inv["id"]).execute()
+                
+        contracts = supabase.table("contracts").select("id").eq("company_id", company_id).execute()
+        if contracts.data:
+            for ctt in contracts.data:
+                supabase.table("contract_lines").delete().eq("contract_id", ctt["id"]).execute()
+                
+        quotes = supabase.table("quotes").select("id").eq("company_id", company_id).execute()
+        if quotes.data:
+            for qut in quotes.data:
+                supabase.table("quote_lines").delete().eq("quote_id", qut["id"]).execute()
 
-    # Delete permissions first
-    supabase.table("user_company_permissions").delete().eq("company_id", company_id).execute()
-    # Delete integrations
-    supabase.table("integrations").delete().eq("company_id", company_id).execute()
-    # Delete company
-    supabase.table("companies").delete().eq("id", company_id).execute()
+        # 2. Iterate backwards over direct dependents (reverse tree)
+        dependent_tables = [
+            "audit_logs",
+            "payment_logs", 
+            "documents",
+            "invoices",
+            "contracts",
+            "quotes",
+            "services",
+            "onboarding",
+            "clients",
+            "integrations",
+            "user_company_permissions"
+        ]
+        
+        for table in dependent_tables:
+            try:
+                supabase.table(table).delete().eq("company_id", company_id).execute()
+            except Exception as loop_cancel:
+                logger.warning(f"Error auto-clearing {table} for company {company_id}: {loop_cancel}")
+                
+        # 3. Finally delete the company
+        supabase.table("companies").delete().eq("id", company_id).execute()
+
+    except Exception as exc:
+        err_str = str(exc)
+        logger.error(f"Error cascading delete company {company_id}: {err_str}")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Errore interno durante l'eliminazione.")
 
     return None
+
+
+# ── PATCH /companies/{id}/set-active ─────────────────────────
+
+class SetActiveRequest(BaseModel):
+    is_active: bool
+
+@router.patch("/{company_id}/set-active")
+async def set_company_active(
+    company_id: str,
+    body: SetActiveRequest,
+    user: CurrentUser = Depends(require_admin),
+):
+    """Enable or disable a company (is_active field)."""
+    try:
+        res = supabase.table("companies").update({"is_active": body.is_active}).eq("id", company_id).execute()
+    except Exception as exc:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(exc))
+    return res.data[0] if res.data else {"message": "Updated"}
 
 
 # ── GET /companies/{id}/integrations ─────────────────────────
@@ -256,20 +378,26 @@ async def get_company_integrations(
     """Return integration status (safe, no secrets) for a specific company."""
     res = (
         supabase.table("integrations")
-        .select("type, is_active, last_sync_at")
+        .select("type, is_active, last_sync_at, config")
         .eq("company_id", company_id)
         .execute()
     )
     by_type: dict = {}
     for row in (res.data or []):
+        cfg = row.get("config") or {}
+        # scrub secrets
+        for k in ["password", "token", "token_app", "client_secret", "refresh_token", "api_key"]:
+            if k in cfg:
+                cfg[k] = ""
         by_type[row["type"]] = {
             "is_active":    row["is_active"],
             "last_sync_at": row.get("last_sync_at"),
+            "config":       cfg
         }
     return {
-        "windoc":   by_type.get("windoc",    {"is_active": False, "last_sync_at": None}),
-        "zoho_sign": by_type.get("zoho_sign", {"is_active": False, "last_sync_at": None}),
-        "email":    by_type.get("email",     {"is_active": False, "last_sync_at": None}),
+        "windoc":   by_type.get("windoc",    {"is_active": False, "last_sync_at": None, "config": {}}),
+        "zoho_sign": by_type.get("zoho_sign", {"is_active": False, "last_sync_at": None, "config": {}}),
+        "email":    by_type.get("smtp", by_type.get("email", {"is_active": False, "last_sync_at": None, "config": {}})),
     }
 
 
@@ -289,8 +417,8 @@ async def update_company_integration(
             valid_config = WindocConfig(**body.config).model_dump()
         elif integration_type == "zoho_sign":
             valid_config = ZohoConfig(**body.config).model_dump()
-        elif integration_type in ("smtp", "email"):
-            integration_type = "email"
+        elif integration_type in ("smtp", "email", "brevo"):
+            integration_type = "smtp"
             valid_config = SmtpConfig(**body.config).model_dump()
         else:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Provider non supportato.")
@@ -299,27 +427,33 @@ async def update_company_integration(
     except Exception as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Configurazione non valida: {exc}")
 
-    # Upsert
-    existing = (
-        supabase.table("integrations")
-        .select("id")
-        .eq("company_id", company_id)
-        .eq("type", integration_type)
-        .maybe_single()
-        .execute()
-    )
-    if existing.data:
-        supabase.table("integrations").update({
-            "config":    valid_config,
-            "is_active": True,
-        }).eq("id", existing.data["id"]).execute()
-    else:
-        supabase.table("integrations").insert({
-            "company_id": company_id,
-            "type":       integration_type,
-            "config":     valid_config,
-            "is_active":  True,
-        }).execute()
+    # Upsert with try/except
+    from database import safe_single
+    try:
+        query = (
+            supabase.table("integrations")
+            .select("id")
+            .eq("company_id", company_id)
+            .eq("type", integration_type)
+            .maybe_single()
+        )
+        existing = safe_single(query)
+        
+        if existing.data:
+            supabase.table("integrations").update({
+                "config":    valid_config,
+                "is_active": True,
+            }).eq("id", existing.data["id"]).execute()
+        else:
+            supabase.table("integrations").insert({
+                "company_id": company_id,
+                "type":       integration_type,
+                "config":     valid_config,
+                "is_active":  True,
+            }).execute()
+    except Exception as exc:
+        logger.error(f"Errore DB in update_company_integration: {exc}")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Errore DB server ({type(exc).__name__}): {exc}")
 
     # Audit
     try:
@@ -334,3 +468,146 @@ async def update_company_integration(
         pass
 
     return {"message": f"{integration_type} configurato per l'azienda {company_id}"}
+# ── POST /companies/{id}/integrations/windoc/test ───────────
+
+import httpx
+
+@router.post("/{company_id}/integrations/windoc/test")
+async def test_windoc_integration_company(
+    company_id: str,
+    user: CurrentUser = Depends(require_admin),
+):
+    """Test currently saved Windoc credentials by pinging ListaTemplate."""
+    from database import safe_single
+    query = (
+        supabase.table("integrations")
+        .select("config")
+        .eq("company_id", company_id)
+        .eq("type", "windoc")
+        .maybe_single()
+    )
+    existing = safe_single(query)
+    if not existing.data:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Integrazione Winddoc non configurata.")
+
+    config = existing.data.get("config", {})
+    token = config.get("token")
+    token_app = config.get("token_app")
+
+    if not token or not token_app:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Token mancanti.")
+
+    payload = {
+        "method": "proforma_listaTemplate",
+        "request": {
+            "token_key": {
+                "token": token,
+                "token_app": token_app
+            }
+        }
+    }
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                "https://app.winddoc.com/v1/api_json.php",
+                json=payload,
+                timeout=10.0
+            )
+            data = resp.json()
+            if data.get("error"):
+                msg = data.get("message", "Errore sconosciuto")
+                # Se l'errore è di operazione non permessa, significa che i token SONO VALIDIi
+                if "not permission" in msg.lower() or "privilegio" in msg.lower():
+                    return {"success": True, "message": "Connessione riuscita (ma l'account non ha privilegi per i Template)"}
+                if "token errato" in msg.lower() or "login errato" in msg.lower() or "auth" in msg.lower() or "invalid" in msg.lower():
+                    raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"Token Winddoc non validi: {msg}")
+                return {"success": True, "message": f"Connesso con l'account (risposta: {msg})"}
+            return {"success": True, "message": "Connessione Winddoc effettuata con successo."}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Impossibile contattare Winddoc: {exc}")
+
+
+# ── GET /companies/{id}/email-templates ─────────────────────────
+
+@router.get("/{company_id}/email-templates")
+async def get_company_email_templates(
+    company_id: str,
+    user: CurrentUser = Depends(require_admin),
+):
+    """Return all email templates for a specific company."""
+    res = (
+        supabase.table("email_templates")
+        .select("id, type, lang, subject, body_html")
+        .eq("company_id", company_id)
+        .order("type")
+        .execute()
+    )
+    db_templates = res.data or []
+    
+    from integrations.email_service import DEFAULT_TEMPLATES
+    
+    # Merge DB templates over defaults
+    combined = []
+    db_by_type_lang = {(t["type"], t["lang"]): t for t in db_templates}
+    
+    # For every default template, if it's not in DB for 'it', inject a placeholder
+    for t_type, t_content in DEFAULT_TEMPLATES.items():
+        if (t_type, "it") in db_by_type_lang:
+            combined.append(db_by_type_lang.pop((t_type, "it")))
+        else:
+            combined.append({
+                "id": None,
+                "type": t_type,
+                "lang": "it",
+                "subject": t_content["subject"],
+                "body_html": t_content["body_html"]
+            })
+            
+    # Add any remaining templates from DB (e.g. other languages or custom ones)
+    for t in db_by_type_lang.values():
+        combined.append(t)
+        
+    return combined
+
+# ── PUT /companies/{id}/email-templates/{type}/{lang} ───────────
+
+class EmailTemplateUpdate(BaseModel):
+    subject: str
+    body_html: str
+
+@router.put("/{company_id}/email-templates/{template_type}/{lang}")
+async def update_company_email_template(
+    company_id: str,
+    template_type: str,
+    lang: str,
+    body: EmailTemplateUpdate,
+    user: CurrentUser = Depends(require_admin),
+):
+    """Update a specific email template."""
+    from database import safe_single
+    
+    # Check if exists
+    query = (
+        supabase.table("email_templates")
+        .select("id")
+        .eq("company_id", company_id)
+        .eq("type", template_type)
+        .eq("lang", lang)
+        .maybe_single()
+        .execute()
+    )
+    
+    payload = body.model_dump(exclude_unset=True)
+    
+    if query and query.data:
+        res = supabase.table("email_templates").update(payload).eq("id", query.data["id"]).execute()
+    else:
+        payload["company_id"] = company_id
+        payload["type"] = template_type
+        payload["lang"] = lang
+        res = supabase.table("email_templates").insert(payload).execute()
+
+    return res.data[0] if res and res.data else {"message": "Success"}

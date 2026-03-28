@@ -79,7 +79,6 @@ async def _get_zoho_config(company_id: str) -> dict:
         .eq("type", "zoho_sign")
         .eq("is_active", True)
         .maybe_single()
-        .execute()
     )
     if not res.data:
         raise ValueError(f"Zoho Sign integration not configured for company {company_id}")

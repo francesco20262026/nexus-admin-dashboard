@@ -12,7 +12,7 @@
 
   const $ = id => document.getElementById(id);
   const list    = $('doc-list');
-  const tabBar  = $('doc-tab-bar');
+  const tabBar  = $('doc-pipeline-bar');
   const search  = $('doc-search');
   const fType   = $('doc-filter-type');
   const fClient = $('doc-filter-client');
@@ -25,17 +25,17 @@
   if (act) act.innerHTML = `
     <button class="btn btn-secondary" id="btn-refresh"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> <span>Aggiorna</span></button>
     <button class="btn btn-primary" id="btn-upload-doc"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> <span>Carica documento</span></button>`;
-  $('btn-refresh')?.addEventListener('click', load);
+  $('btn-refresh')?.addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
   $('btn-upload-doc')?.addEventListener('click', () => modal?.classList.add('open'));
 
-  tabBar?.querySelectorAll('.filter-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
-  tabBar?.addEventListener('click', e => {
-    const b = e.target.closest('.filter-tab'); if (!b) return;
-    tabBar.querySelectorAll('.filter-tab').forEach(x => x.classList.remove('active'));
+  tabBar?.querySelectorAll('.cl-status-pill').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
+  if (tabBar) tabBar.addEventListener('click', e => {
+    const b = e.target.closest('.cl-status-pill'); if (!b) return;
+    tabBar.querySelectorAll('.cl-status-pill').forEach(x => x.classList.remove('active'));
     b.classList.add('active'); activeTab = b.dataset.tab; pg = 1; applyFilters();
   });
   [search, fType, fClient].forEach(el => {
-    el?.addEventListener('input',  () => { pg=1; applyFilters(); });
+    el?.addEventListener('input',  debounce(() => { pg=1; applyFilters(); }, 200));
     el?.addEventListener('change', () => { pg=1; applyFilters(); });
   });
 
@@ -82,12 +82,10 @@
 
     filtered = ALL.filter(d => {
       if (activeTab === 'shared'   && d.visibility !== 'shared')   return false;
-      if (activeTab === 'internal' && d.visibility !== 'internal' && d.visibility) return false;
+      if (activeTab === 'internal' && d.visibility && d.visibility !== 'internal') return false;
       if (activeTab === 'signing'  && d.status !== 'signing' && d.status !== 'pending_signature') return false;
       if (ty && d.type !== ty) return false;
-      if (st && d.status !== st) return false;
       if (cl && d.client_name !== cl) return false;
-      if (vs && d.visibility !== vs) return false;
       if (q) {
         const hay = [d.name, d.client_name, d.type].filter(Boolean).join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
@@ -114,27 +112,33 @@
       const visLabel  = VIS_LABELS[d.visibility] || d.visibility || 'Interno';
       const typeLabel = TYPE_LABELS[d.type]      || d.type        || 'Documento';
       const visColor  = d.visibility === 'shared' ? 'var(--color-success)' : 'var(--gray-500)';
-      return `<div class="list-card fade-in" data-id="${d.id}">
-        <div class="list-card-header">
-          <div class="list-card-title">
-            <div>${d.name || 'Documento senza nome'}</div>
-            <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">${typeLabel}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font-size:11px;color:${visColor};font-weight:600;">${visLabel}</span>
-            ${UI.pill(d.status || 'available')}
+      return `<div class="cl-row fade-in" data-id="${d.id}" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s;">
+        <!-- Colonna 1: Nome, Tipo e Dati File -->
+        <div class="cl-col" style="flex:2; min-width:0;">
+          <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${d.name || 'Documento senza nome'}">${d.name || 'Documento senza nome'}</div>
+          <div class="cl-row-meta" style="display:flex; gap:8px; align-items:center; margin-top:4px;">
+            <span class="cl-row-chip" style="font-size:12px; color:var(--gray-500); background:var(--gray-100); padding:2px 6px; border-radius:4px;">📄 ${typeLabel}</span>
+            ${d.uploaded_at ? `<span style="font-size:12px; color:var(--gray-500);">📅 Upload: ${UI.date(d.uploaded_at)}</span>` : ''}
+            ${d.file_size ? `<span style="font-size:12px; color:var(--gray-500);">💾 ${Math.round(d.file_size/1024)} KB</span>` : ''}
           </div>
         </div>
-        <div class="list-card-body" style="flex-wrap:wrap;">
-          ${d.client_name ? `<div class="list-card-meta"><svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><a href="admin_client_detail.html?id=${d.client_id}" style="color:var(--brand-600);">${d.client_name}</a></div>` : ''}
-          ${d.uploaded_at ? `<div class="list-card-meta">Upload: ${UI.date(d.uploaded_at)}</div>` : ''}
-          ${d.file_size   ? `<div class="list-card-meta">${Math.round(d.file_size/1024)} KB</div>` : ''}
-          <div class="row-actions" style="width:100%;justify-content:flex-end;margin-top:4px;">
-            ${d.preview_url || d.url ? `<a href="${d.preview_url||d.url}" target="_blank" class="btn btn-ghost btn-sm">Anteprima</a>` : ''}
-            ${d.url ? `<a href="${d.url}" target="_blank" class="btn btn-ghost btn-sm" download>Download</a>` : ''}
-            ${d.visibility !== 'shared' ? `<button class="btn btn-secondary btn-sm" onclick="shareDoc('${d.id}')">Condividi</button>` : `<button class="btn btn-ghost btn-sm" onclick="unshareDoc('${d.id}')">Rendi interno</button>`}
-            ${d.client_id ? `<a href="admin_client_detail.html?id=${d.client_id}" class="btn btn-ghost btn-sm">Apri cliente</a>` : ''}
-          </div>
+
+        <!-- Colonna 2: Cliente -->
+        <div class="cl-col" style="flex:1.5; min-width:0;">
+          ${d.client_name ? `<a href="admin_client_detail.html?id=${d.client_id}" style="font-size:13px; font-weight:600; color:var(--brand-600); text-decoration:none;">🏢 ${d.client_name}</a>` : '<span style="font-size:13px; color:var(--gray-400);">—</span>'}
+        </div>
+
+        <!-- Colonna 3: Visibilità e Stato -->
+        <div class="cl-col" style="flex:1; min-width:0;">
+          <div style="font-size:12px; font-weight:600; color:${visColor}; margin-bottom:4px;">👁 ${visLabel}</div>
+          <div>${UI.pill(d.status || 'available')}</div>
+        </div>
+
+        <!-- Colonna 4: Azioni -->
+        <div class="cl-col cl-col-actions" style="flex-shrink:0; display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
+          ${d.preview_url || d.url ? `<a href="${d.preview_url||d.url}" target="_blank" class="btn btn-secondary btn-sm" title="Anteprima"><svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></a>` : ''}
+          ${d.url ? `<a href="${d.url}" target="_blank" class="btn btn-ghost btn-sm" download title="Download"><svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></a>` : ''}
+          ${d.visibility !== 'shared' ? `<button class="btn btn-secondary btn-sm" onclick="shareDoc('${d.id}')">Condividi</button>` : `<button class="btn btn-ghost btn-sm" onclick="unshareDoc('${d.id}')">Rendi interno</button>`}
         </div>
       </div>`;
     }).join('');
@@ -146,7 +150,9 @@
   // Upload
   $('btn-upload-document')?.addEventListener('click', async () => {
     const file = $('doc-file')?.files?.[0];
+    const cid  = $('doc-client')?.value;
     if (!file) { UI.toast('Seleziona un file','warning'); return; }
+    if (!cid)  { UI.toast('Seleziona un cliente a cui associare il documento','warning'); return; }
     const btn = $('btn-upload-document'); if (btn) btn.disabled = true;
     try {
       const fd = new FormData();
@@ -175,7 +181,7 @@
   window.shareDoc   = async id => { try { await API.Documents.update(id,{visibility:'shared'}); ALL=ALL.map(d=>d.id===id?{...d,visibility:'shared'}:d); updateKpis(); applyFilters(); UI.toast('Condiviso col cliente','success'); } catch(e) { UI.toast(e?.message||'Errore','error'); } };
   window.unshareDoc = async id => { try { await API.Documents.update(id,{visibility:'internal'}); ALL=ALL.map(d=>d.id===id?{...d,visibility:'internal'}:d); updateKpis(); applyFilters(); UI.toast('Reso interno','info'); } catch(e) { UI.toast(e?.message||'Errore','error'); } };
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');
     load();
   });

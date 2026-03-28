@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reset sessione — Nova CRM CRM</title>
+  <style>
+    body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f4f6f8; }
+    .box { background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,.1); }
+    h2 { margin: 0 0 8px; color: #1a1a2e; }
+    p  { color: #666; margin: 0 0 24px; }
+    a  { display: inline-block; background: #16a34a; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; }
+    a:hover { background: #15803d; }
+  </style>
+  <script>
+    localStorage.clear();
+    sessionStorage.clear();
+  </script>
+</head>
+<body>
+  <div class="box">
+    <h2>? Sessione resettata</h2>
+    <p>Il localStorage è stato pulito. Clicca per fare login.</p>
+    <a href="login.html">Vai al login ?</a>
+  </div>
+</body>
+</html>

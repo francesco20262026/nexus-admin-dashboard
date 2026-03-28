@@ -1,0 +1,326 @@
+/* ============================================================
+   CLIENT PORTAL — Visual identity layer
+   Loaded AFTER dash.css on all client_*.html pages.
+   Overrides primary color to indigo and adds portal-specific
+   components without touching the admin design system.
+   ============================================================ */
+
+/* ── Portal color palette: indigo/blue (distinct from admin green) */
+:root {
+  --portal-primary:       #4f46e5;
+  --portal-primary-hover: #4338ca;
+  --portal-primary-50:    #eef2ff;
+  --portal-primary-100:   #e0e7ff;
+  --portal-primary-200:   #c7d2fe;
+  --portal-primary-500:   #6366f1;
+
+  --portal-bg: #f5f6ff;
+}
+
+/* Override admin green with portal indigo */
+body {
+  background: var(--portal-bg);
+}
+
+/* Sidebar: indigo active pill */
+.nav-item.active {
+  background: var(--portal-primary) !important;
+  color: #fff !important;
+}
+
+.nav-item:hover {
+  background: var(--portal-primary-50) !important;
+  color: var(--portal-primary) !important;
+}
+
+.sidebar {
+  border-right: 1px solid #e0e7ff;
+}
+
+/* Avatar: indigo */
+.avatar {
+  background: var(--portal-primary) !important;
+}
+
+/* Primary buttons: indigo */
+.btn-primary {
+  background: var(--portal-primary) !important;
+  border-color: transparent !important;
+}
+
+.btn-primary:hover {
+  background: var(--portal-primary-hover) !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+}
+
+/* ── Welcome banner ──────────────────────────────────────────── */
+.welcome-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #6366f1 100%);
+  border-radius: 16px;
+  padding: 24px 28px;
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(79, 70, 229, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+}
+
+.welcome-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; left: 30px;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+
+.welcome-title {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* ── Stat chips — card-like with large colored value ─────────── */
+.stat-chips {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 1100px) { .stat-chips { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px)  { .stat-chips { grid-template-columns: repeat(2, 1fr); } }
+
+.stat-chip {
+  background: #fff;
+  border: 1px solid #e0e7ff;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 4px rgba(79, 70, 229, 0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.12);
+}
+
+.stat-chip-val {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--portal-primary);
+  line-height: 1;
+}
+
+.stat-chip-val--warning { color: #b45309; }
+.stat-chip-val--danger  { color: #b91c1c; }
+.stat-chip-val--success { color: #059669; }
+.stat-chip-val--brand   { color: var(--portal-primary); }
+
+.stat-chip-lbl {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 6px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* ── Table improvements ─────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table-wrap thead tr {
+  background: var(--portal-primary-50);
+}
+
+.table-wrap th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--portal-primary);
+  border-bottom: 2px solid var(--portal-primary-100);
+}
+
+.table-wrap td {
+  padding: 10px 14px;
+  color: #374151;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.table-wrap tbody tr:hover td {
+  background: var(--portal-primary-50);
+}
+
+.table-wrap tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 13px;
+  background: #fafafe;
+  border-radius: 0 0 12px 12px;
+}
+
+/* ── Card header with portal colors ────────────────────────── */
+.card-title {
+  color: #1e1b4b;
+}
+
+/* ── Document list in client portal ────────────────────────── */
+.doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.doc-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  transition: background var(--trans);
+  border-radius: var(--radius-sm);
+}
+
+.doc-list-item:hover {
+  background: var(--portal-primary-50);
+}
+
+.doc-list-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--portal-primary-100);
+  color: var(--portal-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.doc-list-name {
+  font-weight: 500;
+  font-size: 13px;
+  color: #1e1b4b;
+}
+
+.doc-list-meta {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* ── Client timeline ────────────────────────────────────────── */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0 4px;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.timeline-item:last-child { border-bottom: none; }
+
+.timeline-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--portal-primary-50);
+  color: var(--portal-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.timeline-body { flex: 1; }
+
+.timeline-text {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.timeline-when {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+/* ── Focus ring: indigo for portal ─────────────────────────── */
+*:focus-visible {
+  outline: 2px solid var(--portal-primary);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbar: softer tint ─────────────────────────────────── */
+::-webkit-scrollbar-thumb {
+  background: #c7d2fe;
+}

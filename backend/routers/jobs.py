@@ -1,5 +1,5 @@
-"""
-routers/jobs.py — Manual job trigger endpoints for Nexus CRM.
+﻿"""
+routers/jobs.py — Manual job trigger endpoints for Nova CRM.
 These endpoints allow admins to trigger scheduled jobs on-demand
 (e.g., for testing in staging). Moved here from main.py.
 """

@@ -32,7 +32,6 @@ def _can_send_reminder(invoice_id: str, company_id: str, level: int) -> tuple[bo
         .eq("id", invoice_id)
         .eq("company_id", company_id)   # tenant guard
         .maybe_single()
-        .execute()
     ).data
     if not invoice:
         return False, "invoice_not_found"
@@ -132,7 +131,6 @@ async def send_reminder(
         .eq("id", str(invoice_id))
         .eq("company_id", str(user.active_company_id))
         .maybe_single()
-        .execute()
     ).data
     if not inv:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
@@ -167,7 +165,6 @@ async def reminder_history(
         .eq("id", str(invoice_id))
         .eq("company_id", str(user.active_company_id))
         .maybe_single()
-        .execute()
     )
     if not inv_check.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Invoice not found")
@@ -198,7 +195,6 @@ async def retry_reminder(
         .eq("id", str(reminder_id))
         .eq("company_id", str(user.active_company_id))
         .maybe_single()
-        .execute()
     ).data
     if not rem:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Reminder not found")
@@ -221,7 +217,6 @@ async def retry_reminder(
         .eq("id", invoice_id)
         .eq("company_id", str(user.active_company_id))
         .maybe_single()
-        .execute()
     ).data
     if not inv:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Fattura originale inesistente o cancellata.")

@@ -1,5 +1,5 @@
 /* ============================================================
-   auth.js — Nexus CRM auth module
+   auth.js — Nova CRM auth module
    ============================================================ */
 
 const Auth = {
@@ -19,9 +19,14 @@ const Auth = {
       API.setToken(data.token);
       const payload = JSON.parse(atob(data.token.split('.')[1]));
       if (payload.active_company_id) {
-        localStorage.setItem('nexus_active_company_id',   payload.active_company_id);
-        localStorage.setItem('nexus_active_company',      payload.active_company_id);
-        localStorage.setItem('nexus_active_company_name', payload.active_company_id);
+        localStorage.setItem('nexus_active_company_id', payload.active_company_id);
+        localStorage.setItem('nexus_active_company',    payload.active_company_id);
+        // Resolve the display name: prefer company list, then JWT field, fallback to ID
+        const companiesList = Array.isArray(data.companies) ? data.companies : [];
+        const activeComp    = companiesList.find(c => c.company_id === payload.active_company_id);
+        const resolvedName  = activeComp?.name || activeComp?.company_name
+                           || payload.company_name || payload.active_company_id;
+        localStorage.setItem('nexus_active_company_name', resolvedName);
       }
       // Save the full companies list so the company switcher can render them
       if (Array.isArray(data.companies)) {
@@ -66,28 +71,76 @@ const Auth = {
   //     Auth.guard('client')  — client only, admins → admin_dash.html
   //
   guard(role = '') {
+    // 1. Intercept Supabase Magic Link hashes directly
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token=')) {
+      const hp = new URLSearchParams(hash.replace('#', ''));
+      const token = hp.get('access_token');
+      if (token) {
+        // Clean the URL hash immediately so it doesn't linger
+        window.history.replaceState(null, null, window.location.pathname + window.location.search);
+        
+        // Render a loading state on the body while exchanging the token
+        document.body.innerHTML = '<div style="display:flex;height:100vh;align-items:center;justify-content:center;background:#f9fafb;font-family:sans-serif;color:#374151;">Autenticazione in corso...</div>';
+        
+        // Exchange the Supabase token for our custom JWT
+        this._exchangeTokenAndReload(token, role);
+        throw new Error("HALT_AUTH"); // Stop execution globally so no API calls happen
+      }
+    }
+
     const token = this.getToken();
-    if (!token) { location.href = 'login.html'; return false; }
+    if (!token) { location.href = 'login.html'; throw new Error("HALT_AUTH"); }
 
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
 
       // Token expiry check
       if (payload.exp && Date.now() / 1000 > payload.exp) {
-        this.logout(); return false;
+        this.logout(); throw new Error("HALT_AUTH");
       }
 
       // Role enforcement
       if (role === 'admin' && payload.role !== 'admin') {
-        location.href = 'client_dash.html'; return false;
+        location.href = 'client_dash.html'; throw new Error("HALT_AUTH");
       }
       if (role === 'client' && payload.role === 'admin') {
-        location.href = 'admin_dash.html'; return false;
+        location.href = 'admin_dash.html'; throw new Error("HALT_AUTH");
       }
 
       return true;
     } catch {
-      this.logout(); return false;
+      this.logout(); throw new Error("HALT_AUTH");
+    }
+  },
+
+  async _exchangeTokenAndReload(supabaseToken, requiredRole) {
+    try {
+      if (!window.API) {
+        // Fallback if API is not loaded yet (shouldn't happen but just in case)
+        console.error('API non disponibile per l exchange token');
+        location.href = 'login.html';
+        return;
+      }
+      const data = await API.post('/auth/exchange', { access_token: supabaseToken });
+      
+      this.setToken(data.token);
+      const payload = JSON.parse(atob(data.token.split('.')[1]));
+      
+      if (payload.active_company_id) {
+        localStorage.setItem('nexus_active_company_id', payload.active_company_id);
+        localStorage.setItem('nexus_active_company',    payload.active_company_id);
+      }
+      if (Array.isArray(data.companies)) {
+        localStorage.setItem('nexus_companies', JSON.stringify(data.companies));
+      }
+
+      // Reload the current page without the hash to let normal execution resume!
+      window.location.replace(window.location.pathname + window.location.search);
+      
+    } catch (err) {
+      console.error('Token exchange failed:', err);
+      location.href = 'login.html';
     }
   },
 
@@ -97,16 +150,23 @@ const Auth = {
         || localStorage.getItem('nexus_active_company');
   },
 
-  setActiveCompany(companyId) {
+  async setActiveCompany(companyId, companyName) {
     if (!companyId) return;
     localStorage.setItem('nexus_active_company_id', companyId);
     localStorage.setItem('nexus_active_company', companyId);
+    // Aggiorna il nome se fornito (evita UUID stale)
+    if (companyName) {
+      localStorage.setItem('nexus_active_company_name', companyName);
+    }
 
     // Attempt backend sync if API is ready
     if (window.API?.Auth?.switchCompany) {
-      API.Auth.switchCompany(companyId).then(res => {
+      try {
+        const res = await API.Auth.switchCompany(companyId);
         if (res?.token) API.setToken(res.token);
-      }).catch(() => {});
+      } catch (e) {
+        console.warn('Backend company switch failed:', e);
+      }
     }
 
     window.dispatchEvent(new CustomEvent('companyChanged', { detail: companyId }));

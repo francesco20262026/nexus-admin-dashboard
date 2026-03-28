@@ -1,0 +1,371 @@
+/* ============================================================
+   activity_timeline.js — Reusable CRM Activity Timeline Component
+   ============================================================ */
+'use strict';
+
+window.ActivityTimeline = (function () {
+
+  const EVENT_ICONS = {
+    note:              { icon: '📝', label: 'Nota',              color: '#6366f1' },
+    call:              { icon: '📞', label: 'Chiamata',          color: '#0ea5e9' },
+    meeting:           { icon: '🤝', label: 'Riunione',          color: '#8b5cf6' },
+    task:              { icon: '✅', label: 'Task',              color: '#10b981' },
+    email_sent:        { icon: '✉️',  label: 'Email inviata',    color: '#f59e0b' },
+    quote_sent:        { icon: '📄', label: 'Preventivo inviato', color: '#3b82f6' },
+    quote_accepted:    { icon: '✅', label: 'Preventivo accettato', color: '#10b981' },
+    quote_rejected:    { icon: '❌', label: 'Preventivo rifiutato', color: '#ef4444' },
+    invoice_issued:    { icon: '🧾', label: 'Fattura emessa',    color: '#f97316' },
+    stage_changed:     { icon: '🔄', label: 'Stato aggiornato', color: '#8b5cf6' },
+    lead_created:      { icon: '🌱', label: 'Lead creato',       color: '#10b981' },
+    contract_signed:   { icon: '📝', label: 'Contratto',        color: '#0ea5e9' },
+    document_uploaded: { icon: '📎', label: 'Documento',        color: '#64748b' },
+    system:            { icon: '⚙️',  label: 'Sistema',          color: '#64748b' },
+  };
+
+  const MANUAL_EVENT_TYPES = ['note', 'call', 'meeting', 'task'];
+
+  function _relativeTime(dateStr) {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins  = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days  = Math.floor(diff / 86400000);
+    if (mins  < 1)   return 'adesso';
+    if (mins  < 60)  return `${mins} min fa`;
+    if (hours < 24)  return `${hours}h fa`;
+    if (days  < 7)   return `${days}g fa`;
+    return new Date(dateStr).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function _fmtScheduled(dateStr) {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleString('it-IT', {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function _renderEvent(ev) {
+    const meta   = EVENT_ICONS[ev.event_type] || EVENT_ICONS.system;
+    const actor  = ev.users?.name || ev.users?.email || 'Sistema';
+    const timeStr = new Date(ev.created_at).toLocaleString('it-IT', {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    const title = ev.title || ev.description || '—';
+    const scheduledBadge = ev.scheduled_at
+      ? `<span class="al-scheduled-badge">📅 ${_fmtScheduled(ev.scheduled_at)}</span>`
+      : '';
+    const inviteBtn = ev.scheduled_at
+      ? `<button class="al-invite-btn" data-id="${ev.id}" title="Invia invito calendario">✉️ Invia invito</button>`
+      : '';
+    const assignedBadge = ev.assigned_to_name
+      ? `<span class="al-meta-badge" style="color:#0ea5e9;background:#e0f2fe;">👤 ${ev.assigned_to_name}</span>`
+      : '';
+    return `
+      <div class="al-item" data-id="${ev.id}">
+        <div class="al-item-icon" style="color:${meta.color}; border-color:${meta.color}30; background:${meta.color}08;">${meta.icon}</div>
+        <div class="al-item-content">
+          <div class="al-item-header">
+            <span class="al-item-title">${title}</span>
+            <span class="al-item-time" title="${timeStr}">${_relativeTime(ev.created_at)}</span>
+          </div>
+          ${scheduledBadge}
+          ${ev.body ? `<div class="al-item-body">${ev.body.replace(/\n/g, '<br>')}</div>` : ''}
+          <div class="al-item-footer">
+            <span class="al-item-footer-meta">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+              ${actor}
+            </span>
+            ${assignedBadge}
+            <span class="al-meta-badge" style="color:${meta.color}; background:${meta.color}15;">${meta.label}</span>
+            ${inviteBtn}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function _renderTypeButtons(activeType) {
+    return MANUAL_EVENT_TYPES.map(t => {
+      const m = EVENT_ICONS[t];
+      return `<button type="button" class="al-type-btn ${activeType === t ? 'active' : ''}" data-type="${t}">${m.icon} ${m.label}</button>`;
+    }).join('');
+  }
+
+  function _renderFilterDropdown(activeFilter) {
+    const options = [
+      ['', 'Tutte le attività'],
+      ...Object.entries(EVENT_ICONS).map(([k, v]) => [k, v.label])
+    ];
+    return `
+      <select id="al-filter-select" class="al-native-select">
+        ${options.map(([val, label]) => `<option value="${val}" ${activeFilter === val ? 'selected' : ''}>${label}</option>`).join('')}
+      </select>
+    `;
+  }
+
+  async function _load(cfg, page = 1, filter = '') {
+    const endpoint = cfg.entityType === 'client'
+      ? `/clients/${cfg.entityId}/activity`
+      : `/onboarding/${cfg.entityId}/activity`;
+
+    const params = new URLSearchParams({ page, page_size: 30 });
+    if (filter) params.set('event_type', filter);
+
+    return API.get(`${endpoint}?${params}`);
+  }
+
+  async function _save(cfg, eventType, title, body, scheduledAt, assignedTo, inviteClient) {
+    const endpoint = cfg.entityType === 'client'
+      ? `/clients/${cfg.entityId}/activity`
+      : `/onboarding/${cfg.entityId}/activity`;
+    const payload = { event_type: eventType, title };
+    if (body)        payload.body = body;
+    if (scheduledAt) payload.scheduled_at = scheduledAt;
+    if (assignedTo)  payload.assigned_to = assignedTo;
+    if (inviteClient) payload.invite_client = true;
+    return API.post(endpoint, payload);
+  }
+
+  async function _sendInvite(activityId) {
+    return API.post(`/activities/${activityId}/invite`, {});
+  }
+
+  async function init(cfg) {
+    const container = document.getElementById(cfg.containerId);
+    if (!container) return;
+
+    let currentFilter = '';
+    let currentPage   = 1;
+    let selectedAddType = 'note';
+    let showSchedule = false; // toggle scheduling panel
+
+    // Load admin/operator users list for assignee dropdown (exclude client-role users)
+    let adminUsers = [];
+    try {
+      const res = await API.get('/users');
+      const all = Array.isArray(res) ? res : (res.data || []);
+      // Exclude only client-role accounts; include admin, operator, member, super_admin
+      adminUsers = all.filter(u => u.role !== 'client');
+    } catch (_) {}
+
+    async function render() {
+      container.innerHTML = `
+        <div class="al-container">
+          <div class="al-body-area">
+            ${renderStorico()}
+          </div>
+        </div>
+      `;
+      attachEvents();
+      await loadList();
+    }
+
+    function _adminOptions() {
+      if (!adminUsers.length) return '<option value="">— Nessun admin —</option>';
+      return '<option value="">Nessun assegnatario</option>' +
+        adminUsers.map(u => `<option value="${u.id}">${u.name || u.email}</option>`).join('');
+    }
+
+    function renderStorico() {
+      return `
+        <!-- Quick Add Box -->
+        <div class="al-quick-add" id="al-quick-add-form">
+          <input type="text" id="al-quick-title" class="al-quick-title" placeholder="Titolo dell'attività (obbligatorio)" maxlength="200" autocomplete="off" />
+          <textarea id="al-quick-body" class="al-quick-body" placeholder="Scrivi un aggiornamento, una nota o resoconto della chiamata..."></textarea>
+
+          <!-- Schedule Toggle -->
+          <div style="margin-top:8px;">
+            <button type="button" id="al-schedule-toggle" class="al-schedule-toggle ${showSchedule ? 'open' : ''}">
+              📅 ${showSchedule ? 'Nascondi pianificazione' : 'Pianifica data e assegnatario'}
+            </button>
+          </div>
+
+          <!-- Scheduling Panel (collapsible) -->
+          <div id="al-schedule-panel" style="display:${showSchedule ? 'grid' : 'none'}; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; padding:12px; background:var(--gray-50); border-radius:8px; border:1px solid var(--border);">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.04em;">Data e Ora</label>
+              <input type="datetime-local" id="al-scheduled-at" class="form-input" style="font-size:13px;" />
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.04em;">Assegna a (Admin)</label>
+              <select id="al-assigned-to" class="form-input" style="font-size:13px;">
+                ${_adminOptions()}
+              </select>
+            </div>
+            <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:4px;">
+              <input type="checkbox" id="al-invite-client" style="accent-color:var(--brand-500);width:15px;height:15px;cursor:pointer;" />
+              <label for="al-invite-client" style="font-size:13px;color:var(--gray-700);cursor:pointer;">Invia invito calendario anche al cliente</label>
+            </div>
+          </div>
+
+          <div class="al-quick-actions">
+            <div class="al-type-selector" id="al-type-selector">
+              ${_renderTypeButtons(selectedAddType)}
+            </div>
+            <button class="btn btn-primary btn-sm" id="al-save-btn">Aggiungi</button>
+          </div>
+        </div>
+        
+        <!-- Header & Filters -->
+        <div class="al-header-row">
+          <div class="al-title-text">
+            Tracker Attività
+          </div>
+          ${_renderFilterDropdown(currentFilter)}
+        </div>
+        
+        <!-- List Container -->
+        <div id="al-list">
+          <div style="padding:40px 0; text-align:center; color:var(--gray-400); font-size:13px;">Caricamento storico...</div>
+        </div>
+        <div id="al-pagination" style="margin-top:24px;"></div>
+      `;
+    }
+
+    function attachEvents() {
+      // Schedule toggle
+      const toggleBtn = document.getElementById('al-schedule-toggle');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          showSchedule = !showSchedule;
+          const panel = document.getElementById('al-schedule-panel');
+          if (panel) panel.style.display = showSchedule ? 'grid' : 'none';
+          toggleBtn.textContent = `📅 ${showSchedule ? 'Nascondi pianificazione' : 'Pianifica data e assegnatario'}`;
+          toggleBtn.classList.toggle('open', showSchedule);
+        });
+      }
+
+      // Quick Add Type Selector
+      container.querySelectorAll('.al-type-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          selectedAddType = btn.dataset.type;
+          document.getElementById('al-type-selector').innerHTML = _renderTypeButtons(selectedAddType);
+          attachEvents();
+        });
+      });
+
+      // Filter Select
+      const filterSelect = document.getElementById('al-filter-select');
+      if (filterSelect) {
+        filterSelect.addEventListener('change', (e) => {
+          currentFilter = e.target.value;
+          currentPage = 1;
+          loadList();
+        });
+      }
+
+      // Save Button
+      const saveBtn = document.getElementById('al-save-btn');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', handleSave);
+      }
+    }
+
+    async function handleSave() {
+      const titleInput     = document.getElementById('al-quick-title');
+      const bodyInput      = document.getElementById('al-quick-body');
+      const scheduledInput = document.getElementById('al-scheduled-at');
+      const assignedInput  = document.getElementById('al-assigned-to');
+      const inviteClient   = document.getElementById('al-invite-client');
+      const title = titleInput.value.trim();
+      const body  = bodyInput.value.trim();
+      
+      if (!title) {
+        UI.toast('Il titolo è obbligatorio', 'error');
+        titleInput.focus();
+        return;
+      }
+      
+      const scheduledAt = scheduledInput?.value || null;
+      const assignedTo  = assignedInput?.value  || null;
+      const doInvite    = inviteClient?.checked  || false;
+
+      const saveBtn = document.getElementById('al-save-btn');
+      try {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:6px;"></span> Salvataggio...';
+        
+        await _save(cfg, selectedAddType, title, body || undefined, scheduledAt, assignedTo, doInvite);
+        
+        UI.toast('Attività aggiunta' + (scheduledAt ? ' e pianificata nel calendario' : ''), 'success');
+        titleInput.value = '';
+        bodyInput.value = '';
+        if (scheduledInput) scheduledInput.value = '';
+        if (assignedInput)  assignedInput.value = '';
+        if (inviteClient)   inviteClient.checked = false;
+        currentPage = 1;
+        loadList();
+      } catch (e) {
+        UI.toast(e.message || 'Errore nel salvataggio', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Aggiungi';
+      }
+    }
+
+    async function loadList() {
+      const listEl = document.getElementById('al-list');
+      const pageEl = document.getElementById('al-pagination');
+      if (!listEl) return;
+      
+      listEl.innerHTML = '<div style="padding:40px 0; text-align:center; color:var(--gray-400); font-size:13px;">Caricamento storico...</div>';
+      
+      try {
+        const res = await _load(cfg, currentPage, currentFilter);
+        const events = res.data || [];
+        
+        if (!events.length) {
+          listEl.innerHTML = `
+            <div style="padding:48px 0; text-align:center;">
+              <div style="font-size:32px; margin-bottom:12px; opacity:0.3;">⏳</div>
+              <p style="color:var(--gray-500); font-size:14px; margin:0;">Nessuna attività registrata per questo filtro.</p>
+            </div>`;
+          if (pageEl) pageEl.innerHTML = '';
+          return;
+        }
+        
+        listEl.innerHTML = `<div class="al-vertical-list">${events.map(_renderEvent).join('')}</div>`;
+
+        // Attach invite buttons
+        listEl.querySelectorAll('.al-invite-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            btn.textContent = '⏳ Invio...';
+            try {
+              await _sendInvite(btn.dataset.id);
+              UI.toast('Invito calendario inviato', 'success');
+              btn.textContent = '✓ Inviato';
+            } catch (e) {
+              UI.toast(e.message || 'Errore invio invito', 'error');
+              btn.disabled = false;
+              btn.textContent = '✉️ Invia invito';
+            }
+          });
+        });
+
+        // Pagination
+        const totalPages = Math.ceil((res.total || 0) / 30);
+        if (pageEl && totalPages > 1) {
+          pageEl.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:16px;">
+              <button class="btn btn-ghost btn-sm" id="al-prev" ${currentPage <= 1 ? 'disabled' : ''}>← Precedente</button>
+              <span style="font-size:12px; color:var(--gray-500);">Pagina ${currentPage} di ${totalPages}</span>
+              <button class="btn btn-ghost btn-sm" id="al-next" ${currentPage >= totalPages ? 'disabled' : ''}>Successiva →</button>
+            </div>`;
+          document.getElementById('al-prev')?.addEventListener('click', () => { currentPage--; loadList(); });
+          document.getElementById('al-next')?.addEventListener('click', () => { currentPage++; loadList(); });
+        } else if (pageEl) {
+          pageEl.innerHTML = '';
+        }
+      } catch (e) {
+        console.error('[ActivityTimeline] load error:', e);
+        listEl.innerHTML = '<div style="padding:24px; text-align:center; color:var(--red-500); font-size:13px; background:var(--red-50); border-radius:8px;">Impossibile recuperare le attività.</div>';
+      }
+    }
+
+    await render();
+  }
+
+  return { init };
+
+})();
