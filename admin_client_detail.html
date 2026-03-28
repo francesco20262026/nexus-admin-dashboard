@@ -145,21 +145,25 @@
     .z-action-btn:hover svg { color: #059669; }
     .z-action-sep { display: none; }
 
-    /* ── BODY LAYOUT ─────────────────────────────────────────── */
-    .detail-layout {
-      margin-top: 14px;
+    /* ── TAB NAV BAR — fixed sotto il topbar ────────────────── */
+    .profile-col {
+      position: fixed;
+      top: var(--header-h);
+      left: var(--sidebar-w);
+      right: 0;
+      z-index: 90;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-bottom: 1px solid #e8edf2;
+    }
+    .shell.collapsed .profile-col {
+      left: var(--sidebar-collapsed-w);
     }
 
-    /* ── TAB NAV BAR (sticky in cima mentre si scrolla) ─────── */
-    .profile-col {
+    /* ── BODY LAYOUT ─────────────────────────────────────────── */
+    .detail-layout {
       width: 100%;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
-      overflow: hidden;
-      position: sticky;
-      top: 0;
-      z-index: 50;
+      padding-top: 58px;
     }
 
     .z-sidebar { padding: 0 8px; }
