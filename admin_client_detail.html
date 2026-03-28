@@ -960,20 +960,21 @@
   if (!bar || !ph) return;
 
   var stuck = false;
-  var triggerY = null; // posizione Y assoluta in cui la barra deve incollarsi
+  var triggerY = null;
+
+  function headerH() {
+    return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 56;
+  }
 
   function calcTrigger() {
-    // Usa il placeholder se la barra è già fixed, altrimenti la barra stessa
-    var rect = stuck ? ph.getBoundingClientRect() : bar.getBoundingClientRect();
-    var headerH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 56;
-    triggerY = rect.top + window.scrollY - headerH;
+    if (stuck) return; // non ricalcolare se già incollata
+    var rect = bar.getBoundingClientRect();
+    triggerY = Math.round(rect.top + window.scrollY - headerH());
   }
 
   function update() {
-    if (triggerY === null) calcTrigger();
-    var headerH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 56;
+    if (triggerY === null) return;
     var shouldStick = window.scrollY >= triggerY;
-
     if (shouldStick && !stuck) {
       stuck = true;
       bar.classList.add('tab-stuck');
@@ -985,10 +986,16 @@
     }
   }
 
-  calcTrigger();
+  // Calcola dopo che tutto il layout è settato (header dinamico incluso)
+  window.addEventListener('load', function () {
+    calcTrigger();
+    update();
+  });
+  // Ricalcola se ridimensioni la finestra
+  window.addEventListener('resize', function () { triggerY = null; calcTrigger(); update(); }, { passive: true });
   window.addEventListener('scroll', update, { passive: true });
-  window.addEventListener('resize', function () { triggerY = null; update(); }, { passive: true });
-  update();
+  // Fallback: calcola dopo 300ms anche senza load event
+  setTimeout(function () { if (triggerY === null) { calcTrigger(); update(); } }, 300);
 })();
 </script>
 </body>
