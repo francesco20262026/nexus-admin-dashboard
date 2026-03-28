@@ -147,8 +147,7 @@
 
     /* ── BODY LAYOUT ─────────────────────────────────────────── */
     .detail-layout {
-      display: flex; flex-direction: column; gap: 14px;
-      min-height: calc(100vh - 320px);
+      margin-top: 14px;
     }
 
     /* ── TAB NAV BAR (sticky in cima mentre si scrolla) ─────── */
@@ -159,7 +158,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
       overflow: hidden;
       position: sticky;
-      top: 8px;
+      top: 0;
       z-index: 50;
     }
 
@@ -410,28 +409,25 @@
 
   </div><!-- /cd-hero -->
 
-  <div class="detail-layout">
-    <!-- LEFT PROFILE — COLLAPSIBLE -->
-    <div class="profile-col" id="cd-profile-col">
-      <nav class="z-sidebar">
-        <div class="z-sidebar-title">Elenco Correlato</div>
-        <ul class="z-nav-list" id="elenco-correlato">
-          <li><a href="#" class="z-nav-item active" id="tab-panoramica" onclick="event.preventDefault();switchMainView('panoramica')">Panoramica</a></li>
-          <li><a href="#card-note" class="z-nav-item">Note <span class="z-nav-badge" id="badge-note">0</span></a></li>
-          <li><a href="#card-contatti" class="z-nav-item">Contatti <span class="z-nav-badge" id="badge-contact">0</span></a></li>
-          <li><a href="#card-servizi" class="z-nav-item">Servizi <span class="z-nav-badge" id="badge-service">0</span></a></li>
-          <li><a href="#card-preventivi" class="z-nav-item">Preventivi <span class="z-nav-badge" id="badge-quote">0</span></a></li>
-          <li><a href="#card-contratti" class="z-nav-item">Contratti <span class="z-nav-badge" id="badge-contract">0</span></a></li>
-          <li><a href="#card-documenti" class="z-nav-item">Documenti <span class="z-nav-badge" id="badge-doc">0</span></a></li>
-          <li><a href="#card-fatture" class="z-nav-item">Fatture <span class="z-nav-badge" id="badge-invoice">0</span></a></li>
-          <li><a href="#" class="z-nav-item" id="tab-timeline" onclick="event.preventDefault();switchMainView('timeline')">Sequenza temporale</a></li>
-        </ul>
-        <!-- Sidebar quick contacts (populated by JS after loadContacts) -->
-        <div id="sidebar-quick-contacts"></div>
-      </nav>
-    </div>
+  <!-- STICKY TAB BAR -->
+  <div class="profile-col" id="cd-profile-col">
+    <nav class="z-sidebar">
+      <ul class="z-nav-list" id="elenco-correlato">
+        <li><a href="#" class="z-nav-item active" id="tab-panoramica" onclick="event.preventDefault();switchMainView('panoramica')">Panoramica</a></li>
+        <li><a href="#card-note" class="z-nav-item">Note <span class="z-nav-badge" id="badge-note">0</span></a></li>
+        <li><a href="#card-contatti" class="z-nav-item">Contatti <span class="z-nav-badge" id="badge-contact">0</span></a></li>
+        <li><a href="#card-servizi" class="z-nav-item">Servizi <span class="z-nav-badge" id="badge-service">0</span></a></li>
+        <li><a href="#card-preventivi" class="z-nav-item">Preventivi <span class="z-nav-badge" id="badge-quote">0</span></a></li>
+        <li><a href="#card-contratti" class="z-nav-item">Contratti <span class="z-nav-badge" id="badge-contract">0</span></a></li>
+        <li><a href="#card-documenti" class="z-nav-item">Documenti <span class="z-nav-badge" id="badge-doc">0</span></a></li>
+        <li><a href="#card-fatture" class="z-nav-item">Fatture <span class="z-nav-badge" id="badge-invoice">0</span></a></li>
+        <li><a href="#" class="z-nav-item" id="tab-timeline" onclick="event.preventDefault();switchMainView('timeline')">Sequenza temporale</a></li>
+      </ul>
+      <div id="sidebar-quick-contacts"></div>
+    </nav>
+  </div>
 
-    <!-- RIGHT DATA TAB PANE -->
+  <div class="detail-layout">
     <div class="data-col">
       
       <!-- VISTA 1: PANORAMICA (Stacked Cards) -->
