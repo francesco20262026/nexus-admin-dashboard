@@ -1,15 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 158 46" role="img" aria-label="Nova CRM">
-  <!-- 5-pointed star: center (22,24), outer r=18, inner r=9 -->
+  <!-- Star outer fill (light green body) + border -->
   <path d="M22,6 L27.3,16.7 L39.1,18.4 L30.6,26.8 L32.6,38.6 L22,33 L11.4,38.6 L13.4,26.8 L4.9,18.4 L16.7,16.7 Z"
-        fill="none" stroke="#059669" stroke-width="1.9" stroke-linejoin="round"/>
-  <!-- 4-pointed sparkle upper-right -->
-  <path d="M37.5,1.5 L38.7,5.3 L42.5,6.5 L38.7,7.7 L37.5,11.5 L36.3,7.7 L32.5,6.5 L36.3,5.3 Z"
+        fill="#dcfce7" stroke="#059669" stroke-width="1.8" stroke-linejoin="round"/>
+  <!-- Inner pentagon — faceted/gem effect -->
+  <polygon points="27.3,16.7 30.6,26.8 22,33 13.4,26.8 16.7,16.7"
+           fill="none" stroke="#059669" stroke-width="0.9" opacity="0.4"/>
+  <!-- Lines from center to each outer tip — depth lines -->
+  <line x1="22" y1="24" x2="22"   y2="6"    stroke="#059669" stroke-width="0.6" opacity="0.22"/>
+  <line x1="22" y1="24" x2="39.1" y2="18.4" stroke="#059669" stroke-width="0.6" opacity="0.22"/>
+  <line x1="22" y1="24" x2="32.6" y2="38.6" stroke="#059669" stroke-width="0.6" opacity="0.22"/>
+  <line x1="22" y1="24" x2="11.4" y2="38.6" stroke="#059669" stroke-width="0.6" opacity="0.22"/>
+  <line x1="22" y1="24" x2="4.9"  y2="18.4" stroke="#059669" stroke-width="0.6" opacity="0.22"/>
+  <!-- 4-pointed sparkle, upper-right -->
+  <path d="M37.5,1.5 L38.9,5.5 L43,6.8 L38.9,8.1 L37.5,12 L36.1,8.1 L32,6.8 L36.1,5.5 Z"
         fill="#059669"/>
-  <!-- "Nova" bold dark -->
+  <!-- "Nova" bold dark navy -->
   <text x="50" y="30"
         font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif"
         font-size="19" font-weight="800" fill="#0f172a">Nova</text>
-  <!-- " CRM" indigo regular -->
+  <!-- " CRM" green -->
   <text x="100" y="30"
         font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif"
         font-size="19" font-weight="400" fill="#059669"> CRM</text>
