@@ -5452,29 +5452,66 @@ a.cl-row-link:hover { color: var(--brand-600); text-decoration: underline; }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 8px center; background-size: 16px;
 }
-.al-vertical-list { display: flex; flex-direction: column; gap: 0; }
+/* Cronologia-style dated timeline */
+.al-date-header {
+  display: flex; align-items: center;
+  padding: 20px 0 8px;
+}
+.al-date-header span {
+  display: inline-block; font-size: 12px; font-weight: 600;
+  color: var(--gray-700); background: var(--gray-100);
+  border: 1px solid var(--gray-200); border-radius: 20px;
+  padding: 3px 14px;
+}
+.al-date-group {
+  position: relative;
+}
+.al-date-group::before {
+  content: '';
+  position: absolute;
+  left: 68px;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: var(--gray-200);
+  z-index: 0;
+}
 .al-item {
-  display: flex; gap: 14px; padding: 14px 0;
-  border-bottom: 1px solid var(--border); transition: background .12s;
+  display: grid;
+  grid-template-columns: 56px 36px 1fr;
+  gap: 0 12px;
+  align-items: flex-start;
+  padding: 8px 0;
+  position: relative;
 }
-.al-item:last-child { border-bottom: none; }
-.al-item-icon {
-  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+.al-item-time-col {
+  font-size: 11.5px; color: var(--gray-400);
+  font-weight: 500; text-align: right;
+  padding-top: 6px; white-space: nowrap;
+}
+.al-item-line-col {
+  display: flex; flex-direction: column;
+  align-items: center; z-index: 1;
+}
+.al-item-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1.5px solid; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 17px; border: 1px solid;
+  font-size: 14px; background: #fff;
 }
-.al-item-content { flex: 1; min-width: 0; }
-.al-item-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-.al-item-title { font-size: 14px; font-weight: 600; color: var(--gray-900); }
-.al-item-time { font-size: 11.5px; color: var(--gray-500); white-space: nowrap; flex-shrink: 0; }
-.al-item-body { font-size: 13px; color: var(--gray-600); line-height: 1.5; margin: 4px 0 8px; }
-.al-item-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.al-item-content { padding-top: 5px; min-width: 0; padding-bottom: 8px; }
+.al-item-title { font-size: 13.5px; font-weight: 600; color: var(--gray-900); line-height: 1.4; }
+.al-item-subtitle { font-weight: 500; color: var(--brand-600); }
+.al-item-body { font-size: 13px; color: var(--gray-600); line-height: 1.5; margin: 4px 0 4px; }
+.al-item-meta { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
+.al-item-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .al-item-footer-meta { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--gray-400); }
 .al-meta-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; }
-.al-scheduled-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--brand-700); background: var(--brand-50); padding: 3px 10px; border-radius: 6px; margin: 4px 0; }
+.al-scheduled-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--brand-700); background: var(--brand-50); padding: 3px 10px; border-radius: 6px; margin-top: 5px; }
 .al-invite-btn {
+  display: inline-flex; align-items: center; gap: 4px;
   font-size: 12px; font-weight: 500; color: var(--brand-600);
   background: none; border: 1px solid var(--brand-200); border-radius: 6px;
   padding: 3px 10px; cursor: pointer; transition: all .15s; font-family: inherit;
+  margin-top: 5px;
 }
 .al-invite-btn:hover { background: var(--brand-50); }

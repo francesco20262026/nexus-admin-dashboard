@@ -44,41 +44,45 @@ window.ActivityTimeline = (function () {
     });
   }
 
-  function _renderEvent(ev) {
-    const meta   = EVENT_ICONS[ev.event_type] || EVENT_ICONS.system;
-    const actor  = ev.users?.name || ev.users?.email || 'Sistema';
-    const timeStr = new Date(ev.created_at).toLocaleString('it-IT', {
-      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  function _groupByDate(events) {
+    const groups = new Map();
+    events.forEach(ev => {
+      const d   = new Date(ev.created_at);
+      const key = d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(ev);
     });
-    const title = ev.title || ev.description || '—';
+    return groups;
+  }
+
+  function _renderEvent(ev) {
+    const meta  = EVENT_ICONS[ev.event_type] || EVENT_ICONS.system;
+    const actor = ev.users?.name || ev.users?.email || 'Sistema';
+    const d     = new Date(ev.created_at);
+    const timeStr = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const rawTitle = ev.title || ev.description || '';
+    const displayTitle = rawTitle && rawTitle !== meta.label
+      ? `${meta.label} — <span class="al-item-subtitle">${rawTitle}</span>`
+      : meta.label;
     const scheduledBadge = ev.scheduled_at
-      ? `<span class="al-scheduled-badge">📅 ${_fmtScheduled(ev.scheduled_at)}</span>`
+      ? `<div class="al-scheduled-badge">📅 ${_fmtScheduled(ev.scheduled_at)}</div>`
       : '';
     const inviteBtn = ev.scheduled_at
       ? `<button class="al-invite-btn" data-id="${ev.id}" title="Invia invito calendario">✉️ Invia invito</button>`
       : '';
-    const assignedBadge = ev.assigned_to_name
-      ? `<span class="al-meta-badge" style="color:#0ea5e9;background:#e0f2fe;">👤 ${ev.assigned_to_name}</span>`
-      : '';
     return `
       <div class="al-item" data-id="${ev.id}">
-        <div class="al-item-icon" style="color:${meta.color}; border-color:${meta.color}30; background:${meta.color}08;">${meta.icon}</div>
+        <div class="al-item-time-col">${timeStr}</div>
+        <div class="al-item-line-col">
+          <div class="al-item-dot" style="color:${meta.color};border-color:${meta.color}50;background:${meta.color}12;">${meta.icon}</div>
+        </div>
         <div class="al-item-content">
-          <div class="al-item-header">
-            <span class="al-item-title">${title}</span>
-            <span class="al-item-time" title="${timeStr}">${_relativeTime(ev.created_at)}</span>
-          </div>
-          ${scheduledBadge}
+          <div class="al-item-title">${displayTitle}</div>
           ${ev.body ? `<div class="al-item-body">${ev.body.replace(/\n/g, '<br>')}</div>` : ''}
-          <div class="al-item-footer">
-            <span class="al-item-footer-meta">
-              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-              ${actor}
-            </span>
-            ${assignedBadge}
-            <span class="al-meta-badge" style="color:${meta.color}; background:${meta.color}15;">${meta.label}</span>
-            ${inviteBtn}
-          </div>
+          <div class="al-item-meta">da ${actor} · ${dateStr}</div>
+          ${scheduledBadge}
+          ${inviteBtn}
         </div>
       </div>`;
   }
@@ -208,7 +212,7 @@ window.ActivityTimeline = (function () {
         <!-- Header & Filters -->
         <div class="al-header-row">
           <div class="al-title-text">
-            Tracker Attività
+            Cronologia della sequenza temporale
           </div>
           ${_renderFilterDropdown(currentFilter)}
         </div>
@@ -324,7 +328,13 @@ window.ActivityTimeline = (function () {
           return;
         }
         
-        listEl.innerHTML = `<div class="al-vertical-list">${events.map(_renderEvent).join('')}</div>`;
+        const groups = _groupByDate(events);
+        let html = '';
+        for (const [date, evs] of groups) {
+          html += `<div class="al-date-header"><span>${date}</span></div>`;
+          html += `<div class="al-date-group">${evs.map(_renderEvent).join('')}</div>`;
+        }
+        listEl.innerHTML = html;
 
         // Attach invite buttons
         listEl.querySelectorAll('.al-invite-btn').forEach(btn => {
