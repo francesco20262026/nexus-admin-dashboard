@@ -89,6 +89,7 @@ try:
     from modules.quotes.router import router as quotes_router
     from modules.users.router import router as users_router
     from modules.companies.router import router as companies_router
+    from modules.calls.router import router as calls_router
     from modules.activity.router import client_router as activity_client_router
     from modules.activity.router import onboarding_router as activity_onboarding_router
     from modules.activity.router import global_router as activity_global_router
@@ -111,6 +112,7 @@ try:
     app.include_router(quotes_router, prefix="/api")
     app.include_router(users_router, prefix="/api")
     app.include_router(companies_router, prefix="/api")
+    app.include_router(calls_router, prefix="/api")
     app.include_router(activity_client_router, prefix="/api")
     app.include_router(activity_onboarding_router, prefix="/api")
     app.include_router(activity_global_router, prefix="/api")

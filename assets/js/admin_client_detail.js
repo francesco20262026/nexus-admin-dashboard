@@ -922,6 +922,12 @@
     setTimeout(() => { loadInvoices();  loaded['invoices']  = true; }, 300);
     setTimeout(() => { loadDocuments(); loaded['documents'] = true; }, 350);
 
+    // Chiamate — load calls and then check for overdue ones
+    setTimeout(() => {
+      initCallsModule(clientId);
+      setTimeout(checkOverdueCalls, 1200);
+    }, 400);
+
     // Timeline will lazy load when view is switched via switchMainView()
   });
 
