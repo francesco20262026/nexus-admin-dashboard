@@ -7,8 +7,8 @@ from config import settings
 supabase: Client = create_client(settings.supabase_url, settings.supabase_service_key)
 supabase_service: Client = supabase  # alias
 
-# Dedicated auth client — used ONLY for sign_in_with_password() in auth/router.py
-supabase_auth: Client = create_client(settings.supabase_url, settings.supabase_service_key)
+# Dedicated auth client — uses ANON key, required for sign_in_with_password()
+supabase_auth: Client = create_client(settings.supabase_url, settings.supabase_anon_key)
 
 
 # ── Safe query helpers ────────────────────────────────────────
