@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preload" as="image" href="/assets/img/nova-crm-logo-sidebar.svg">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/css/dash.css?v=92"/>
+  <link rel="stylesheet" href="assets/css/dash.css?v=98"/>
   <style>
     /* =========================================================
        CLIENT DETAIL — NOVA CRM — STANDARD CRM LAYOUT
@@ -146,49 +146,87 @@
     .z-action-sep { display: none; }
 
     /* ── TAB NAV BAR — fixed sotto il topbar ────────────────── */
+    /* !important per vincere i conflitti con dash.css legacy */
     .profile-col {
-      position: fixed;
-      top: var(--header-h);
-      left: var(--sidebar-w);
-      right: 0;
-      z-index: 90;
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      border-bottom: 1px solid #e8edf2;
+      position: fixed !important;
+      top: var(--header-h) !important;
+      left: var(--sidebar-w) !important;
+      right: 0 !important;
+      width: auto !important;
+      flex-direction: row !important;
+      z-index: 90 !important;
+      background: #fff !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+      border-bottom: 1px solid #e8edf2 !important;
     }
     .shell.collapsed .profile-col {
-      left: var(--sidebar-collapsed-w);
+      left: var(--sidebar-collapsed-w) !important;
     }
 
     /* ── BODY LAYOUT ─────────────────────────────────────────── */
     .detail-layout {
-      width: 100%;
-      padding-top: 58px;
+      display: block !important;
+      width: 100% !important;
+      grid-template-columns: none !important;
+      padding-top: 58px !important;
     }
 
-    .z-sidebar { padding: 0 8px; }
-    .z-sidebar-title { display: none; }
+    .z-sidebar { padding: 0 8px !important; }
+    .z-sidebar-title { display: none !important; }
     .z-nav-list {
-      list-style: none; padding: 0; margin: 0;
-      display: flex; flex-wrap: wrap; gap: 0;
+      list-style: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      overflow-x: auto !important;
+      gap: 0 !important;
+      scrollbar-width: none !important;
     }
+    .z-nav-list::-webkit-scrollbar { display: none; }
+    .z-nav-list li { flex-shrink: 0 !important; }
     .z-nav-item {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 13px 16px;
-      color: #64748b; font-size: 13px; font-weight: 500;
-      text-decoration: none; cursor: pointer; white-space: nowrap;
-      border-bottom: 2px solid transparent;
-      transition: color .12s, border-color .12s;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 6px !important;
+      padding: 13px 16px !important;
+      color: #64748b !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      text-decoration: none !important;
+      cursor: pointer !important;
+      white-space: nowrap !important;
+      border-bottom: 2px solid transparent !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      transition: color .12s, border-color .12s !important;
     }
-    .z-nav-item:hover { color: #1e293b; border-bottom-color: #cbd5e1; }
-    .z-nav-item.active { color: #059669; font-weight: 700; border-bottom-color: #059669; }
+    .z-nav-item:hover {
+      color: #1e293b !important;
+      border-bottom-color: #cbd5e1 !important;
+      background: transparent !important;
+    }
+    .z-nav-item.active {
+      color: #059669 !important;
+      font-weight: 700 !important;
+      border-bottom-color: #059669 !important;
+      background: transparent !important;
+    }
     .z-nav-badge {
-      background: #f1f5f9; color: #64748b;
-      border-radius: 10px; padding: 1px 7px;
-      font-size: 10.5px; font-weight: 700; min-width: 20px; text-align: center;
+      background: #f1f5f9 !important;
+      color: #64748b !important;
+      border-radius: 10px !important;
+      padding: 1px 7px !important;
+      font-size: 10.5px !important;
+      font-weight: 700 !important;
+      min-width: 20px !important;
+      text-align: center !important;
+      height: auto !important;
     }
-    .z-nav-item.active .z-nav-badge { background: #059669; color: #fff; }
-    #sidebar-quick-contacts { display: none; }
+    .z-nav-item.active .z-nav-badge { background: #059669 !important; color: #fff !important; }
+    #sidebar-quick-contacts { display: none !important; }
 
     /* ── DATA COL ────────────────────────────────────────────── */
     .data-col { width: 100%; min-width: 0; }
