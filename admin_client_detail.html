@@ -11,137 +11,129 @@
   <link rel="stylesheet" href="assets/css/dash.css?v=92"/>
   <style>
     /* =========================================================
-       CLIENT DETAIL — NOVA CRM ENTERPRISE STYLE v2
+       CLIENT DETAIL — NOVA CRM ENTERPRISE STYLE v3
        ========================================================= */
 
     /* ── Page / shell ───────────────────────────────────────── */
     body { background-color: #f1f5f9; }
     .main { background: transparent; padding: 0; }
 
-    /* ── HERO HEADER ─────────────────────────────────────────── */
+    /* ── HEADER (white, clean) ──────────────────────────────── */
     .cd-hero {
-      background: linear-gradient(140deg, #064e3b 0%, #047857 45%, #059669 100%);
-      position: relative; overflow: hidden;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      position: relative;
     }
-    /* Dot texture overlay */
+    /* Thin green accent line at the very top */
     .cd-hero::before {
       content: '';
-      position: absolute; inset: 0;
-      background-image: radial-gradient(rgba(255,255,255,0.10) 1.5px, transparent 1.5px);
-      background-size: 20px 20px;
-      pointer-events: none; z-index: 0;
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #059669 0%, #10b981 100%);
     }
-    /* Decorative blur glow */
-    .cd-hero::after {
-      content: '';
-      position: absolute; right: -80px; top: -80px;
-      width: 340px; height: 340px; border-radius: 50%;
-      background: rgba(16,185,129,0.18); filter: blur(55px);
-      pointer-events: none; z-index: 0;
-    }
-    .cd-hero > * { position: relative; z-index: 1; }
 
     /* Breadcrumb */
     .cd-breadcrumb {
-      padding: 14px 24px 0;
-      font-size: 12px; color: rgba(255,255,255,0.55);
+      padding: 18px 28px 0;
+      font-size: 12px; color: #94a3b8;
       display: flex; align-items: center; gap: 6px;
     }
     .cd-breadcrumb a {
-      color: rgba(255,255,255,0.7); font-weight: 500; text-decoration: none;
-      display: inline-flex; align-items: center; gap: 5px; transition: color .15s;
+      color: #64748b; font-weight: 500; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 4px; transition: color .15s;
     }
-    .cd-breadcrumb a:hover { color: #fff; }
+    .cd-breadcrumb a:hover { color: #059669; }
 
     /* Header row */
     .z-header {
-      padding: 14px 24px 0;
+      padding: 12px 28px 0;
       display: flex; align-items: center; justify-content: space-between;
       gap: 16px; flex-wrap: wrap; background: transparent; border: none; margin: 0;
     }
-    .z-header-left  { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; }
+    .z-header-left  { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
     .z-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
-    /* Avatar in hero */
+    /* Avatar */
     .z-avatar {
-      width: 58px; height: 58px; border-radius: 15px; flex-shrink: 0;
-      background: rgba(255,255,255,0.15);
-      border: 2px solid rgba(255,255,255,0.32);
+      width: 52px; height: 52px; border-radius: 13px; flex-shrink: 0;
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
       color: #fff; font-size: 18px; font-weight: 800;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.18); letter-spacing: -0.5px;
+      box-shadow: 0 4px 12px rgba(5,150,105,0.28); letter-spacing: -0.5px;
     }
     .z-title {
-      font-size: 20px; font-weight: 800; color: #fff;
-      margin: 0 0 4px; letter-spacing: -0.02em;
+      font-size: 19px; font-weight: 800; color: #0f172a;
+      margin: 0 0 3px; letter-spacing: -0.02em;
       display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     }
     .z-badge {
       font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
-      background: rgba(255,255,255,0.18); color: #fff;
-      border: 1px solid rgba(255,255,255,0.32);
       display: inline-flex; align-items: center; gap: 4px;
     }
-    .z-subtitle { font-size: 12.5px; color: rgba(255,255,255,0.7); margin: 0; }
-    .z-subtitle a { color: rgba(255,255,255,0.85); text-decoration: none; }
+    .z-subtitle { font-size: 12.5px; color: #64748b; margin: 0; }
+    .z-subtitle a { color: #059669; text-decoration: none; }
+    .z-subtitle a:hover { text-decoration: underline; }
 
-    /* Buttons in hero */
+    /* Buttons */
     .z-hero-btn {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
-      cursor: pointer; transition: all .15s;
+      padding: 7px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+      cursor: pointer; transition: all .15s; text-decoration: none; font-family: inherit;
     }
     .z-hero-btn-primary {
-      background: #fff; color: #047857; border: none;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.14);
+      background: #059669; color: #fff; border: none;
+      box-shadow: 0 1px 4px rgba(5,150,105,0.3);
     }
-    .z-hero-btn-primary:hover { background: #f0fdf4; }
+    .z-hero-btn-primary:hover { background: #047857; }
     .z-hero-btn-ghost {
-      background: rgba(255,255,255,0.13); color: rgba(255,255,255,0.9);
-      border: 1px solid rgba(255,255,255,0.24);
+      background: #fff; color: #374151;
+      border: 1px solid #d1d5db;
     }
-    .z-hero-btn-ghost:hover { background: rgba(255,255,255,0.22); }
+    .z-hero-btn-ghost:hover { border-color: #059669; color: #059669; background: #f0fdf4; }
     .z-hero-btn-danger {
-      background: rgba(239,68,68,0.18); color: #fca5a5;
-      border: 1px solid rgba(239,68,68,0.3);
+      background: #fff; color: #ef4444;
+      border: 1px solid #fca5a5;
     }
-    .z-hero-btn-danger:hover { background: rgba(239,68,68,0.28); }
+    .z-hero-btn-danger:hover { background: #fef2f2; }
 
     /* Info strip */
     .z-info-strip {
       display: flex; flex-wrap: wrap; gap: 0;
-      padding: 10px 24px 0;
+      padding: 10px 28px 0;
     }
     .z-info-pill {
       display: flex; align-items: center; gap: 5px;
-      padding: 0 14px 0 0; margin-right: 14px;
-      font-size: 12.5px; color: rgba(255,255,255,0.72);
-      border-right: 1px solid rgba(255,255,255,0.15);
+      padding: 0 16px 0 0; margin-right: 16px;
+      font-size: 12.5px; color: #475569;
+      border-right: 1px solid #e2e8f0;
     }
     .z-info-pill:last-child { border-right: none; }
-    .z-info-pill svg { color: rgba(255,255,255,0.5); flex-shrink: 0; width: 13px; height: 13px; }
+    .z-info-pill svg { color: #94a3b8; flex-shrink: 0; width: 13px; height: 13px; }
 
-    /* KPI chips strip */
+    /* KPI strip */
     .cd-kpi-strip {
-      display: flex; gap: 12px; padding: 16px 24px 0; flex-wrap: wrap;
+      display: flex; gap: 10px; padding: 14px 28px 0; flex-wrap: wrap;
     }
     .cd-kpi-item {
-      flex: 1; min-width: 130px;
-      background: rgba(255,255,255,0.11);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 12px; padding: 11px 14px;
-      display: flex; flex-direction: column; gap: 2px;
+      flex: 1; min-width: 120px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-top: 3px solid #059669;
+      border-radius: 10px; padding: 11px 14px;
+      display: flex; flex-direction: column; gap: 3px;
     }
+    .cd-kpi-item:nth-child(2) { border-top-color: #2563eb; }
+    .cd-kpi-item:nth-child(3) { border-top-color: #d97706; }
+    .cd-kpi-item:nth-child(4) { border-top-color: #7c3aed; }
     .cd-kpi-dot { display: none; }
     .cd-kpi-label {
-      font-size: 10.5px; color: rgba(255,255,255,0.6); font-weight: 500;
-      text-transform: uppercase; letter-spacing: 0.04em;
+      font-size: 10.5px; color: #94a3b8; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em;
     }
-    .cd-kpi-val { font-size: 17px; font-weight: 800; color: #fff; line-height: 1.2; }
+    .cd-kpi-val { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.2; }
 
     /* Action bar */
     .z-action-bar {
-      padding: 12px 24px 0;
+      padding: 10px 28px 0;
       display: flex; gap: 6px; flex-wrap: wrap;
       border-top: none; border-bottom: none; background: transparent;
     }
@@ -149,18 +141,19 @@
       display: inline-flex; align-items: center; gap: 5px;
       padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500;
       cursor: pointer; transition: all .15s; font-family: inherit;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.22);
-      color: rgba(255,255,255,0.88);
+      background: #fff; border: 1px solid #e2e8f0; color: #374151;
     }
-    .z-action-btn:hover { background: rgba(255,255,255,0.22); }
-    .z-action-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .z-action-btn:hover { border-color: #059669; color: #059669; background: #f0fdf4; }
+    .z-action-btn svg { width: 14px; height: 14px; flex-shrink: 0; color: #94a3b8; }
+    .z-action-btn:hover svg { color: #059669; }
     .z-action-sep { display: none; }
 
-    /* Tab bar at bottom of hero */
+    /* Tab bar */
     .z-view-toggles-container {
-      padding: 14px 24px 0;
+      padding: 10px 28px 0;
       display: flex;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 0;
     }
     .z-view-toggles {
       display: flex; gap: 0;
@@ -168,19 +161,15 @@
       border-bottom: none; margin-bottom: 0;
     }
     .z-view-btn {
-      padding: 9px 22px; font-size: 13px; font-weight: 500;
+      padding: 9px 18px; font-size: 13px; font-weight: 500;
       background: transparent; border: none;
-      border-bottom: 3px solid transparent; margin-bottom: 0;
-      color: rgba(255,255,255,0.6); cursor: pointer;
-      border-radius: 8px 8px 0 0; transition: all .15s;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      color: #64748b; cursor: pointer;
+      border-radius: 0; transition: all .15s;
       font-family: inherit;
     }
-    .z-view-btn:hover { color: #fff; background: rgba(255,255,255,0.09); }
-    .z-view-btn.active {
-      color: #fff; font-weight: 700;
-      border-bottom-color: #fff;
-      background: rgba(255,255,255,0.13);
-    }
+    .z-view-btn:hover { color: #059669; }
+    .z-view-btn.active { color: #059669; font-weight: 700; border-bottom-color: #059669; }
 
     /* ── BODY LAYOUT ────────────────────────────────────────── */
     .detail-layout {
