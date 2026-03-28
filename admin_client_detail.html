@@ -11,126 +11,106 @@
   <link rel="stylesheet" href="assets/css/dash.css?v=92"/>
   <style>
     /* =========================================================
-       CLIENT DETAIL — NOVA CRM v4 — SPLIT HEADER
+       CLIENT DETAIL — NOVA CRM — STANDARD CRM LAYOUT
        ========================================================= */
 
-    /* ── Page / shell ───────────────────────────────────────── */
-    body { background-color: #f1f5f9; }
-    .main { background: transparent; padding: 0; }
+    /* ── Page ───────────────────────────────────────────────── */
+    body { background: #eef2f7; }
+    .main { background: transparent; padding: 16px 20px 24px; }
 
-    /* ── HEADER CONTAINER ──────────────────────────────────── */
-    .cd-hero { background: transparent; }
-
-    /* ── TOP STRIP (green identity band) ──────────────────── */
-    .cd-hero-top {
-      background: linear-gradient(120deg, #059669 0%, #0d9488 100%);
-      padding: 13px 28px 18px;
-      position: relative; overflow: hidden;
-    }
-    /* Subtle dot texture */
-    .cd-hero-top::before {
-      content: '';
-      position: absolute; inset: 0;
-      background-image: radial-gradient(rgba(255,255,255,0.09) 1.5px, transparent 1.5px);
-      background-size: 22px 22px;
-      pointer-events: none;
-    }
-    .cd-hero-top > * { position: relative; z-index: 1; }
-
-    /* ── BOTTOM STRIP (white data band) ───────────────────── */
-    .cd-hero-bottom {
+    /* ── HEADER CARD ─────────────────────────────────────────── */
+    .cd-hero {
       background: #fff;
-      border-bottom: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05);
+      margin-bottom: 14px;
+      overflow: hidden;
     }
 
-    /* Breadcrumb (in top strip) */
+    /* Breadcrumb row */
     .cd-breadcrumb {
-      padding: 0 0 10px;
-      font-size: 12px; color: rgba(255,255,255,0.6);
+      padding: 13px 20px;
+      font-size: 12px; color: #94a3b8;
       display: flex; align-items: center; gap: 6px;
+      border-bottom: 1px solid #f1f5f9;
     }
     .cd-breadcrumb a {
-      color: rgba(255,255,255,0.75); font-weight: 500; text-decoration: none;
+      color: #64748b; font-weight: 500; text-decoration: none;
       display: inline-flex; align-items: center; gap: 4px; transition: color .12s;
     }
-    .cd-breadcrumb a:hover { color: #fff; }
+    .cd-breadcrumb a:hover { color: #059669; }
 
-    /* Header row (in top strip) */
+    /* Header row: avatar + name + action buttons */
     .z-header {
-      padding: 0;
+      padding: 16px 20px 0;
       display: flex; align-items: center; justify-content: space-between;
       gap: 16px; flex-wrap: wrap; background: transparent; border: none; margin: 0;
     }
-    .z-header-left  { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+    .z-header-left  { display: flex; align-items: center; gap: 13px; flex: 1; min-width: 0; }
     .z-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
-    /* Avatar (glassmorphism in green zone) */
+    /* Avatar — circle, classic CRM style */
     .z-avatar {
-      width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
-      background: rgba(255,255,255,0.18);
-      border: 2px solid rgba(255,255,255,0.35);
-      color: #fff; font-size: 18px; font-weight: 800;
+      width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      color: #fff; font-size: 16px; font-weight: 800;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.14); letter-spacing: -0.5px;
+      box-shadow: 0 2px 8px rgba(5,150,105,0.28); letter-spacing: -0.5px;
     }
     .z-title {
-      font-size: 19px; font-weight: 800; color: #fff;
+      font-size: 18px; font-weight: 800; color: #0f172a;
       margin: 0 0 3px; letter-spacing: -0.02em;
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap; line-height: 1.2;
     }
     .z-badge {
       font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
       display: inline-flex; align-items: center; gap: 4px;
-      background: rgba(255,255,255,0.2); color: #fff;
-      border: 1px solid rgba(255,255,255,0.35);
     }
-    .z-subtitle { font-size: 12.5px; color: rgba(255,255,255,0.72); margin: 0; }
-    .z-subtitle a { color: rgba(255,255,255,0.9); text-decoration: none; }
+    .z-subtitle { font-size: 12.5px; color: #64748b; margin: 0; }
+    .z-subtitle a { color: #059669; text-decoration: none; }
+    .z-subtitle a:hover { text-decoration: underline; }
 
-    /* Buttons in green zone */
+    /* Header buttons */
     .z-hero-btn {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 7px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
       cursor: pointer; transition: all .15s; text-decoration: none; font-family: inherit;
     }
     .z-hero-btn-primary {
-      background: #fff; color: #047857; border: none;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      background: #059669; color: #fff; border: none;
+      box-shadow: 0 1px 4px rgba(5,150,105,0.3);
     }
-    .z-hero-btn-primary:hover { background: #f0fdf4; }
+    .z-hero-btn-primary:hover { background: #047857; }
     .z-hero-btn-ghost {
-      background: rgba(255,255,255,0.15); color: #fff;
-      border: 1px solid rgba(255,255,255,0.3);
+      background: #fff; color: #374151; border: 1px solid #d1d5db;
     }
-    .z-hero-btn-ghost:hover { background: rgba(255,255,255,0.25); }
+    .z-hero-btn-ghost:hover { border-color: #059669; color: #059669; background: #f0fdf4; }
     .z-hero-btn-danger {
-      background: rgba(239,68,68,0.18); color: #fca5a5;
-      border: 1px solid rgba(239,68,68,0.35);
+      background: #fff; color: #ef4444; border: 1px solid #fca5a5;
     }
-    .z-hero-btn-danger:hover { background: rgba(239,68,68,0.28); }
+    .z-hero-btn-danger:hover { background: #fef2f2; }
 
-    /* Info strip (in white zone) */
+    /* Info strip */
     .z-info-strip {
       display: flex; flex-wrap: wrap; gap: 0;
-      padding: 11px 28px 0;
+      padding: 10px 20px 0;
     }
     .z-info-pill {
       display: flex; align-items: center; gap: 5px;
-      padding: 0 16px 0 0; margin-right: 16px;
+      padding: 0 14px 0 0; margin-right: 14px;
       font-size: 12.5px; color: #475569;
       border-right: 1px solid #e2e8f0;
     }
     .z-info-pill:last-child { border-right: none; }
     .z-info-pill svg { color: #94a3b8; flex-shrink: 0; width: 13px; height: 13px; }
 
-    /* KPI strip (in white zone) */
+    /* KPI strip */
     .cd-kpi-strip {
-      display: flex; gap: 10px; padding: 12px 28px 0; flex-wrap: wrap;
+      display: flex; gap: 10px; padding: 12px 20px 0; flex-wrap: wrap;
     }
     .cd-kpi-item {
-      flex: 1; min-width: 120px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      flex: 1; min-width: 110px;
+      background: #f8fafc; border: 1px solid #e8edf2;
       border-top: 3px solid #059669;
       border-radius: 10px; padding: 10px 14px;
       display: flex; flex-direction: column; gap: 2px;
@@ -140,21 +120,21 @@
     .cd-kpi-item:nth-child(4) { border-top-color: #7c3aed; }
     .cd-kpi-dot { display: none; }
     .cd-kpi-label {
-      font-size: 10.5px; color: #94a3b8; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.05em;
+      font-size: 10px; color: #94a3b8; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
     }
     .cd-kpi-val { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.2; }
 
-    /* Action bar (in white zone) */
+    /* Action bar */
     .z-action-bar {
-      padding: 10px 28px 0;
+      padding: 10px 20px 0;
       display: flex; gap: 6px; flex-wrap: wrap;
       border-top: none; border-bottom: none; background: transparent;
     }
     .z-action-btn {
       display: inline-flex; align-items: center; gap: 5px;
-      padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500;
-      cursor: pointer; transition: all .15s; font-family: inherit;
+      padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all .12s; font-family: inherit;
       background: #fff; border: 1px solid #e2e8f0; color: #374151;
     }
     .z-action-btn:hover { border-color: #059669; color: #059669; background: #f0fdf4; }
@@ -162,11 +142,12 @@
     .z-action-btn:hover svg { color: #059669; }
     .z-action-sep { display: none; }
 
-    /* Tab bar (in white zone) */
+    /* Tab bar */
     .z-view-toggles-container {
-      padding: 10px 28px 0;
+      padding: 10px 20px 0;
       display: flex;
-      border-bottom: 1px solid #e2e8f0;
+      border-top: 1px solid #f1f5f9;
+      margin-top: 12px;
     }
     .z-view-toggles {
       display: flex; gap: 0;
@@ -174,33 +155,32 @@
       border-bottom: none; margin-bottom: 0;
     }
     .z-view-btn {
-      padding: 9px 18px; font-size: 13px; font-weight: 500;
+      padding: 9px 16px; font-size: 13px; font-weight: 500;
       background: transparent; border: none;
       border-bottom: 2px solid transparent; margin-bottom: -1px;
       color: #64748b; cursor: pointer;
-      border-radius: 0; transition: all .15s;
-      font-family: inherit;
+      border-radius: 0; transition: all .12s; font-family: inherit;
     }
     .z-view-btn:hover { color: #059669; }
     .z-view-btn.active { color: #059669; font-weight: 700; border-bottom-color: #059669; }
 
-    /* ── BODY LAYOUT ────────────────────────────────────────── */
+    /* ── BODY LAYOUT ─────────────────────────────────────────── */
     .detail-layout {
-      display: flex; align-items: flex-start; gap: 0;
+      display: flex; align-items: flex-start; gap: 14px;
       min-height: calc(100vh - 320px);
     }
 
-    /* ── PROFILE COL (collapsible client sidebar) ─────────── */
+    /* ── PROFILE COL (collapsible sidebar) ───────────────────── */
     .profile-col {
-      width: 216px; flex-shrink: 0;
+      width: 210px; flex-shrink: 0;
       background: #fff;
-      border-right: 1px solid #e2e8f0;
-      position: sticky; top: 0;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
+      position: sticky; top: 16px;
       overflow: hidden;
       transition: width .22s cubic-bezier(.4,0,.2,1);
     }
-    .profile-col.collapsed { width: 0; border-right: none; }
+    .profile-col.collapsed { width: 0; box-shadow: none; }
 
     /* Toggle button */
     .cd-sidebar-toggle {
@@ -209,28 +189,26 @@
       background: #fff; border: 1px solid #e2e8f0;
       box-shadow: 0 2px 6px rgba(0,0,0,0.10);
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; z-index: 20; color: #64748b; transition: all .18s;
-      padding: 0;
+      cursor: pointer; z-index: 20; color: #64748b; transition: all .18s; padding: 0;
     }
     .cd-sidebar-toggle:hover { background: #059669; color: #fff; border-color: #059669; }
-    .cd-sidebar-toggle svg { width: 13px; height: 13px; transition: transform .22s; }
-    .profile-col.collapsed .cd-sidebar-toggle { right: -14px; }
+    .cd-sidebar-toggle svg { width: 13px; height: 13px; }
     .profile-col.collapsed .cd-sidebar-toggle svg { transform: scaleX(-1); }
 
     /* Sidebar nav */
-    .z-sidebar { padding: 16px 10px; min-width: 196px; }
+    .z-sidebar { padding: 14px 10px; min-width: 190px; }
     .z-sidebar-title {
       font-size: 10px; font-weight: 700; color: #94a3b8;
       letter-spacing: 0.09em; text-transform: uppercase;
-      padding: 0 8px; margin-bottom: 8px; white-space: nowrap;
+      padding: 0 8px; margin-bottom: 6px; white-space: nowrap;
     }
     .z-nav-list { list-style: none; padding: 0; margin: 0; }
     .z-nav-item {
       display: flex; align-items: center; gap: 8px;
-      padding: 7px 10px; border-radius: 9px;
+      padding: 7px 10px; border-radius: 8px;
       color: #475569; font-size: 12.5px; font-weight: 400;
       text-decoration: none; cursor: pointer;
-      margin-bottom: 2px; transition: all .12s; white-space: nowrap;
+      margin-bottom: 1px; transition: all .1s; white-space: nowrap;
     }
     .z-nav-item:hover { background: #f8fafc; color: #1e293b; }
     .z-nav-item.active { background: #ecfdf5; color: #059669; font-weight: 700; }
@@ -240,19 +218,17 @@
       font-size: 10.5px; font-weight: 700; min-width: 20px; text-align: center;
     }
     .z-nav-item.active .z-nav-badge { background: #059669; color: #fff; }
+    #sidebar-quick-contacts { margin-top: 16px; }
 
-    /* Sidebar quick contacts */
-    #sidebar-quick-contacts { margin-top: 20px; }
+    /* ── DATA COL ────────────────────────────────────────────── */
+    .data-col { flex: 1; min-width: 0; }
 
-    /* ── DATA COL ───────────────────────────────────────────── */
-    .data-col { flex: 1; min-width: 0; padding: 20px 24px 32px; }
-
-    /* ── CARDS ──────────────────────────────────────────────── */
+    /* ── CARDS ───────────────────────────────────────────────── */
     .z-card {
-      background: #fff; border-radius: 14px;
+      background: #fff; border-radius: 12px;
       border: 1px solid #e8edf2;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
-      overflow: hidden; margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.03);
+      overflow: hidden; margin-bottom: 14px;
     }
     .z-card-header {
       padding: 14px 20px;
@@ -267,34 +243,26 @@
       background: transparent; border: 1px solid #3b82f6; color: #3b82f6;
       font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 600;
     }
-
-    /* Details grid */
     .z-details-grid {
-      display: grid; grid-template-columns: minmax(180px, max-content) 1fr;
-      gap: 12px 24px; align-items: center;
+      display: grid; grid-template-columns: minmax(160px, max-content) 1fr;
+      gap: 10px 24px; align-items: center;
     }
     .zf-label { font-size: 12.5px; font-weight: 600; color: #64748b; }
     .zf-value { font-size: 13px; color: #0f172a; }
-
-    /* Notes */
-    .z-note-compose { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 20px; background: #fff; }
+    .z-note-compose { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 16px; background: #fff; }
     .z-note-compose textarea { width: 100%; border: none; padding: 12px; font-size: 13px; min-height: 80px; resize: none; background: transparent; font-family: inherit; outline: none; }
     .z-note-actions { border-top: 1px solid #f1f5f9; padding: 8px 12px; display: flex; justify-content: flex-end; background: #f8fafc; }
-
-    /* List rows (.cl-list populated by JS) */
     .cl-list { display: flex; flex-direction: column; }
-
-    /* Sections in form */
     .zf-section + .zf-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
-    .zf-section-title { font-size: 12px; font-weight: 700; color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 4px 10px; display: inline-flex; margin-bottom: 14px; }
+    .zf-section-title { font-size: 12px; font-weight: 700; color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 4px 10px; display: inline-flex; margin-bottom: 12px; }
     .zf-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
     @media (max-width: 700px) { .zf-cols { grid-template-columns: 1fr; } }
-    .zf-row { display: grid; grid-template-columns: 140px 1fr; gap: 8px 16px; padding: 8px 0; border-bottom: 1px solid #f8fafc; align-items: start; }
+    .zf-row { display: grid; grid-template-columns: 130px 1fr; gap: 8px 16px; padding: 8px 0; border-bottom: 1px solid #f8fafc; align-items: start; }
 
     /* Responsive */
     @media (max-width: 900px) {
-      .detail-layout { flex-direction: column; }
-      .profile-col { width: 100% !important; position: static; border-right: none; border-bottom: 1px solid #e2e8f0; }
+      .detail-layout { flex-direction: column; gap: 12px; }
+      .profile-col { width: 100% !important; position: static; border-radius: 12px; }
       .cd-sidebar-toggle { display: none; }
     }
   </style>
@@ -390,9 +358,6 @@
   <!-- ===== HERO HEADER ===== -->
   <div class="cd-hero">
 
-  <!-- ── TOP GREEN IDENTITY STRIP ── -->
-  <div class="cd-hero-top">
-
   <!-- Breadcrumb -->
   <div class="cd-breadcrumb">
     <a href="admin_clients.html">
@@ -400,7 +365,7 @@
       Clienti
     </a>
     <svg style="width:10px;height:10px;opacity:.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-    <span id="breadcrumb-name" style="font-weight:600;">Caricamento...</span>
+    <span id="breadcrumb-name" style="color:#374151;font-weight:600;">Caricamento...</span>
   </div>
 
   <div class="z-header">
@@ -427,10 +392,6 @@
     </div>
   </div>
 
-  </div><!-- /cd-hero-top -->
-
-  <!-- ── BOTTOM WHITE DATA STRIP ── -->
-  <div class="cd-hero-bottom">
 
   <!-- Info strip: quick contact facts -->
   <div class="z-info-strip" id="cd-info-strip"></div>
@@ -488,8 +449,6 @@
       <button class="z-view-btn" id="btn-view-time" onclick="switchMainView('timeline')">Sequenza temporale</button>
     </div>
   </div>
-
-  </div><!-- /cd-hero-bottom -->
 
   </div><!-- /cd-hero -->
 
