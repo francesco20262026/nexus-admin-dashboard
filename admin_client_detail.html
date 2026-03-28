@@ -128,23 +128,6 @@
     }
     .cd-kpi-val { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.2; }
 
-    /* Action bar */
-    .z-action-bar {
-      padding: 10px 20px 0;
-      display: flex; gap: 6px; flex-wrap: wrap;
-      border-top: none; border-bottom: none; background: transparent;
-    }
-    .z-action-btn {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 500;
-      cursor: pointer; transition: all .12s; font-family: inherit;
-      background: #fff; border: 1px solid #e2e8f0; color: #374151;
-    }
-    .z-action-btn:hover { border-color: #059669; color: #059669; background: #f0fdf4; }
-    .z-action-btn svg { width: 14px; height: 14px; flex-shrink: 0; color: #94a3b8; }
-    .z-action-btn:hover svg { color: #059669; }
-    .z-action-sep { display: none; }
-
     /* ── TAB NAV BAR — fixed sotto il topbar ────────────────── */
     /* !important per vincere i conflitti con dash.css legacy */
     .profile-col {
@@ -542,27 +525,6 @@
     </div>
   </div>
 
-  <!-- Action bar -->
-  <div class="z-action-bar">
-    <button class="z-action-btn" onclick="switchMainView('timeline');setTimeout(()=>{document.getElementById('al-quick-title')?.focus();},300)">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>
-      Nota rapida
-    </button>
-    <button class="z-action-btn" onclick="switchMainView('timeline')">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6z"/></svg>
-      Chiamata
-    </button>
-    <button class="z-action-btn" onclick="switchMainView('timeline')">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
-      Riunione
-    </button>
-    <button class="z-action-btn" onclick="switchMainView('timeline')">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-      Task
-    </button>
-    <div class="z-action-sep"></div>
-
-  </div>
 
   </div><!-- /cd-hero -->
 
