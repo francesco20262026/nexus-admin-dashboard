@@ -130,9 +130,7 @@
     const av = $('pc-avatar');
     if (av) {
       av.textContent = _initials(c.company_name || c.name);
-      const colors = ['#4f46e5','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
-      const idx = ((c.company_name || c.name || 'X').charCodeAt(0)) % colors.length;
-      av.style.background = `linear-gradient(135deg, ${colors[idx]} 0%, ${colors[(idx+2)%colors.length]} 100%)`;
+      av.style.background = 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
     }
 
     // Info strip: email, phone, city, VAT, created

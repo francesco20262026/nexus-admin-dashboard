@@ -29,7 +29,7 @@
 
     /* Breadcrumb row */
     .cd-breadcrumb {
-      padding: 13px 20px;
+      padding: 9px 20px;
       font-size: 12px; color: #94a3b8;
       display: flex; align-items: center; gap: 6px;
       border-bottom: 1px solid #f1f5f9;
@@ -123,8 +123,8 @@
     .cd-kpi-item:nth-child(4) { border-top-color: #7c3aed; }
     .cd-kpi-dot { display: none; }
     .cd-kpi-label {
-      font-size: 10px; color: #94a3b8; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.06em;
+      font-size: 11px; color: #94a3b8; font-weight: 500;
+      text-transform: none; letter-spacing: 0;
     }
     .cd-kpi-val { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.2; }
 
@@ -173,14 +173,16 @@
       min-height: calc(100vh - 320px);
     }
 
-    /* ── PROFILE COL (collapsible sidebar) ───────────────────── */
+    /* ── PROFILE COL (collapsible sidebar — sticky like Zoho) ── */
     .profile-col {
       width: 210px; flex-shrink: 0;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
       position: sticky; top: 16px;
-      overflow: hidden;
+      align-self: flex-start;
+      max-height: calc(100vh - 90px);
+      overflow-y: auto; overflow-x: hidden;
       transition: width .22s cubic-bezier(.4,0,.2,1);
     }
     .profile-col.collapsed { width: 0; box-shadow: none; }
