@@ -24,5 +24,41 @@ backend/.env
 .DS_Store
 Thumbs.db
 
-# Logs
+# Logs and debug artifacts
 *.log
+*.txt
+backend/logs/
+backend/debug_log.txt
+backend/err.txt
+backend/out.txt
+_backend_err.txt
+backend-log.txt
+dash_dump.txt
+proforma_output.txt
+pdf_text.txt
+
+# Local SQLite DB dumps
+backend/*.db
+
+# Large media / example files
+Esempi/
+*.mov
+*.MOV
+*.mp4
+
+# Temporary / generated scripts
+fix*.py
+patch*.py
+generate_*.js
+bump_versions.py
+sync_sidebar.py
+test*.py
+test*.html
+tmp_*.html
+*_utf8.html
+error_traceback.html
+reset-session.html
+old_*.html
+
+# Replit internal
+.pythonlibs/
