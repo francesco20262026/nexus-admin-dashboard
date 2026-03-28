@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preload" as="image" href="/assets/img/nova-crm-logo-sidebar.svg">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/css/dash.css?v=91"/>
+  <link rel="stylesheet" href="assets/css/dash.css?v=92"/>
   <style>
     /* =========================================================
        CLIENT DETAIL — ZOHO CRM STYLE
@@ -42,7 +42,7 @@
       color: #64748b; font-weight: 600; text-decoration: none;
       display: inline-flex; align-items: center; gap: 4px; transition: color .15s;
     }
-    .cd-breadcrumb a:hover { color: #4f46e5; }
+    .cd-breadcrumb a:hover { color: #059669; }
 
     /* ── Header row ─────────────────────────────────────── */
     .z-header {
@@ -54,10 +54,10 @@
     .z-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .z-avatar {
       width: 54px; height: 54px; border-radius: 50%;
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
       color: #fff; font-size: 18px; font-weight: 800; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 14px rgba(79,70,229,0.35); letter-spacing: -0.5px;
+      box-shadow: 0 4px 14px rgba(5,150,105,0.35); letter-spacing: -0.5px;
     }
     .z-title {
       font-size: 20px; font-weight: 800; color: #0f172a;
@@ -65,7 +65,7 @@
       gap: 8px; flex-wrap: wrap; line-height: 1.25;
     }
     .z-subtitle { font-size: 12.5px; color: #64748b; margin: 0; }
-    .z-subtitle a { color: #4f46e5; text-decoration: none; font-weight: 500; }
+    .z-subtitle a { color: #059669; text-decoration: none; font-weight: 500; }
     .z-subtitle a:hover { text-decoration: underline; }
     .z-badge {
       font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
@@ -84,7 +84,7 @@
     }
     .z-info-pill:not(:last-child) { border-right: 1px solid #e2e8f0; }
     .z-info-pill svg { color: #94a3b8; flex-shrink: 0; width: 13px; height: 13px; }
-    .z-info-pill a { color: #4f46e5; text-decoration: none; font-weight: 500; }
+    .z-info-pill a { color: #059669; text-decoration: none; font-weight: 500; }
     .z-info-pill a:hover { text-decoration: underline; }
 
     /* ── KPI strip ──────────────────────────────────────── */
@@ -118,7 +118,7 @@
       white-space: nowrap; flex-shrink: 0; font-family: inherit; text-decoration: none;
       line-height: 1;
     }
-    .z-action-btn:hover { background: #eef0fb; border-color: #c7d2fe; color: #4f46e5; }
+    .z-action-btn:hover { background: #ecfdf5; border-color: #a7f3d0; color: #059669; }
     .z-action-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
     .z-action-sep { width: 1px; height: 20px; background: #e2e8f0; margin: 0 4px; flex-shrink: 0; }
 
@@ -134,10 +134,10 @@
       padding: 8px 10px; font-size: 13px; color: #64748b; font-weight: 500;
       text-decoration: none; transition: all .15s; border-radius: 7px;
     }
-    .z-nav-item:hover { background: #eef0fb; color: #4f46e5; }
-    .z-nav-item.active { background: #eff6ff; color: #4f46e5; font-weight: 600; }
+    .z-nav-item:hover { background: #ecfdf5; color: #059669; }
+    .z-nav-item.active { background: #ecfdf5; color: #059669; font-weight: 600; }
     .z-nav-badge { background: #f1f5f9; color: #94a3b8; font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight: 600; }
-    .z-nav-item.active .z-nav-badge { background: #e0e7ff; color: #4f46e5; }
+    .z-nav-item.active .z-nav-badge { background: #d1fae5; color: #065f46; }
     #sidebar-quick-contacts { margin-top: 20px; }
 
     /* ── View tab pills (Zoho-style) ──────────────────────── */
@@ -147,7 +147,7 @@
     }
     .z-view-toggles {
       display: inline-flex; gap: 2px;
-      background: #ece9fb; border-radius: 8px; padding: 3px;
+      background: #d1fae5; border-radius: 8px; padding: 3px;
     }
     .z-view-btn {
       padding: 7px 18px; font-size: 13px; font-weight: 600;
@@ -155,10 +155,10 @@
       border-radius: 6px; cursor: pointer; transition: all .15s;
       border-bottom: none; margin-bottom: 0; font-family: inherit;
     }
-    .z-view-btn:hover { color: #4f46e5; background: rgba(255,255,255,0.7); }
+    .z-view-btn:hover { color: #059669; background: rgba(255,255,255,0.7); }
     .z-view-btn.active {
-      color: #fff; background: #4f46e5;
-      box-shadow: 0 2px 8px rgba(79,70,229,0.30);
+      color: #fff; background: #059669;
+      box-shadow: 0 2px 8px rgba(5,150,105,0.30);
     }
 
     /* ── Cards ──────────────────────────────────────────── */
@@ -199,10 +199,10 @@
     .zf-section-title { font-size: 11px; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.7px; }
     .zf-edit-link {
       display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
-      color: #4f46e5; background: #eff6ff; border: 1px solid #c7d2fe;
+      color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0;
       border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all .15s; font-family: inherit;
     }
-    .zf-edit-link:hover { background: #e0e7ff; border-color: #a5b4fc; }
+    .zf-edit-link:hover { background: #d1fae5; border-color: #6ee7b7; }
     .zf-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
     @media (max-width: 700px) { .zf-cols { grid-template-columns: 1fr; } }
     .zf-row { display: grid; grid-template-columns: 140px 1fr; gap: 8px 16px; padding: 8px 0; border-bottom: 1px solid #f8fafc; align-items: start; }
@@ -328,7 +328,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
         Elimina
       </button>
-      <button class="btn btn-primary" id="cd-btn-edit" style="background:#4f46e5;border-color:#4f46e5;">
+      <button class="btn btn-primary" id="cd-btn-edit">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
         Modifica
       </button>
