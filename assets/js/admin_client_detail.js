@@ -257,7 +257,10 @@
     const sec = (title) => `<div class="zf-section-hd" style="margin-top:20px;margin-bottom:8px;padding-top:16px;border-top:1px solid #f1f5f9;"><div class="zf-section-title">${title}</div></div>`;
 
     grid.innerHTML = `
-      <div class="zf-section-hd" style="margin-bottom:12px;"><div class="zf-section-title">Modifica anagrafica</div></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-400);">Modifica dati</span>
+        <button class="btn btn-ghost btn-sm" id="anag-cancel-btn-top" type="button">Annulla</button>
+      </div>
       <div class="form-grid" style="gap:14px;">
         <div class="form-group form-grid--full">
           <label class="form-label">Stato lifecycle</label>
@@ -337,7 +340,9 @@
         <button class="btn btn-ghost" id="anag-cancel-btn">Annulla</button>
       </div>`;
 
-    $('anag-cancel-btn').onclick = () => { _editingAnag = false; renderAnagrafica(); };
+    const _cancelAnag = () => { _editingAnag = false; renderAnagrafica(); };
+    $('anag-cancel-btn').onclick     = _cancelAnag;
+    $('anag-cancel-btn-top').onclick = _cancelAnag;
     $('anag-save-btn').onclick   = async () => {
       const name = $('anag-name')?.value?.trim();
       if (!name) { UI.toast('Nome obbligatorio', 'warning'); return; }
