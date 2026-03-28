@@ -39,6 +39,9 @@
       display: inline-flex; align-items: center; gap: 4px; transition: color .12s;
     }
     .cd-breadcrumb a:hover { color: #059669; }
+    /* Hide client name repetition — name already in header title */
+    .cd-breadcrumb > svg,
+    #breadcrumb-name { display: none; }
 
     /* Header row: avatar + name + action buttons */
     .z-header {
