@@ -2,298 +2,420 @@ import { useState } from "react";
 import {
   Building2, Mail, Phone, Globe, MapPin, Star, MoreHorizontal,
   FileText, Receipt, Package, Users, StickyNote, Activity,
-  FolderOpen, FilePlus, Send, ChevronRight, TrendingUp,
-  Calendar, Clock, CheckCircle, AlertCircle, Edit3
+  FolderOpen, FilePlus, ChevronRight, TrendingUp, AlertCircle,
+  Plus, Edit3, ArrowUpRight, Clock, ChevronDown, Send, Shield
 } from "lucide-react";
 
-const BRAND = "#059669";
+const G = "#059669";
+const G_D = "#047857";
+const G_DD = "#064e3b";
 
-function Avatar({ name, size = 52 }: { name: string; size?: number }) {
-  const initials = name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+/* ── helpers ─────────────────────────────────────────────── */
+function Badge({ s }: { s: string }) {
+  const m: Record<string, [string, string, string]> = {
+    active:  ["#dcfce7", "#166534", "Attivo"],
+    paused:  ["#fef9c3", "#854d0e", "In pausa"],
+    scaduta: ["#fee2e2", "#991b1b", "Scaduta"],
+    pagata:  ["#dcfce7", "#166534", "Pagata"],
+    pending: ["#f0f9ff", "#0369a1", "In attesa"],
+  };
+  const [bg, col, label] = m[s] || ["#f1f5f9", "#475569", s];
   return (
-    <div style={{
-      width: size, height: size, borderRadius: 14,
-      background: `linear-gradient(135deg, ${BRAND} 0%, #10b981 100%)`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      color: "#fff", fontWeight: 700, fontSize: size * 0.33,
-      flexShrink: 0, boxShadow: "0 2px 8px rgba(5,150,105,.28)"
-    }}>{initials}</div>
+    <span style={{
+      background: bg, color: col, padding: "2px 9px",
+      borderRadius: 20, fontSize: 10.5, fontWeight: 700, letterSpacing: "0.01em"
+    }}>{label}</span>
   );
 }
 
-const NAV_ITEMS = [
-  { id: "panoramica", label: "Panoramica", icon: Building2 },
-  { id: "contatti", label: "Contatti", icon: Users, count: 3 },
-  { id: "servizi", label: "Servizi", icon: Package, count: 5 },
-  { id: "contratti", label: "Contratti", icon: FileText, count: 2 },
-  { id: "preventivi", label: "Preventivi", icon: FilePlus, count: 4 },
-  { id: "fatture", label: "Fatture", icon: Receipt, count: 12 },
-  { id: "documenti", label: "Documenti", icon: FolderOpen, count: 7 },
-  { id: "note", label: "Note", icon: StickyNote, count: 2 },
-  { id: "attivita", label: "Attività", icon: Activity },
-];
-
-const STATS = [
-  { label: "Fatturato YTD", value: "€ 24.800", delta: "+12%", positive: true },
-  { label: "Contratti attivi", value: "2", delta: "scade a Giu", positive: null },
-  { label: "Fatture aperte", value: "3", delta: "€ 4.200", positive: false },
-  { label: "Ultimo contatto", value: "5 gg fa", delta: "Marco R.", positive: null },
+const NAV = [
+  { id: "panoramica", label: "Panoramica",        icon: Building2 },
+  { id: "contatti",   label: "Contatti",           icon: Users,      n: 3  },
+  { id: "servizi",    label: "Servizi",             icon: Package,    n: 5  },
+  { id: "contratti",  label: "Contratti",           icon: Shield,     n: 2  },
+  { id: "preventivi", label: "Preventivi",          icon: FilePlus,   n: 4  },
+  { id: "fatture",    label: "Fatture",             icon: Receipt,    n: 12 },
+  { id: "documenti",  label: "Documenti",           icon: FolderOpen, n: 7  },
+  { id: "note",       label: "Note",                icon: StickyNote, n: 2  },
+  { id: "attivita",   label: "Attività",            icon: Activity        },
 ];
 
 const SERVICES = [
-  { name: "SEO Avanzato", plan: "Premium", price: "€ 890/mese", status: "active" },
-  { name: "Google Ads", plan: "Performance", price: "€ 1.200/mese", status: "active" },
-  { name: "Social Media", plan: "Base", price: "€ 450/mese", status: "paused" },
-  { name: "Email Marketing", plan: "Growth", price: "€ 320/mese", status: "active" },
-  { name: "Copywriting", plan: "On demand", price: "€ 80/ora", status: "active" },
+  { name: "SEO Avanzato",    plan: "Premium",      price: "€ 890",  freq: "/ mese", s: "active" },
+  { name: "Google Ads",      plan: "Performance",  price: "€ 1.200", freq: "/ mese", s: "active" },
+  { name: "Social Media",    plan: "Base",         price: "€ 450",  freq: "/ mese", s: "paused" },
+  { name: "Email Marketing", plan: "Growth",       price: "€ 320",  freq: "/ mese", s: "active" },
+  { name: "Copywriting",     plan: "On demand",    price: "€ 80",   freq: "/ ora",  s: "active" },
 ];
 
 const INVOICES = [
-  { num: "FAT-2026-041", date: "01 Apr 2026", amount: "€ 2.560", status: "scaduta" },
-  { num: "FAT-2026-038", date: "15 Mar 2026", amount: "€ 2.860", status: "pagata" },
-  { num: "FAT-2026-032", date: "01 Mar 2026", amount: "€ 1.340", status: "pagata" },
+  { num: "FAT-2026-041", date: "01 Apr 2026", amount: "€ 2.560", s: "scaduta" },
+  { num: "FAT-2026-038", date: "15 Mar 2026", amount: "€ 2.860", s: "pagata"  },
+  { num: "FAT-2026-032", date: "01 Mar 2026", amount: "€ 1.340", s: "pagata"  },
+  { num: "FAT-2026-028", date: "15 Feb 2026", amount: "€ 1.450", s: "pending" },
 ];
 
-function StatusBadge({ status }: { status: string }) {
-  const cfg: Record<string, { bg: string; color: string; label: string }> = {
-    active: { bg: "#dcfce7", color: "#166534", label: "Attivo" },
-    paused: { bg: "#fef3c7", color: "#92400e", label: "In pausa" },
-    scaduta: { bg: "#fee2e2", color: "#991b1b", label: "Scaduta" },
-    pagata: { bg: "#dcfce7", color: "#166534", label: "Pagata" },
-  };
-  const s = cfg[status] || { bg: "#f1f5f9", color: "#475569", label: status };
+const KPI = [
+  { label: "Fatturato YTD",    value: "€ 24.800", sub: "+12% anno prec.", icon: TrendingUp  },
+  { label: "Contratti attivi", value: "2 attivi",  sub: "scade Giu 2026",  icon: Shield       },
+  { label: "Fatture aperte",   value: "€ 4.200",  sub: "3 in sospeso",    icon: AlertCircle  },
+  { label: "Prossimo rinnovo", value: "47 giorni", sub: "SEO Avanzato",    icon: Clock        },
+];
+
+/* ── DotPattern — subtle background texture ───────────────── */
+function DotPattern() {
   return (
-    <span style={{
-      background: s.bg, color: s.color,
-      padding: "2px 9px", borderRadius: 20, fontSize: 11, fontWeight: 600
-    }}>{s.label}</span>
+    <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.07 }}
+         xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1.5" fill="white"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#dots)"/>
+    </svg>
   );
 }
 
+/* ── Main ─────────────────────────────────────────────────── */
 export function VariantA() {
   const [active, setActive] = useState("panoramica");
+  const [tab, setTab]       = useState(0);
 
   return (
-    <div style={{ fontFamily: "Inter, sans-serif", background: "#f1f5f9", minHeight: "100vh", fontSize: 13 }}>
+    <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", background: "#f1f5f9", minHeight: "100vh", fontSize: 13 }}>
 
-      {/* TOP APP BAR */}
+      {/* ── TOP BREADCRUMB BAR ──────────────────────────── */}
       <div style={{
         background: "#fff", borderBottom: "1px solid #e2e8f0",
-        padding: "0 24px", height: 52, display: "flex", alignItems: "center",
-        justifyContent: "space-between", position: "sticky", top: 0, zIndex: 30
+        padding: "0 24px", height: 46,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        position: "sticky", top: 0, zIndex: 40
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#64748b", fontSize: 12.5 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#64748b", fontSize: 12 }}>
           <span style={{ color: "#94a3b8" }}>CRM</span>
-          <ChevronRight size={13} style={{ color: "#cbd5e1" }} />
+          <ChevronRight size={12} color="#cbd5e1"/>
           <span style={{ color: "#94a3b8" }}>Clienti</span>
-          <ChevronRight size={13} style={{ color: "#cbd5e1" }} />
-          <span style={{ color: "#0f172a", fontWeight: 600 }}>Rossi & Associati S.r.l.</span>
+          <ChevronRight size={12} color="#cbd5e1"/>
+          <span style={{ color: "#1e293b", fontWeight: 600 }}>Rossi &amp; Associati S.r.l.</span>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {[
-            { label: "Nuovo preventivo", primary: true },
-            { label: "Nuova fattura" },
-            { label: "Modifica", icon: true },
-          ].map((btn, i) => (
-            <button key={i} style={{
-              padding: "0 14px", height: 30, borderRadius: 7, border: "none",
-              background: btn.primary ? BRAND : "#f1f5f9",
-              color: btn.primary ? "#fff" : "#374151",
-              fontWeight: 600, fontSize: 12, cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 5
-            }}>
-              {btn.icon && <Edit3 size={12} />}
-              {btn.label}
-            </button>
-          ))}
+        <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
           <button style={{
-            width: 30, height: 30, borderRadius: 7, border: "none",
-            background: "#f1f5f9", color: "#64748b", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center"
+            display: "flex", alignItems: "center", gap: 5,
+            padding: "0 14px", height: 30, borderRadius: 7, border: "none",
+            background: G, color: "#fff", fontWeight: 600, fontSize: 12, cursor: "pointer",
+            boxShadow: `0 1px 4px ${G}55`
           }}>
-            <MoreHorizontal size={15} />
+            <Plus size={12}/> Preventivo
+          </button>
+          <button style={{
+            padding: "0 12px", height: 30, borderRadius: 7,
+            border: "1px solid #e2e8f0", background: "#fff",
+            color: "#374151", fontWeight: 500, fontSize: 12, cursor: "pointer"
+          }}>Nuova fattura</button>
+          <button style={{
+            width: 30, height: 30, borderRadius: 7, border: "1px solid #e2e8f0",
+            background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
+          }}>
+            <MoreHorizontal size={14} color="#64748b"/>
           </button>
         </div>
       </div>
 
-      {/* GREEN HEADER BAND */}
+      {/* ── GREEN HERO HEADER ───────────────────────────── */}
       <div style={{
-        background: `linear-gradient(135deg, #047857 0%, ${BRAND} 60%, #10b981 100%)`,
-        padding: "20px 24px 0", position: "relative"
+        background: `linear-gradient(140deg, ${G_DD} 0%, ${G_D} 45%, ${G} 100%)`,
+        position: "relative", overflow: "hidden"
       }}>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 16, paddingBottom: 20 }}>
-          <div style={{
-            background: "rgba(255,255,255,0.15)", borderRadius: 16,
-            width: 60, height: 60, display: "flex", alignItems: "center",
-            justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: 22,
-            border: "2px solid rgba(255,255,255,0.35)", flexShrink: 0
-          }}>RA</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-              <h1 style={{ margin: 0, color: "#fff", fontSize: 20, fontWeight: 700 }}>
-                Rossi &amp; Associati S.r.l.
-              </h1>
-              <span style={{
-                background: "rgba(255,255,255,0.2)", color: "#fff",
-                padding: "2px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600,
-                border: "1px solid rgba(255,255,255,0.35)"
-              }}>Cliente attivo</span>
-              <Star size={14} style={{ color: "rgba(255,255,255,0.7)", cursor: "pointer" }} />
-            </div>
-            <div style={{ display: "flex", gap: 20, color: "rgba(255,255,255,0.82)", fontSize: 12.5 }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <Globe size={12} />www.rossiassociati.it
-              </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <Mail size={12} />info@rossiassociati.it
-              </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <Phone size={12} />+39 02 1234567
-              </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <MapPin size={12} />Milano (MI)
-              </span>
-            </div>
-          </div>
-          {/* KPI chips in header */}
-          <div style={{ display: "flex", gap: 12 }}>
-            {STATS.map((s, i) => (
-              <div key={i} style={{
-                background: "rgba(255,255,255,0.14)", borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.25)",
-                padding: "8px 14px", textAlign: "center", minWidth: 90
-              }}>
-                <div style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>{s.value}</div>
-                <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 10.5, marginTop: 1 }}>{s.label}</div>
+        <DotPattern/>
+
+        {/* Decorative circle blur right */}
+        <div style={{
+          position: "absolute", right: -60, top: -60, width: 280, height: 280,
+          borderRadius: "50%", background: "rgba(16,185,129,0.18)", filter: "blur(40px)", pointerEvents: "none"
+        }}/>
+
+        <div style={{ position: "relative", padding: "22px 24px 0" }}>
+
+          {/* ── Client info row ── */}
+          <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 20 }}>
+
+            {/* Avatar */}
+            <div style={{
+              width: 62, height: 62, borderRadius: 16,
+              background: "rgba(255,255,255,0.15)",
+              border: "2px solid rgba(255,255,255,0.3)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontWeight: 800, fontSize: 20, flexShrink: 0,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.15)"
+            }}>RA</div>
+
+            {/* Name + meta */}
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                <h1 style={{ margin: 0, color: "#fff", fontSize: 21, fontWeight: 800, letterSpacing: "-0.02em" }}>
+                  Rossi &amp; Associati S.r.l.
+                </h1>
+                <span style={{
+                  background: "rgba(255,255,255,0.18)", color: "#fff",
+                  padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600,
+                  border: "1px solid rgba(255,255,255,0.3)", letterSpacing: "0.02em"
+                }}>● Attivo</span>
+                <Star size={14} color="rgba(255,255,255,0.55)" style={{ cursor: "pointer" }}/>
               </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 16, color: "rgba(255,255,255,0.72)", fontSize: 12.5 }}>
+                {[
+                  [Globe,  "www.rossiassociati.it"],
+                  [Mail,   "info@rossiassociati.it"],
+                  [Phone,  "+39 02 1234567"],
+                  [MapPin, "Milano, MI"],
+                ].map(([Icon, val], i) => (
+                  <span key={i} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    {/* @ts-ignore */}
+                    <Icon size={12} style={{ opacity: 0.8 }}/>{val}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Edit button */}
+            <button style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.25)",
+              background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.9)",
+              fontSize: 12, fontWeight: 500, cursor: "pointer", backdropFilter: "blur(4px)"
+            }}>
+              <Edit3 size={12}/> Modifica
+            </button>
+          </div>
+
+          {/* ── KPI chips row ── */}
+          <div style={{ display: "flex", gap: 12, marginBottom: 22 }}>
+            {KPI.map((k, i) => {
+              const Icon = k.icon;
+              return (
+                <div key={i} style={{
+                  flex: 1, background: "rgba(255,255,255,0.11)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: 12, padding: "12px 14px",
+                  backdropFilter: "blur(8px)"
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
+                    <div style={{
+                      width: 26, height: 26, borderRadius: 7,
+                      background: "rgba(255,255,255,0.15)",
+                      display: "flex", alignItems: "center", justifyContent: "center"
+                    }}>
+                      <Icon size={13} color="rgba(255,255,255,0.9)"/>
+                    </div>
+                    <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.65)", fontWeight: 500 }}>{k.label}</span>
+                  </div>
+                  <div style={{ color: "#fff", fontWeight: 800, fontSize: 17, letterSpacing: "-0.01em" }}>{k.value}</div>
+                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 10.5, marginTop: 2 }}>{k.sub}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Tab strip — floated on the green band ── */}
+          <div style={{ display: "flex", gap: 0 }}>
+            {["Panoramica", "Sequenza temporale"].map((label, i) => (
+              <button key={i} onClick={() => setTab(i)} style={{
+                padding: "9px 22px", background: "transparent", border: "none",
+                borderBottom: `3px solid ${tab === i ? "#fff" : "transparent"}`,
+                color: tab === i ? "#fff" : "rgba(255,255,255,0.55)",
+                fontWeight: tab === i ? 700 : 500, fontSize: 13, cursor: "pointer",
+                borderRadius: "8px 8px 0 0",
+                background: tab === i ? "rgba(255,255,255,0.1)" : "transparent",
+                transition: "all .15s"
+              }}>{label}</button>
             ))}
           </div>
         </div>
-
-        {/* TAB BAR — sits on the green band */}
-        <div style={{ display: "flex", gap: 0 }}>
-          {["Panoramica", "Sequenza temporale"].map((tab, i) => (
-            <div key={i} style={{
-              padding: "9px 22px",
-              borderBottom: i === 0 ? "3px solid #fff" : "3px solid transparent",
-              color: i === 0 ? "#fff" : "rgba(255,255,255,0.65)",
-              fontWeight: i === 0 ? 700 : 500, fontSize: 13, cursor: "pointer",
-              borderRadius: "8px 8px 0 0",
-              background: i === 0 ? "rgba(255,255,255,0.12)" : "transparent"
-            }}>{tab}</div>
-          ))}
-        </div>
       </div>
 
-      {/* BODY */}
-      <div style={{ display: "flex", gap: 0, padding: "0" }}>
+      {/* ── BODY ─────────────────────────────────────────── */}
+      <div style={{ display: "flex" }}>
 
-        {/* LEFT SIDEBAR */}
+        {/* ── SIDEBAR ────────────────────────────────────── */}
         <div style={{
-          width: 210, flexShrink: 0, padding: "16px 12px",
-          background: "#fff", borderRight: "1px solid #e2e8f0",
-          minHeight: "calc(100vh - 160px)"
+          width: 216, flexShrink: 0,
+          background: "#fff",
+          borderRight: "1px solid #e2e8f0",
+          padding: "16px 10px",
+          minHeight: "calc(100vh - 230px)",
+          boxShadow: "2px 0 8px rgba(0,0,0,0.04)"
         }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase", padding: "0 6px 8px" }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.09em", textTransform: "uppercase", padding: "0 8px", marginBottom: 8 }}>
             Sezioni
-          </div>
-          {NAV_ITEMS.map(item => {
+          </p>
+          {NAV.map(item => {
             const Icon = item.icon;
-            const isActive = active === item.id;
+            const on = active === item.id;
             return (
               <button key={item.id} onClick={() => setActive(item.id)} style={{
-                display: "flex", alignItems: "center", gap: 8,
-                width: "100%", padding: "7px 10px", borderRadius: 8, border: "none",
-                background: isActive ? "#ecfdf5" : "transparent",
-                color: isActive ? BRAND : "#475569",
-                fontWeight: isActive ? 700 : 500, cursor: "pointer",
-                fontSize: 13, marginBottom: 2, textAlign: "left", transition: "all .1s"
+                display: "flex", alignItems: "center", gap: 9,
+                width: "100%", padding: "7px 10px", borderRadius: 9,
+                border: "none", marginBottom: 2, cursor: "pointer", textAlign: "left",
+                background: on ? "#ecfdf5" : "transparent",
+                color:      on ? G      : "#475569",
+                fontWeight: on ? 700    : 400,
+                fontSize: 12.5, transition: "all .12s"
               }}>
-                <Icon size={14} style={{ color: isActive ? BRAND : "#94a3b8", flexShrink: 0 }} />
+                <Icon size={14} color={on ? G : "#94a3b8"} style={{ flexShrink: 0 }}/>
                 <span style={{ flex: 1 }}>{item.label}</span>
-                {item.count && (
+                {item.n && (
                   <span style={{
-                    background: isActive ? BRAND : "#e2e8f0",
-                    color: isActive ? "#fff" : "#64748b",
-                    borderRadius: 10, padding: "1px 7px", fontSize: 11, fontWeight: 600
-                  }}>{item.count}</span>
+                    background: on ? G : "#f1f5f9",
+                    color: on ? "#fff" : "#64748b",
+                    borderRadius: 10, padding: "1px 7px", fontSize: 10.5, fontWeight: 700
+                  }}>{item.n}</span>
                 )}
               </button>
             );
           })}
 
-          <div style={{ borderTop: "1px solid #f1f5f9", margin: "12px 0" }} />
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase", padding: "0 6px 8px" }}>
+          {/* Divider + Quick info */}
+          <div style={{ height: 1, background: "#f1f5f9", margin: "14px 0" }}/>
+          <p style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.09em", textTransform: "uppercase", padding: "0 8px", marginBottom: 10 }}>
             Info rapide
-          </div>
+          </p>
           {[
-            { label: "Account manager", value: "Marco Rossi" },
-            { label: "Settore", value: "Consulenza" },
-            { label: "P.IVA", value: "IT 123456789" },
-            { label: "Cliente dal", value: "Mar 2022" },
+            { l: "Account manager", v: "Marco Rossi" },
+            { l: "Settore",         v: "Consulenza" },
+            { l: "P.IVA",           v: "IT 04321789012" },
+            { l: "Cliente dal",     v: "Marzo 2022" },
           ].map((inf, i) => (
-            <div key={i} style={{ padding: "5px 10px" }}>
-              <div style={{ fontSize: 10.5, color: "#94a3b8", marginBottom: 1 }}>{inf.label}</div>
-              <div style={{ fontSize: 12.5, color: "#1e293b", fontWeight: 500 }}>{inf.value}</div>
+            <div key={i} style={{ padding: "5px 10px", marginBottom: 4 }}>
+              <div style={{ fontSize: 10.5, color: "#94a3b8", marginBottom: 1.5 }}>{inf.l}</div>
+              <div style={{ fontSize: 12.5, color: "#1e293b", fontWeight: 600 }}>{inf.v}</div>
             </div>
           ))}
         </div>
 
-        {/* MAIN CONTENT */}
-        <div style={{ flex: 1, padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* ── MAIN CONTENT ──────────────────────────────── */}
+        <div style={{ flex: 1, padding: "20px 20px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
 
           {/* Services card */}
-          <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
+          <div style={{
+            background: "#fff", borderRadius: 14,
+            border: "1px solid #e8edf2",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
+            overflow: "hidden"
+          }}>
             <div style={{
-              padding: "13px 18px", borderBottom: "1px solid #f1f5f9",
-              display: "flex", justifyContent: "space-between", alignItems: "center"
+              padding: "14px 20px",
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              borderBottom: "1px solid #f1f5f9"
             }}>
-              <span style={{ fontWeight: 700, fontSize: 13.5, color: "#0f172a" }}>Servizi attivi</span>
+              <div>
+                <span style={{ fontWeight: 700, fontSize: 14, color: "#0f172a" }}>Servizi attivi</span>
+                <span style={{ marginLeft: 8, fontSize: 11.5, color: "#94a3b8" }}>5 servizi · totale € 2.940/mese</span>
+              </div>
               <button style={{
-                background: BRAND, color: "#fff", border: "none",
-                padding: "4px 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer"
-              }}>+ Aggiungi</button>
+                display: "flex", alignItems: "center", gap: 5,
+                background: G, color: "#fff", border: "none",
+                padding: "5px 13px", borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                boxShadow: `0 1px 4px ${G}44`
+              }}>
+                <Plus size={11}/> Aggiungi
+              </button>
             </div>
+
+            {/* Table header */}
+            <div style={{
+              display: "grid", gridTemplateColumns: "1fr 100px 120px 90px",
+              padding: "8px 20px", background: "#fafbfc", borderBottom: "1px solid #f1f5f9"
+            }}>
+              {["Servizio", "Piano", "Prezzo", "Stato"].map((h, i) => (
+                <span key={i} style={{ fontSize: 10.5, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
+              ))}
+            </div>
+
             {SERVICES.map((svc, i) => (
               <div key={i} style={{
-                display: "flex", alignItems: "center", padding: "10px 18px",
+                display: "grid", gridTemplateColumns: "1fr 100px 120px 90px",
+                alignItems: "center", padding: "11px 20px",
                 borderBottom: i < SERVICES.length - 1 ? "1px solid #f8fafc" : "none",
-                background: i % 2 === 0 ? "#fff" : "#fafcff"
+                transition: "background .1s"
               }}>
-                <div style={{ flex: 1 }}>
+                <div>
                   <div style={{ fontWeight: 600, color: "#0f172a", fontSize: 13 }}>{svc.name}</div>
-                  <div style={{ color: "#64748b", fontSize: 11.5 }}>{svc.plan}</div>
                 </div>
-                <div style={{ marginRight: 20, color: "#0f172a", fontWeight: 600, fontSize: 13 }}>{svc.price}</div>
-                <StatusBadge status={svc.status} />
+                <div style={{ fontSize: 12, color: "#64748b" }}>{svc.plan}</div>
+                <div>
+                  <span style={{ fontWeight: 700, color: "#0f172a", fontSize: 13 }}>{svc.price}</span>
+                  <span style={{ fontSize: 11, color: "#94a3b8" }}>{svc.freq}</span>
+                </div>
+                <Badge s={svc.s}/>
               </div>
             ))}
+
+            <div style={{
+              padding: "10px 20px", background: "#fafbfc",
+              display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8,
+              borderTop: "1px solid #f1f5f9"
+            }}>
+              <span style={{ fontSize: 12, color: "#64748b" }}>Totale mensile:</span>
+              <span style={{ fontWeight: 800, color: G, fontSize: 16 }}>€ 2.940</span>
+            </div>
           </div>
 
           {/* Invoices card */}
-          <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
+          <div style={{
+            background: "#fff", borderRadius: 14,
+            border: "1px solid #e8edf2",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
+            overflow: "hidden"
+          }}>
             <div style={{
-              padding: "13px 18px", borderBottom: "1px solid #f1f5f9",
-              display: "flex", justifyContent: "space-between", alignItems: "center"
+              padding: "14px 20px",
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              borderBottom: "1px solid #f1f5f9"
             }}>
-              <span style={{ fontWeight: 700, fontSize: 13.5, color: "#0f172a" }}>Ultime fatture</span>
+              <div>
+                <span style={{ fontWeight: 700, fontSize: 14, color: "#0f172a" }}>Ultime fatture</span>
+                <span style={{ marginLeft: 8, fontSize: 11.5, color: "#f59e0b", fontWeight: 600 }}>
+                  ⚠ 1 scaduta
+                </span>
+              </div>
               <button style={{
-                background: "#f1f5f9", color: "#374151", border: "none",
-                padding: "4px 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer"
-              }}>Vedi tutte</button>
+                display: "flex", alignItems: "center", gap: 4,
+                background: "transparent", border: "none", color: G,
+                fontSize: 12.5, fontWeight: 600, cursor: "pointer"
+              }}>
+                Tutte le fatture <ArrowUpRight size={12}/>
+              </button>
             </div>
+
+            {/* Table header */}
+            <div style={{
+              display: "grid", gridTemplateColumns: "1fr 130px 110px 90px",
+              padding: "8px 20px", background: "#fafbfc", borderBottom: "1px solid #f1f5f9"
+            }}>
+              {["Numero", "Data", "Importo", "Stato"].map((h, i) => (
+                <span key={i} style={{ fontSize: 10.5, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
+              ))}
+            </div>
+
             {INVOICES.map((inv, i) => (
               <div key={i} style={{
-                display: "flex", alignItems: "center", padding: "10px 18px",
-                borderBottom: i < INVOICES.length - 1 ? "1px solid #f8fafc" : "none"
+                display: "grid", gridTemplateColumns: "1fr 130px 110px 90px",
+                alignItems: "center", padding: "11px 20px",
+                borderBottom: i < INVOICES.length - 1 ? "1px solid #f8fafc" : "none",
               }}>
-                <Receipt size={14} style={{ color: "#94a3b8", marginRight: 10 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: "#0f172a", fontSize: 13 }}>{inv.num}</div>
-                  <div style={{ color: "#64748b", fontSize: 11.5 }}>{inv.date}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 7, background: "#f8fafc",
+                    display: "flex", alignItems: "center", justifyContent: "center"
+                  }}>
+                    <Receipt size={13} color="#94a3b8"/>
+                  </div>
+                  <span style={{ fontWeight: 600, color: "#0f172a", fontSize: 13 }}>{inv.num}</span>
                 </div>
-                <div style={{ marginRight: 20, color: "#0f172a", fontWeight: 700, fontSize: 13 }}>{inv.amount}</div>
-                <StatusBadge status={inv.status} />
+                <span style={{ fontSize: 12, color: "#64748b" }}>{inv.date}</span>
+                <span style={{ fontWeight: 700, color: "#0f172a", fontSize: 13 }}>{inv.amount}</span>
+                <Badge s={inv.s}/>
               </div>
             ))}
           </div>
