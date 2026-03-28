@@ -145,28 +145,6 @@
     .z-action-btn:hover svg { color: #059669; }
     .z-action-sep { display: none; }
 
-    /* Tab bar */
-    .z-view-toggles-container {
-      padding: 10px 20px 0;
-      display: flex;
-      border-top: 1px solid #f1f5f9;
-      margin-top: 12px;
-    }
-    .z-view-toggles {
-      display: flex; gap: 0;
-      background: transparent; border-radius: 0; padding: 0;
-      border-bottom: none; margin-bottom: 0;
-    }
-    .z-view-btn {
-      padding: 9px 16px; font-size: 13px; font-weight: 500;
-      background: transparent; border: none;
-      border-bottom: 2px solid transparent; margin-bottom: -1px;
-      color: #64748b; cursor: pointer;
-      border-radius: 0; transition: all .12s; font-family: inherit;
-    }
-    .z-view-btn:hover { color: #059669; }
-    .z-view-btn.active { color: #059669; font-weight: 700; border-bottom-color: #059669; }
-
     /* ── BODY LAYOUT ─────────────────────────────────────────── */
     .detail-layout {
       display: flex; flex-direction: column; gap: 14px;
@@ -430,14 +408,6 @@
 
   </div>
 
-  <!-- Tab bar -->
-  <div class="z-view-toggles-container">
-    <div class="z-view-toggles">
-      <button class="z-view-btn active" id="btn-view-pan" onclick="switchMainView('panoramica')">Panoramica</button>
-      <button class="z-view-btn" id="btn-view-time" onclick="switchMainView('timeline')">Sequenza temporale</button>
-    </div>
-  </div>
-
   </div><!-- /cd-hero -->
 
   <div class="detail-layout">
@@ -446,7 +416,7 @@
       <nav class="z-sidebar">
         <div class="z-sidebar-title">Elenco Correlato</div>
         <ul class="z-nav-list" id="elenco-correlato">
-          <li><a href="#" class="z-nav-item active" onclick="event.preventDefault();switchMainView('panoramica')">Panoramica</a></li>
+          <li><a href="#" class="z-nav-item active" id="tab-panoramica" onclick="event.preventDefault();switchMainView('panoramica')">Panoramica</a></li>
           <li><a href="#card-note" class="z-nav-item">Note <span class="z-nav-badge" id="badge-note">0</span></a></li>
           <li><a href="#card-contatti" class="z-nav-item">Contatti <span class="z-nav-badge" id="badge-contact">0</span></a></li>
           <li><a href="#card-servizi" class="z-nav-item">Servizi <span class="z-nav-badge" id="badge-service">0</span></a></li>
@@ -454,6 +424,7 @@
           <li><a href="#card-contratti" class="z-nav-item">Contratti <span class="z-nav-badge" id="badge-contract">0</span></a></li>
           <li><a href="#card-documenti" class="z-nav-item">Documenti <span class="z-nav-badge" id="badge-doc">0</span></a></li>
           <li><a href="#card-fatture" class="z-nav-item">Fatture <span class="z-nav-badge" id="badge-invoice">0</span></a></li>
+          <li><a href="#" class="z-nav-item" id="tab-timeline" onclick="event.preventDefault();switchMainView('timeline')">Sequenza temporale</a></li>
         </ul>
         <!-- Sidebar quick contacts (populated by JS after loadContacts) -->
         <div id="sidebar-quick-contacts"></div>
