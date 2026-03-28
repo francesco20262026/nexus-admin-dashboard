@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preload" as="image" href="/assets/img/nova-crm-logo-sidebar.svg">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/css/dash.css?v=99"/>
+  <link rel="stylesheet" href="assets/css/dash.css?v=100"/>
   <style>
     /* =========================================================
        CLIENT DETAIL — NOVA CRM — STANDARD CRM LAYOUT
@@ -137,13 +137,13 @@
       right: 0 !important;
       width: auto !important;
       flex-direction: row !important;
-      align-items: center !important;
+      align-items: stretch !important;
       z-index: 90 !important;
-      background: #f8fafc !important;
-      box-shadow: 0 1px 0 #e2e8f0 !important;
-      border-bottom: none !important;
-      height: 50px !important;
-      padding: 0 6px !important;
+      background: #fff !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+      box-shadow: none !important;
+      height: 44px !important;
+      padding: 0 8px !important;
     }
     .shell.collapsed .profile-col {
       left: var(--sidebar-collapsed-w) !important;
@@ -154,7 +154,7 @@
       display: block !important;
       width: 100% !important;
       grid-template-columns: none !important;
-      padding-top: 66px !important;
+      padding-top: 60px !important;
     }
 
     .z-sidebar { padding: 0 !important; }
@@ -167,58 +167,58 @@
       flex-direction: row !important;
       flex-wrap: nowrap !important;
       overflow-x: auto !important;
-      gap: 2px !important;
+      gap: 0 !important;
       scrollbar-width: none !important;
-      align-items: center !important;
+      align-items: stretch !important;
       height: 100% !important;
     }
     .z-nav-list::-webkit-scrollbar { display: none; }
-    .z-nav-list li { flex-shrink: 0 !important; display: flex !important; align-items: center !important; }
+    .z-nav-list li { flex-shrink: 0 !important; display: flex !important; align-items: stretch !important; }
     .z-nav-item {
       display: inline-flex !important;
       align-items: center !important;
-      justify-content: flex-start !important;
+      justify-content: center !important;
       gap: 5px !important;
-      padding: 5px 12px !important;
-      color: #64748b !important;
+      padding: 0 14px !important;
+      color: #94a3b8 !important;
       font-size: 13px !important;
       font-weight: 500 !important;
       text-decoration: none !important;
       cursor: pointer !important;
       white-space: nowrap !important;
-      border-bottom: none !important;
-      border-radius: 7px !important;
+      border-bottom: 2px solid transparent !important;
+      border-radius: 0 !important;
       background: transparent !important;
-      transition: color .15s, background .15s !important;
-      line-height: 1 !important;
-      height: 34px !important;
+      transition: color .15s, border-color .15s !important;
+      height: 100% !important;
+      box-sizing: border-box !important;
     }
     .z-nav-item:hover {
-      color: #1e293b !important;
-      background: #e9eef4 !important;
-      border-bottom-color: transparent !important;
+      color: #374151 !important;
+      border-bottom-color: #cbd5e1 !important;
+      background: transparent !important;
     }
     .z-nav-item.active {
       color: #059669 !important;
       font-weight: 600 !important;
-      background: #fff !important;
-      border-bottom: none !important;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 0 0 1px rgba(5,150,105,0.15) !important;
+      border-bottom-color: #059669 !important;
+      background: transparent !important;
+      box-shadow: none !important;
     }
     .z-nav-badge {
-      background: #e2e8f0 !important;
-      color: #64748b !important;
+      background: #f1f5f9 !important;
+      color: #94a3b8 !important;
       border-radius: 20px !important;
       padding: 1px 6px !important;
       font-size: 10px !important;
-      font-weight: 700 !important;
-      min-width: 18px !important;
+      font-weight: 600 !important;
+      min-width: 16px !important;
       text-align: center !important;
       height: auto !important;
       line-height: 1.6 !important;
     }
     .z-nav-item.active .z-nav-badge {
-      background: #d1fae5 !important;
+      background: #ecfdf5 !important;
       color: #059669 !important;
     }
     #sidebar-quick-contacts { display: none !important; }
