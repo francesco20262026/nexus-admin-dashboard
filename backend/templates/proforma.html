@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Proforma {{ invoice_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+            @bottom-center {
+                content: "Pagina " counter(page) " di " counter(pages);
+                font-size: 10px;
+                color: #666;
+            }
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 12px;
+            color: #333;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .header table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .header td {
+            vertical-align: top;
+        }
+        .company-details {
+            width: 60%;
+        }
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 5px;
+        }
+        .doc-title-container {
+            width: 40%;
+            text-align: right;
+        }
+        .doc-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #000;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .doc-meta {
+            font-size: 12px;
+        }
+        .client-section {
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+        .client-box {
+            width: 50%;
+            margin-left: auto; /* allinea a destra come l'esempio */
+        }
+        .client-box strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .items-table th {
+            background-color: #f5f5f5;
+            text-align: left;
+            padding: 8px;
+            border-bottom: 2px solid #ddd;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .items-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .items-table th.right, .items-table td.right {
+            text-align: right;
+        }
+        .payment-section {
+            width: 100%;
+            margin-top: 50px;
+            page-break-inside: avoid;
+        }
+        .totals-table {
+            width: 40%;
+            float: right;
+            border-collapse: collapse;
+        }
+        .totals-table td {
+            padding: 6px;
+        }
+        .totals-table .total-line td {
+            font-weight: bold;
+            font-size: 14px;
+            border-top: 2px solid #000;
+        }
+        .bank-details {
+            width: 50%;
+            float: left;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+        .bank-details strong {
+            color: #000;
+        }
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <table>
+            <tr>
+                <td class="company-details">
+                    {% if company_logo %}
+                        <img src="{{ company_logo }}" alt="Logo" style="max-height: 60px; margin-bottom: 15px;">
+                    {% endif %}
+                    <div class="company-name">{{ company.name }}</div>
+                    <div>{{ company.address }}</div>
+                    <div>Telefono: {{ company.phone }}</div>
+                    <div>Email: {{ company.email }}</div>
+                    <div>C.O.E. / P.IVA: {{ company.vat_number }}</div>
+                </td>
+                <td class="doc-title-container">
+                    <div class="doc-title">PROFORMA</div>
+                    <div class="doc-meta">
+                        <div>Documento Nr: <strong>{{ invoice_number }}</strong></div>
+                        <div>Data: <strong>{{ issue_date }}</strong></div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="client-section">
+        <div class="client-box">
+            <div>Spett.le</div>
+            <strong>{{ client.name }}</strong>
+            <div>{{ client.address }}</div>
+            <div>{{ client.city }}</div>
+            <div style="margin-top:10px;">
+                {% if client.vat_number %}<div>P.IVA: {{ client.vat_number }}</div>{% endif %}
+                {% if client.pec %}<div>PEC: {{ client.pec }}</div>{% endif %}
+                {% if client.dest_code %}<div>Codice Destinatario: {{ client.dest_code }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Codice</th>
+                <th>Descrizione</th>
+                <th class="right">Quantità</th>
+                <th class="right">Prezzo Unit.</th>
+                <th class="right">Importo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.code }}</td>
+                <td>{{ item.description }}<br><small style="color:gray;">{{ item.notes }}</small></td>
+                <td class="right">{{ item.quantity }}</td>
+                <td class="right">{{ "%.2f"|format(item.unit_price) }} €</td>
+                <td class="right">{{ "%.2f"|format(item.total) }} €</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="payment-section clearfix">
+        <div class="bank-details">
+            <strong>Modalità di pagamento</strong><br>
+            Bonifico Bancario<br><br>
+            <strong>Banca:</strong> {{ company.bank_name }}<br>
+            <strong>IBAN:</strong> {{ company.iban }}<br>
+            <strong>BIC/SWIFT:</strong> {{ company.swift_bic }}<br>
+            <strong>Beneficiario:</strong> {{ company.payment_beneficiary }}<br>
+            <br>
+            <strong>Scadenze:</strong><br>
+            Rimessa diretta: {{ "%.2f"|format(total) }} €
+        </div>
+        
+        <table class="totals-table">
+            <tr>
+                <td>Imponibile:</td>
+                <td class="right">{{ "%.2f"|format(total) }} €</td>
+            </tr>
+            <tr>
+                <td>Imposta Totale:</td>
+                <td class="right">0.00 €</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="font-size: 10px; color: #555; text-align: right; padding-bottom:10px;">
+                    Non Imponibile: ART. 71 DPR 633/72 OPERAZIONI CON SAN MARINO/VATICANO
+                </td>
+            </tr>
+            <tr class="total-line">
+                <td>Totale da pagare:</td>
+                <td class="right">{{ "%.2f"|format(total) }} €</td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>

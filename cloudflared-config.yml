@@ -1,8 +1,8 @@
 # Cloudflare Tunnel config — Nexus CRM
 # SOSTITUISCI: <TUNNEL-ID> con l'ID del tuo tunnel (mostrato da: cloudflared tunnel create nexus-crm)
 
-tunnel: <TUNNEL-ID>
-credentials-file: C:\Users\Administrator\.cloudflared\<TUNNEL-ID>.json
+tunnel: 329eaaeb-794e-4090-b0e4-166c0cd3516f
+credentials-file: C:\Users\administrator.IMPIEGANDO\.cloudflared\329eaaeb-794e-4090-b0e4-166c0cd3516f.json
 
 ingress:
   # Frontend — IIS serve i file statici HTML/CSS/JS

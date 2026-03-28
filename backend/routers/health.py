@@ -1,5 +1,5 @@
-"""
-routers/health.py — Health check endpoints for Nexus CRM.
+﻿"""
+routers/health.py — Health check endpoints for Nova CRM.
 """
 from fastapi import APIRouter, Request
 

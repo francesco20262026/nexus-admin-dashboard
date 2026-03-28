@@ -111,7 +111,7 @@
   if (fType)   fType.addEventListener('change',   () => { currentPage = 1; applyFilters(); });
 
   /* ── Refresh button ─────────────────────────────────────────── */
-  btnRefresh?.addEventListener('click', load);
+  btnRefresh?.addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
 
   /* ── Apply filters (local, no re-fetch) ─────────────────────── */
   function applyFilters() {
@@ -247,7 +247,7 @@
   };
 
   /* ── Init ──────────────────────────────────────────────────── */
-  document.addEventListener('DOMContentLoaded', async () => {
+  window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');
     load();
   });

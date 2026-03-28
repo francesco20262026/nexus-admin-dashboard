@@ -1,5 +1,5 @@
 /* ============================================================
-   admin_dashboard.js — Dashboard operativo Nexus CRM
+   admin_dashboard.js — Dashboard operativo Nova CRM
    Lingua: italiano per default, i18n-ready
    ============================================================ */
 'use strict';
@@ -48,7 +48,8 @@
     if (!els.subtitle) return;
     const now     = new Date();
     const date    = now.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const company = localStorage.getItem('nexus_active_company') || '';
+    const company = localStorage.getItem('nexus_active_company_name')
+                 || localStorage.getItem('nexus_active_company') || '';
     const dateCap = date.charAt(0).toUpperCase() + date.slice(1);
     els.subtitle.textContent = company ? `${dateCap} — ${company}` : dateCap;
   }
@@ -101,8 +102,8 @@
       const newM = kpis.new_clients_month || 0;
       if (els.kpi.clientsMeta) {
         els.kpi.clientsMeta.innerHTML = newM
-          ? `<span class="fade-in"><span style="color:var(--success-text)">+${newM}</span> ${I18n.t('dash.this_month')}</span>`
-          : `<span class="fade-in">${I18n.t('dash.kpi_clients_meta')}</span>`;
+          ? `<span class="fade-in"><span style="color:var(--success-text)">+${newM}</span> questo mese</span>`
+          : `<span class="fade-in">Clienti con stato attivo</span>`;
       }
     }
 
@@ -112,8 +113,8 @@
       if (els.kpi.openInvoicesMeta) {
         const amount = kpis.unpaid_amount;
         els.kpi.openInvoicesMeta.innerHTML = amount != null
-          ? `<span class="fade-in"><span style="color:var(--warning-text)">${UI.currency(amount)}</span> ${I18n.t('dash.outstanding')}</span>`
-          : `<span class="fade-in">${I18n.t('dash.kpi_invoices_meta')}</span>`;
+          ? `<span class="fade-in"><span style="color:var(--warning-text)">${UI.currency(amount)}</span> da incassare</span>`
+          : `<span class="fade-in">Fatture non ancora pagate</span>`;
       }
       // Nav badge — only show if there are open invoices
       if (els.navBadgeInvoices && open > 0) {
@@ -124,12 +125,12 @@
 
     if (els.kpi.contracts) {
       els.kpi.contracts.innerHTML = `<span class="fade-in">${kpis.contracts_pending_signature ?? 0}</span>`;
-      if (els.kpi.contractsMeta) els.kpi.contractsMeta.innerHTML = `<span class="fade-in">${I18n.t('dash.kpi_contracts_meta')}</span>`;
+      if (els.kpi.contractsMeta) els.kpi.contractsMeta.innerHTML = `<span class="fade-in">In attesa di firma</span>`;
     }
 
     if (els.kpi.renewals) {
       els.kpi.renewals.innerHTML = `<span class="fade-in">${kpis.renewals_expiring_30d ?? 0}</span>`;
-      if (els.kpi.renewalsMeta) els.kpi.renewalsMeta.innerHTML = `<span class="fade-in">${I18n.t('dash.kpi_renewals_meta')}</span>`;
+      if (els.kpi.renewalsMeta) els.kpi.renewalsMeta.innerHTML = `<span class="fade-in">In scadenza nei prossimi 30 giorni</span>`;
     }
   }
 
@@ -168,25 +169,42 @@
     }
 
     if (!activities || !activities.length) {
-      els.activityList.innerHTML = `<div class="activity-item fade-in"><div class="activity-content"><div class="activity-text" style="color:var(--gray-400);">${I18n.t('common.no_data')}</div></div></div>`;
+      els.activityList.innerHTML = `<div class="activity-item fade-in"><div class="activity-content"><div class="activity-text" style="color:var(--gray-400);">Nessuna attività recente</div></div></div>`;
       return;
     }
     els.activityList.innerHTML = activities.map(renderActivityItem).join('');
   }
 
   function renderActivityItem(act) {
-    const colorMap = { contract: 'blue', invoice: 'green', client: 'brand', document: 'amber', renewal: 'red' };
-    const dotColor = colorMap[act.type] || 'amber';
+    const typeMap = {
+      contract:        { color: 'blue',   emoji: '📄' },
+      invoice:         { color: 'green',  emoji: '💶' },
+      client:          { color: 'brand',  emoji: '👤' },
+      document:        { color: 'amber',  emoji: '📎' },
+      renewal:         { color: 'red',    emoji: '🔁' },
+      note:            { color: 'gray',   emoji: '📝' },
+      call:            { color: 'purple', emoji: '📞' },
+      email:           { color: 'blue',   emoji: '✉️'  },
+      meeting:         { color: 'teal',   emoji: '🤝' },
+      task:            { color: 'amber',  emoji: '✅' },
+      status_change:   { color: 'gray',   emoji: '🔄' },
+      quote:           { color: 'green',  emoji: '📋' },
+      onboarding:      { color: 'purple', emoji: '🚀' },
+    };
+    const meta     = typeMap[act.type] || { color: 'amber', emoji: '⚡' };
+    const desc     = act.description || act.title || '—';
+    const timeAgo  = act.time_ago || (act.created_at ? UI.date(act.created_at) : '');
     let clickAttr = '';
     if (act.type === 'invoice'  && act.entity_id) clickAttr = `onclick="location.href='admin_invoices.html?highlight=${act.entity_id}'" style="cursor:pointer;"`;
     if (act.type === 'client'   && act.entity_id) clickAttr = `onclick="location.href='admin_client_detail.html?id=${act.entity_id}'" style="cursor:pointer;"`;
     if (act.type === 'contract' && act.entity_id) clickAttr = `onclick="location.href='admin_contracts.html?highlight=${act.entity_id}'" style="cursor:pointer;"`;
+    if (act.type === 'quote'    && act.entity_id) clickAttr = `onclick="location.href='admin_quotes.html?highlight=${act.entity_id}'" style="cursor:pointer;"`;
     return `
       <div class="activity-item fade-in" ${clickAttr}>
-        <div class="activity-dot ${dotColor}"></div>
+        <div class="activity-dot ${meta.color}" title="${act.type || ''}"><span class="activity-dot-emoji">${meta.emoji}</span></div>
         <div class="activity-content">
-          <div class="activity-text">${act.description || I18n.t('common.no_data')}</div>
-          <div class="activity-time">${act.time_ago || ''}</div>
+          <div class="activity-text">${desc}</div>
+          <div class="activity-time">${timeAgo}</div>
         </div>
       </div>`;
   }
@@ -216,7 +234,7 @@
       const pending = pendingRes.value?.items || pendingRes.value?.data || [];
       pending.forEach(c => items.push({
         color: 'blue',
-        text:  `${I18n.t('dash.contract_waiting_sign')} — ${c.client_name || c.title || c.id}`,
+        text:  `Contratto in attesa di firma — <strong>${c.client_name || c.title || (c.id ? c.id.slice(0,8) : 'N/D')}</strong>`,
         href:  `admin_contracts.html?highlight=${c.id}`,
       }));
     }
@@ -225,13 +243,13 @@
       const ren = renewRes.value?.items || renewRes.value?.data || [];
       ren.forEach(r => items.push({
         color: 'amber',
-        text:  `${I18n.t('dash.renewal_expiring')} <strong>${r.client_name || r.service_name || ''}</strong> — ${UI.date(r.renewal_date)}`,
+        text:  `Rinnovo in scadenza: <strong>${r.client_name || r.service_name || (r.id ? r.id.slice(0,8) : 'N/D')}</strong> — ${UI.date(r.renewal_date)}`,
         href:  `admin_renewals.html`,
       }));
     }
 
     if (!items.length) {
-      els.attentionList.innerHTML = `<div class="activity-item fade-in"><div class="activity-content"><div class="activity-text" style="color:var(--gray-400);">${I18n.t('dash.nothing_urgent')}</div></div></div>`;
+      els.attentionList.innerHTML = `<div class="activity-item fade-in"><div class="activity-content"><div class="activity-text" style="color:var(--gray-400);">Nessun elemento urgente — tutto in ordine ✓</div></div></div>`;
       return;
     }
 
@@ -385,7 +403,7 @@
     loadDashboard();
   });
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');
     loadDashboard();
   });

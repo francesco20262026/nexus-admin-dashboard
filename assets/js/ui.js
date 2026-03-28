@@ -1,5 +1,5 @@
 /* ============================================================
-   ui.js — Shared UI helpers for Nexus CRM
+   ui.js — Shared UI helpers for Nova CRM
    ============================================================ */
 
 const UI = {
@@ -16,23 +16,44 @@ const UI = {
     const map = {
       active:   { cls: 'pill-active',   lbl: 'Attivo' },
       inactive: { cls: 'pill-inactive', lbl: 'Inattivo' },
+      non_active: { cls: 'pill-inactive', lbl: 'Non attivo' },
+      suspended:  { cls: 'pill-warning',  lbl: 'Sospeso' },
+      insolvent:  { cls: 'pill-danger',   lbl: 'Insolvente' },
+      ceased:     { cls: 'pill-gray',     lbl: 'Cessato' },
       draft:    { cls: 'pill-gray',     lbl: 'Bozza' },
       sent:     { cls: 'pill-warning',  lbl: 'Inviato' },
       signed:   { cls: 'pill-success',  lbl: 'Firmato' },
       expired:  { cls: 'pill-danger',   lbl: 'Scaduto' },
-      pending_signature: { cls: 'pill-warning', lbl: 'In Attesa' },
+      pending_signature: { cls: 'pill-warning', lbl: 'In Attesa Firma' },
       in_progress: { cls: 'pill-warning', lbl: 'In Lavorazione' },
-      ready:    { cls: 'pill-success',  lbl: 'Pronto/Completo' },
+      ready:    { cls: 'pill-success',  lbl: 'Pronto' },
       converted: { cls: 'pill-primary', lbl: 'Convertito' },
       blocked:  { cls: 'pill-danger',   lbl: 'Bloccato' },
       failed:   { cls: 'pill-danger',   lbl: 'Fallito' },
       paid:     { cls: 'pill-success',  lbl: 'Pagato' },
       overdue:  { cls: 'pill-danger',   lbl: 'Scaduto' },
-      pending:  { cls: 'pill-warning',  lbl: 'In Attesa' }
+      pending:  { cls: 'pill-warning',  lbl: 'In Attesa' },
+      accepted: { cls: 'pill-success',  lbl: 'Accettato' },
+      rejected: { cls: 'pill-danger',   lbl: 'Rifiutato' },
+      // ── Onboarding workflow states ─────────────────────────
+      new:                  { cls: 'pill-new',     lbl: 'Nuovo' },
+      quote_sent:           { cls: 'pill-warning',  lbl: 'Preventivo inviato' },
+      quote_accepted:       { cls: 'pill-success',  lbl: 'Preventivo accettato' },
+      contract_sent:        { cls: 'pill-warning',  lbl: 'Contratto inviato' },
+      contract_signed:      { cls: 'pill-success',  lbl: 'Contratto firmato' },
+      proforma_issued:      { cls: 'pill-primary',  lbl: 'Proforma emessa' },
+      waiting_payment:      { cls: 'pill-warning',  lbl: 'In attesa pagamento' },
+      payment_under_review: { cls: 'pill-warning',  lbl: 'Verifica pagamento' },
+      converted_to_client:  { cls: 'pill-primary',  lbl: 'Convertito a cliente' },
+      abandoned:            { cls: 'pill-danger',   lbl: 'Abbandonato' },
+      cancelled:            { cls: 'pill-gray',     lbl: 'Annullato' },
     };
     
-    const matched = map[s] || { cls: 'pill-gray', lbl: s.charAt(0).toUpperCase() + s.slice(1) };
-    const finalLbl = customLabel || window.I18n?.t(`status.${s}`) || matched.lbl;
+    const matched = map[s] || { cls: 'pill-gray', lbl: s.replace(/_/g, ' ') };
+    // Priority: explicit customLabel > our map > I18n (fallback only if map has no entry)
+    const i18nLabel = !map[s] ? window.I18n?.t(`status.${s}`) : null;
+    const finalLbl = customLabel || matched.lbl || i18nLabel || s;
+
     return `<span class="pill ${matched.cls}">${finalLbl}</span>`;
   },
 
@@ -129,6 +150,29 @@ const UI = {
     btn('»', pages, currentPage === pages, false);
   },
 
+  // ── Tab counts ─────────────────────────────────────────────
+  // Updates each [data-tab] button in tabBar to show "(n)" counts.
+  // tabBar   : HTMLElement with child [data-tab] buttons
+  // items    : the full data array (before any filtering)
+  // keyFn    : (item) => string — returns the tab key for an item
+  //            defaults to: r => r.status
+  updateTabCounts(tabBar, items, keyFn) {
+    if (!tabBar || !Array.isArray(items)) return;
+    const fn = keyFn || (r => r.status);
+    tabBar.querySelectorAll('[data-tab]').forEach(btn => {
+      const tab = btn.dataset.tab;
+      // Store original label once
+      if (!btn.dataset.label) {
+        btn.dataset.label = btn.textContent.replace(/\s*\(\d+\)$/, '').trim();
+      }
+      const base = btn.dataset.label;
+      const count = tab === 'all'
+        ? items.length
+        : items.filter(x => fn(x) === tab).length;
+      btn.textContent = count > 0 ? `${base} (${count})` : base;
+    });
+  },
+
   // ── Coming soon placeholder ───────────────────────────────
   comingSoon(title, subtitle) {
     const sub = subtitle || window.I18n?.t('common.coming_soon_sub') || 'Questo modulo sarà disponibile nella prossima fase.';
@@ -150,6 +194,16 @@ const UI = {
 
 window.UI = UI;
 
+// ── Debounce utility ─────────────────────────────────────────────────
+// Usage: el.addEventListener('input', debounce(() => applyFilters(), 200));
+window.debounce = function debounce(fn, ms = 200) {
+  let t;
+  return function (...args) {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, args), ms);
+  };
+};
+
 window.SessionState = {
   save(pageKey, stateObject) {
     try {
@@ -165,5 +219,21 @@ window.SessionState = {
       const data = sessionStorage.getItem(key);
       return data ? JSON.parse(data) : null;
     } catch(e) { return null; }
+  }
+};
+
+/* ── onPageReady ─────────────────────────────────────────────────────────
+   Drop-in replacement for document.addEventListener('DOMContentLoaded', fn).
+   Works on:
+     - Initial full page load (waits for DOMContentLoaded if not yet fired)
+     - SPA navigation via router.js (calls fn() immediately since DOM is ready)
+
+   Usage: window.onPageReady(async () => { ... })
+   ─────────────────────────────────────────────────────────────────────── */
+window.onPageReady = function (fn) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fn);
+  } else {
+    fn();
   }
 };

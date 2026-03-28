@@ -12,7 +12,7 @@
 
   const $ = id => document.getElementById(id);
   const list    = $('ctr-list');
-  const tabBar  = $('ctr-tab-bar');
+  const pipelineBar  = $('ctr-pipeline-bar');
   const search  = $('ctr-search');
   const fClient = $('ctr-filter-client');
   const fTpl    = $('ctr-filter-template');
@@ -27,21 +27,21 @@
   if (actDiv) actDiv.innerHTML = `
     <button class="btn btn-secondary" id="btn-refresh"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> <span>Aggiorna</span></button>
     <button class="btn btn-primary" id="btn-new-contract"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> <span>Nuovo contratto</span></button>`;
-  $('btn-refresh')?.addEventListener('click', load);
+  $('btn-refresh')?.addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
   $('btn-new-contract')?.addEventListener('click', openModal);
 
   // Restore tab
-  tabBar?.querySelectorAll('.filter-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
+  pipelineBar?.querySelectorAll('.cl-status-pill').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
 
   // Event listeners
-  tabBar?.addEventListener('click', e => {
-    const b = e.target.closest('.filter-tab'); if (!b) return;
-    tabBar.querySelectorAll('.filter-tab').forEach(x => x.classList.remove('active'));
+  pipelineBar?.addEventListener('click', e => {
+    const b = e.target.closest('.cl-status-pill'); if (!b) return;
+    pipelineBar.querySelectorAll('.cl-status-pill').forEach(x => x.classList.remove('active'));
     b.classList.add('active'); activeTab = b.dataset.tab; page = 1; applyFilters();
   });
   [search, fClient, fTpl, fFrom, fTo].forEach(el =>
     el?.addEventListener('change', () => { page = 1; applyFilters(); }));
-  search?.addEventListener('input', () => { page = 1; applyFilters(); });
+  search?.addEventListener('input', debounce(() => { page = 1; applyFilters(); }, 200));
 
   window.addEventListener('companyChanged', load);
   window._reloadContracts = load;
@@ -52,7 +52,12 @@
     list.innerHTML = UI.skeletonCardList(5);
     try {
       const res = await API.Contracts.list({});
-      ALL = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
+      const raw = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
+      ALL = raw.map(c => ({
+        ...c,
+        client_name: c.clients?.name || c.clients?.email || c.onboarding?.company_name || c.onboarding?.email || null,
+        template_name: c.document_templates?.name || null
+      }));
       populateClientFilter();
       populateTemplateFilter();
     } catch (e) {
@@ -84,11 +89,13 @@
 
   // ── KPIs ──────────────────────────────────────────────────────
   function updateKpis() {
-    const set = (id, v, m) => { const el=$(id); if(el) el.textContent=v; const em=$(id+'-meta'); if(em&&m!==undefined) em.textContent=m; };
-    set('kpi-ctr-draft',   ALL.filter(c => c.status === 'draft').length,   'Da inviare');
-    set('kpi-ctr-sent',    ALL.filter(c => c.status === 'sent').length,    'Inviati al cliente');
-    set('kpi-ctr-signing', ALL.filter(c => c.status === 'signing' || c.status === 'sent').length, 'In attesa firma');
-    set('kpi-ctr-signed',  ALL.filter(c => c.status === 'signed' || c.status === 'active').length, 'Completati');
+    const set = (id, v) => { const el=$(id); if(el) el.textContent=v; };
+    set('kpi-ctr-all',     ALL.length);
+    set('kpi-ctr-draft',   ALL.filter(c => c.status === 'draft').length);
+    set('kpi-ctr-sent',    ALL.filter(c => c.status === 'sent').length);
+    set('kpi-ctr-signing', ALL.filter(c => c.status === 'signing' || c.status === 'sent').length);
+    set('kpi-ctr-signed',  ALL.filter(c => c.status === 'signed' || c.status === 'active').length);
+    set('kpi-ctr-archived', ALL.filter(c => c.status === 'archived').length);
   }
 
   // ── Filters ───────────────────────────────────────────────────
@@ -104,7 +111,6 @@
         if (activeTab === 'signing' && c.status !== 'signing' && c.status !== 'sent') return false;
         else if (activeTab !== 'signing' && c.status !== activeTab) return false;
       }
-      if (activeTab !== 'all' && c.status !== activeTab) return false;
       if (cl && c.client_name !== cl) return false;
       if (tp && c.template_name !== tp) return false;
       if (df && c.created_at && c.created_at < df) return false;
@@ -133,34 +139,45 @@
     }
     const slice = filtered.slice((page-1)*PER, page*PER);
     list.innerHTML = slice.map(c => {
-      const sentDate   = c.sent_at    ? UI.date(c.sent_at)   : 0;
-      const signedDate = c.signed_at  ? UI.date(c.signed_at) : 0;
+      const sentDate   = c.sent_at    ? UI.date(c.sent_at)   : '—';
+      const signedDate = c.signed_at  ? UI.date(c.signed_at) : '—';
       const validTo    = c.valid_to   ? UI.date(c.valid_to)  : '';
-      return `<div class="list-card fade-in" data-id="${c.id}">
-        <div class="list-card-header">
-          <div class="list-card-title">
-            <div>${c.title || 'Contratto senza titolo'}</div>
-            ${c.template_name ? `<div style="font-size:11px;color:var(--gray-500);margin-top:2px;">Template: ${c.template_name}</div>` : ''}
+      return `<div class="cl-row fade-in" data-id="${c.id}" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s;">
+        <!-- Colonna 1: Titolo e Cliente -->
+        <div class="cl-col" style="flex:2; min-width:0;">
+          <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.title || 'Contratto senza titolo'}</div>
+          <div class="cl-row-meta" style="display:flex; gap:8px; align-items:center; margin-top:2px;">
+            <span class="cl-row-chip" style="font-size:12px;"><a href="admin_client_detail.html?id=${c.client_id}" style="color:var(--brand-600); text-decoration:none;">🏢 ${c.client_name || 'Sconosciuto'}</a></span>
+            ${c.template_name ? `<span class="cl-row-chip" style="font-size:12px; color:var(--gray-500);">📄 ${c.template_name}</span>` : ''}
           </div>
-          ${UI.pill(c.status || 'draft')}
         </div>
-        <div class="list-card-body" style="flex-wrap:wrap;gap:12px;">
-          <div class="list-card-meta">
-            <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-            <a href="admin_client_detail.html?id=${c.client_id}" style="color:var(--brand-600);">${c.client_name || 0}</a>
-          </div>
-          ${c.service_name ? `<div class="list-card-meta"><svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/></svg>${c.service_name}</div>` : ''}
-          <div class="list-card-meta" title="Data invio"><svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>Inviato: ${sentDate}</div>
-          <div class="list-card-meta" title="Data firma"><svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>Firmato: ${signedDate}</div>
-          ${validTo ? `<div class="list-card-meta">Validità fino: ${validTo}</div>` : ''}
-          <div class="row-actions" style="width:100%;justify-content:flex-end;margin-top:4px;">
-            ${c.status === 'draft' ? `<button class="btn btn-secondary btn-sm" onclick="sendContract('${c.id}')">Invia per firma</button>` : ''}
-            ${(c.status === 'sent' || c.status === 'signing') ? `<button class="btn btn-secondary btn-sm" onclick="checkSignStatus('${c.id}')">Verifica stato</button>` : ''}
-            ${(c.status === 'signed' || c.status === 'active') ? `<button class="btn btn-ghost btn-sm" onclick="archiveContract('${c.id}')">Archivia</button>` : ''}
-            <button class="btn btn-ghost btn-sm" onclick="downloadContract('${c.id}')" title="Scarica">
-              <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-            </button>
-          </div>
+
+        <!-- Colonna 2: Date Invio/Firma -->
+        <div class="cl-col" style="flex:1.5; min-width:0;">
+          <div style="font-size:12px; color:var(--gray-600);">Inviato: <span style="font-weight:600;">${sentDate}</span></div>
+          <div style="font-size:12px; color:var(--gray-600); margin-top:2px;">Firmato: <span style="font-weight:600;">${signedDate}</span></div>
+          ${validTo ? `<div style="font-size:12px; color:var(--gray-500); margin-top:2px;">Scade: ${validTo}</div>` : ''}
+        </div>
+
+        <!-- Colonna 3: Riepilogo Componenti e Stato -->
+        <div class="cl-col" style="flex:1.5; min-width:0;">
+          <div style="margin-bottom:4px;">${UI.pill(c.status || 'draft')}</div>
+          ${c.service_name ? `<div style="font-size:12px; color:var(--gray-500); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${c.service_name.replace(/"/g,'&quot;')}">📦 ${c.service_name}</div>` : ''}
+          ${c.quote_id ? `<div style="font-size:12px; margin-top:2px;"><a href="admin_quotes.html?highlight=${c.quote_id}" style="color:var(--brand-600); text-decoration:none;">📋 Da preventivo</a></div>` : ''}
+        </div>
+
+        <!-- Colonna 4: Azioni -->
+        <div class="cl-col cl-col-actions" style="flex-shrink:0; display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
+          <button class="btn btn-secondary btn-sm" onclick="viewContract('${c.id}')" title="Visualizza contratto">👁 Visualizza</button>
+          ${c.status === 'draft' ? `<button class="btn btn-secondary btn-sm" onclick="editContract('${c.id}')">✏️ Modifica</button>` : ''}
+          ${c.status === 'draft' ? `<button class="btn btn-primary btn-sm" onclick="sendContract('${c.id}')">Invia per firma</button>` : ''}
+          ${(c.status === 'sent' || c.status === 'signing') ? `<button class="btn btn-secondary btn-sm" onclick="checkSignStatus('${c.id}')">Verifica stato</button>` : ''}
+          ${(c.status === 'signed' || c.status === 'active') ? `<button class="btn btn-ghost btn-sm" onclick="archiveContract('${c.id}')">Archivia</button>` : ''}
+          ${c.status === 'draft' ? `<button class="btn btn-ghost btn-sm" style="color:#dc2626;" onclick="deleteContract('${c.id}')" title="Elimina bozza">🗑</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="downloadContract('${c.id}')" title="Stampa / Scarica PDF">
+            <svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            <span class="sr-only">Scarica</span>
+          </button>
         </div>
       </div>`;
     }).join('');
@@ -169,49 +186,204 @@
     UI.pagination(pag, null, page, filtered.length, PER, p => { page=p; render(); });
   }
 
-  // ── Modal ─────────────────────────────────────────────────────
-  async function openModal() {
+  async function openModal(editId = null) {
+    // If editId happens to be an Event (from click), reset to null
+    if (editId instanceof Event) editId = null;
+    
     if (!modal) return;
-    const wc = $('w-client'), wt = $('w-template'), ws = $('w-service');
+    const wc = $('w-client'), wt = $('w-template');
     if (wc) wc.innerHTML = '<option value="">Caricamento…</option>';
     if (wt) wt.innerHTML = '<option value="">Caricamento…</option>';
+    const wsList = document.getElementById('w-service-list');
+    if (wsList) wsList.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--gray-400);">Caricamento servizi…</div>';
     modal.classList.add('open');
-    try {
-      const [clients, tpls, srvs] = await Promise.all([
-        API.Clients.list().catch(()=>[]),
-        API.Contracts.templates().catch(()=>[]),
-        API.Services.catalog(false).catch(()=>[]),
-      ]);
-      const cl = Array.isArray(clients) ? clients : (clients?.items ?? clients?.data ?? []);
-      const tl = Array.isArray(tpls)    ? tpls    : (tpls?.items    ?? tpls?.data    ?? []);
-      const sl = Array.isArray(srvs)    ? srvs    : (srvs?.items    ?? srvs?.data    ?? []);
-      if (wc) wc.innerHTML = '<option value="">— Seleziona cliente —</option>' + cl.map(c=>`<option value="${c.id}">${c.name||c.email}</option>`).join('');
-      if (wt) wt.innerHTML = '<option value="">— Seleziona template —</option>' + tl.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
-      if (ws) ws.innerHTML = '<option value="">— Nessun servizio —</option>'   + sl.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-      const now = new Date();
-      const vf = $('w-valid-from'); if (vf) vf.value = now.toISOString().split('T')[0];
-      const vt = $('w-valid-to');   now.setFullYear(now.getFullYear()+1); if (vt) vt.value = now.toISOString().split('T')[0];
-    } catch (e) { UI.toast('Errore caricamento dati', 'error'); modal.classList.remove('open'); }
+
+    // Load individually so one failure doesn't block the others
+    const [clientsRes, tplsRes, srvsRes, onbRes] = await Promise.all([
+      API.Clients.list().catch(e => { console.warn('[contracts] clients load error:', e); return null; }),
+      API.Contracts.templates().catch(e => { console.warn('[contracts] templates load error:', e); return null; }),
+      API.Services.catalog(true).catch(e => { console.warn('[contracts] services load error:', e); return null; }),
+      API.Onboarding.list({}).catch(() => null),
+    ]);
+
+    // ── Clients (convertiti) ──
+    const cl = clientsRes
+      ? (Array.isArray(clientsRes) ? clientsRes : (clientsRes.data ?? clientsRes.items ?? []))
+      : [];
+
+    // ── Prospect (da onboarding non ancora cancellati) ──
+    const onbRaw = onbRes
+      ? (Array.isArray(onbRes) ? onbRes : (onbRes.data ?? onbRes.items ?? []))
+      : [];
+    const prospects = onbRaw
+      .filter(o => o.status !== 'cancelled')   // escludi solo i cancellati
+      .map(o => ({
+        id: `onb:${o.id}`,
+        company_name: o.company_name || o.email || '—',
+        status: 'prospect',
+        _isProspect: true,
+        _stage: o.status,
+      }));
+
+
+    // Merge, sort alphabetically, clients first then prospects
+    const allClients = [...cl, ...prospects].sort((a, b) => {
+      const la = String(a.company_name || a.name || '');
+      const lb = String(b.company_name || b.name || '');
+      return la.localeCompare(lb, 'it');
+    });
+
+    if (!allClients.length) {
+      UI.toast('Nessun cliente o prospect trovato.', 'warning');
+    }
+    if (wc) wc.innerHTML = '<option value="">— Seleziona cliente —</option>' + allClients.map(c => {
+      const label = c.company_name || c.name || c.email || '—';
+      const badge = c._isProspect
+        ? ` 🔸 [prospect${c._stage ? ' · ' + c._stage : ''}]`
+        : (c.status && c.status !== 'active' ? ` [${c.status}]` : '');
+      return `<option value="${c.id}">${label}${badge}</option>`;
+    }).join('');
+
+
+    // ── Templates ──
+    const tl = tplsRes
+      ? (Array.isArray(tplsRes) ? tplsRes : (tplsRes.data ?? tplsRes.items ?? []))
+      : [];
+    if (wt) wt.innerHTML = '<option value="">— Seleziona template —</option>' + tl.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+
+    // ── Services (checkbox list) ──
+    const sl = srvsRes
+      ? (Array.isArray(srvsRes) ? srvsRes : (srvsRes.data ?? srvsRes.items ?? []))
+      : [];
+    if (wsList) {
+      if (!sl.length) {
+        wsList.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--gray-400);">Nessun servizio disponibile</div>';
+      } else {
+        wsList.innerHTML = sl.map(s => {
+          const price = parseFloat(s.price || s.monthly_price || 0);
+          const cycle = s.billing_cycle === 'annual' ? '/anno' : s.billing_cycle === 'quarterly' ? '/trim' : '/mese';
+          const priceStr = price > 0 ? `€${price.toFixed(2).replace('.',',')}${cycle}` : '';
+          return `<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s" onmouseenter="this.style.background='#f0fdf4'" onmouseleave="this.style.background=''">
+            <input type="checkbox" value="${s.id}" data-price="${price}" class="svc-cb" style="width:16px;height:16px;accent-color:var(--brand-600);flex-shrink:0;">
+            <span style="font-size:13px;color:var(--gray-900);flex:1;">${s.name}</span>
+            ${priceStr ? `<span style="font-size:13px;font-weight:700;color:#16a34a;background:#f0fdf4;padding:2px 8px;border-radius:6px;white-space:nowrap;">${priceStr}</span>` : ''}
+          </label>`;
+        }).join('');
+        const labels = wsList.querySelectorAll('label');
+        if (labels.length) labels[labels.length - 1].style.borderBottom = 'none';
+
+        // Live total bar — remove previous instance if modal reopened
+        document.getElementById('svc-total-bar')?.remove();
+        const totalBar = document.createElement('div');
+        totalBar.id = 'svc-total-bar';
+        totalBar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:0 0 8px 8px;margin-top:-1px;font-size:13px;font-weight:600;color:#15803d;';
+        totalBar.innerHTML = '<span>Totale selezionato</span><span id="svc-total-val">€ 0,00</span>';
+        wsList.parentElement.insertBefore(totalBar, wsList.nextSibling);
+
+        // Update total on change
+        wsList.addEventListener('change', () => {
+          const total = Array.from(wsList.querySelectorAll('.svc-cb:checked'))
+            .reduce((sum, cb) => sum + parseFloat(cb.dataset.price || 0), 0);
+          const tv = document.getElementById('svc-total-val');
+          if (tv) tv.textContent = `€ ${total.toFixed(2).replace('.', ',')}`;
+        });
+      }
+    }
+
+
+    // ── Pre-fill if Editing ──
+    const btnSave = $('btn-create-contract');
+    if (btnSave) {
+      if (editId) {
+        btnSave.dataset.editId = editId;
+        btnSave.innerHTML = '<svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> <span>Salva modifiche</span>';
+      } else {
+        delete btnSave.dataset.editId;
+        btnSave.innerHTML = '<svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> <span>Firma / Genera Documento</span>';
+      }
+    }
+
+    if (editId) {
+      try {
+        const ctr = await API.Contracts.get(editId);
+        const data = ctr?.data || ctr;
+        
+        const titleEl = $('w-title'); if (titleEl) titleEl.value = data.title || '';
+        
+        // Select client/prospect
+        if (data.onboarding_id && wc) {
+          wc.value = `onb:${data.onboarding_id}`;
+        } else if (data.client_id && wc) {
+          wc.value = data.client_id;
+        }
+
+        if (data.template_id && wt) wt.value = data.template_id;
+        if (data.valid_from) { const vf = $('w-valid-from'); if (vf) vf.value = data.valid_from.substring(0, 10); }
+        if (data.valid_to)   { const vt = $('w-valid-to');   if (vt) vt.value = data.valid_to.substring(0, 10); }
+
+        // Check services
+        if (data.contract_services && data.contract_services.length) {
+          const selectedServiceIds = data.contract_services.map(s => s.service_id);
+          const cbs = document.querySelectorAll('#w-service-list .svc-cb');
+          cbs.forEach(cb => {
+            if (selectedServiceIds.includes(cb.value)) {
+              cb.checked = true;
+            }
+          });
+          // trigger change to total
+          const evt = new Event('change');
+          wsList.dispatchEvent(evt);
+        }
+
+      } catch (err) {
+        console.warn('[contracts] edit load error:', err);
+        UI.toast('Errore caricamento dati per modifica', 'error');
+      }
+    } else {
+      $('w-title').value = '';
+    }
   }
 
+
   $('btn-create-contract')?.addEventListener('click', async () => {
+    const editId = $('btn-create-contract').dataset.editId;
     const cid = $('w-client')?.value, tid = $('w-template')?.value;
     if (!cid || !tid) { UI.toast('Cliente e Template sono obbligatori', 'warning'); return; }
+
+    // Prospect: id è onb:<uuid> — estraiamo l'onboarding_id
+    const isProspect = cid.startsWith('onb:');
+    const onboarding_id = isProspect ? cid.replace('onb:', '') : null;
+    const client_id     = isProspect ? null : cid;
+
+    const service_ids = Array.from(document.querySelectorAll('#w-service-list .svc-cb:checked')).map(cb => cb.value);
+
     const btn = $('btn-create-contract'); if (btn) btn.disabled = true;
     try {
-      await API.Contracts.create({
-        client_id: cid, template_id: tid,
-        service_id: $('w-service')?.value || null,
-        title: $('w-title')?.value?.trim() || null,
-        valid_from: $('w-valid-from')?.value || null,
-        valid_to:   $('w-valid-to')?.value   || null,
-      });
-      UI.toast('Contratto generato', 'success');
+      const payload = {
+        client_id,
+        onboarding_id,
+        template_id: tid,
+        service_id:  service_ids.length > 0 ? service_ids[0] : null,
+        service_ids,
+        title:       $('w-title')?.value?.trim() || '',
+        valid_from:  $('w-valid-from')?.value || null,
+        valid_to:    $('w-valid-to')?.value   || null,
+      };
+      
+      if (editId) {
+        await API.Contracts.update(editId, payload);
+        UI.toast('Contratto aggiornato', 'success');
+      } else {
+        await API.Contracts.create(payload);
+        UI.toast('Contratto generato', 'success');
+      }
+      
       modal?.classList.remove('open');
       await load();
-    } catch (e) { UI.toast(e?.message || 'Errore generazione', 'error'); }
+    } catch (e) { UI.toast(e?.message || 'Errore salvataggio', 'error'); }
     finally { if (btn) btn.disabled = false; }
   });
+
 
   // ── Row actions ────────────────────────────────────────────────
   window.sendContract = async id => {
@@ -231,13 +403,116 @@
     try { await API.Contracts.update(id,{status:'archived'}); ALL=ALL.map(c=>c.id===id?{...c,status:'archived'}:c); updateKpis(); applyFilters(); UI.toast('Archiviato','success'); }
     catch(e) { UI.toast(e?.message||'Errore','error'); }
   };
-  window.downloadContract = async id => {
-    try { const d = await API.get(`/contracts/${id}/download-url`); if (d?.url) window.open(d.url,'_blank'); else UI.toast('PDF non disponibile','info'); }
-    catch(e) { UI.toast('Errore download','error'); }
+
+  window.editContract = async id => {
+    await openModal(id);
   };
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  window.deleteContract = async id => {
+    if (!confirm('Eliminare questa bozza di contratto? L\'operazione non è reversibile.')) return;
+    try {
+      await API.Contracts.remove(id);
+      ALL = ALL.filter(c => c.id !== id);
+      updateKpis(); applyFilters();
+      UI.toast('Bozza eliminata', 'success');
+    } catch(e) { UI.toast(e?.message || 'Errore eliminazione', 'error'); }
+  };
+
+  window.viewContract = async id => {
+    UI.toast('Generazione anteprima…', 'info');
+    try {
+      const c = await API.Contracts.compile(id);
+      const raw   = c?.compiled_content || c?.data?.compiled_content;
+      const title = c?.title || c?.data?.title || 'Contratto';
+      if (!raw) { UI.toast('Nessun template associato al contratto', 'warning'); return; }
+
+      // If content is plain text (no HTML tags), auto-structure it
+      const isHtml = /<[a-z][\s\S]*>/i.test(raw);
+      let body = raw;
+      if (!isHtml) {
+        // Split on numbered sections like "1. TITOLO" or "ARTICOLO 1 -"
+        body = raw
+          .replace(/\r\n/g, '\n')
+          // Article-level headings: "1. TITOLO" at start or after newline
+          .replace(/(^|\n)(\d+\.\s+[A-ZÀÈÌÒÙ][^\n]{0,80})/g, (m, pre, h) =>
+            `\n<h2 style="font-size:15px;font-family:Georgia,serif;text-transform:uppercase;border-bottom:1px solid #ddd;padding-bottom:4px;margin:28px 0 10px;">${h.trim()}</h2>\n`)
+          // Sub-section like "2.1" or "2.2"
+          .replace(/(^|\n)(\d+\.\d+\s+[A-ZÀÈÌÒÙ][^\n]{0,80})/g, (m, pre, h) =>
+            `\n<h3 style="font-size:13px;font-weight:700;margin:20px 0 6px;">${h.trim()}</h3>\n`)
+          // Convert remaining double newlines to paragraphs
+          .split(/\n{2,}/)
+          .map(p => p.trim() ? `<p style="margin:0 0 10px;text-align:justify;">${p.replace(/\n/g,' ')}</p>` : '')
+          .join('\n');
+      }
+
+      const html = `<!DOCTYPE html><html lang="it"><head><meta charset="utf-8">
+        <title>${title}</title>
+        <style>
+          *{box-sizing:border-box}
+          body{font-family:Georgia,serif;max-width:210mm;margin:0 auto;padding:20mm 20mm 20mm 20mm;font-size:11pt;line-height:1.7;color:#111;background:#fff}
+          h2{font-size:12pt;text-transform:uppercase;border-bottom:1px solid #ccc;padding-bottom:3px;margin:24pt 0 8pt}
+          h3{font-size:11pt;font-weight:700;margin:16pt 0 5pt}
+          p{margin:0 0 8pt;text-align:justify}
+          .cover{text-align:center;margin-bottom:30pt;padding:20pt 0;border-bottom:2pt solid #111}
+          .cover h1{font-size:16pt;text-transform:uppercase;letter-spacing:2px;margin:0 0 8pt}
+          .cover .subtitle{font-size:10pt;color:#555}
+          .no-print{position:fixed;top:16px;right:16px;display:flex;gap:8px;z-index:999}
+          @media print{.no-print{display:none}body{padding:15mm}@page{margin:15mm}}
+        </style></head>
+        <body>
+          <div class="no-print">
+            <button onclick="window.print()" style="padding:8px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.15)">🖨 Stampa / PDF</button>
+            <button onclick="window.close()" style="padding:8px 14px;background:#f1f5f9;color:#333;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕</button>
+          </div>
+          <div class="cover">
+            <h1>${title}</h1>
+            <div class="subtitle">Generato il ${new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}</div>
+          </div>
+          ${body}
+        </body></html>`;
+
+      const w = window.open('', '_blank', 'width=960,height=860');
+      if (w) { w.document.write(html); w.document.close(); }
+      else UI.toast('Abilita i popup del browser per visualizzare il contratto', 'warning');
+    } catch(e) { UI.toast(e?.message || 'Errore generazione anteprima', 'error'); }
+  };
+
+  window.downloadContract = id => window.viewContract(id);
+
+
+  window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');
-    load();
+
+    // ── Gestione link da preventivo accettato ─────────────────
+    const urlParams = new URLSearchParams(location.search);
+    const fromQuoteId  = urlParams.get('quote_id');
+    const fromClientId = urlParams.get('client_id');
+
+    if (fromQuoteId) {
+      // Apri direttamente il modal pre-compilato con i dati del preventivo
+      await load();
+      await openModal();
+
+      // Aggiungi hidden input per quote_id se non esiste
+      if (!$('w-quote-id') && modal) {
+        const inp = document.createElement('input');
+        inp.type = 'hidden'; inp.id = 'w-quote-id'; inp.value = fromQuoteId;
+        modal.querySelector('.modal-body')?.appendChild(inp);
+      }
+
+      // Pre-seleziona il cliente
+      if (fromClientId) {
+        const wc = $('w-client');
+        if (wc) { wc.value = fromClientId; }
+      }
+
+      // Banner informativo
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:10px 14px;font-size:13px;color:#5b21b6;margin-bottom:12px;';
+      banner.innerHTML = '📋 <strong>Contratto da preventivo accettato.</strong> Il preventivo viene collegato automaticamente al contratto.';
+      modal?.querySelector('.modal-body')?.prepend(banner);
+    } else {
+      load();
+    }
   });
 })();

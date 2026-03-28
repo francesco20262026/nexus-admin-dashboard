@@ -1,230 +1,284 @@
-/* admin_companies.js — Multi-tenant company management */
+/* admin_companies.js — Multi-tenant company management — Premium UI v2 */
 'use strict';
 (function () {
   Auth.guard('admin');
   Auth.initUI();
 
   let ALL = [];
-  let _editingId    = null;
-  let _intCompanyId = null;
-  let _activeIntTab = 'windoc';
+  let _editingId = null;
+  let currentFilter = 'all';
 
   const $ = id => document.getElementById(id);
 
-  // ── Safe API.Companies shim (backward compat with cached api.js) ──
-  function _co() {
-    if (API.Companies) return API.Companies;
-    return {
-      list:            ()               => API.get('/companies'),
-      create:          (body)           => API.post('/companies', body),
-      update:          (id, body)       => API.put(`/companies/${id}`, body),
-      remove:          (id)             => API.del(`/companies/${id}`),
-      integrations:    (id)             => API.get(`/companies/${id}/integrations`),
-      saveIntegration: (id, type, cfg)  => API.put(`/companies/${id}/integrations/${type}`, { config: cfg }),
-    };
+  async function apiList() {
+    // Handle both direct array and pagination wrapper {data:[...], total:N}
+    const res = await API.get('/companies');
+    if (Array.isArray(res)) return res;
+    if (res && Array.isArray(res.data)) return res.data;
+    if (res && Array.isArray(res.items)) return res.items;
+    return [];
   }
 
-  function switchIntTab(tab) {
-    _activeIntTab = tab;
-    $('int-tab-bar')?.querySelectorAll('[data-int-tab]').forEach(b =>
-      b.classList.toggle('active', b.dataset.intTab === tab)
-    );
-    const fw = $('int-form-windoc'); if (fw) fw.style.display = tab === 'windoc'    ? '' : 'none';
-    const fz = $('int-form-zoho');   if (fz) fz.style.display = tab === 'zoho_sign' ? '' : 'none';
+  async function apiCreate(body) { return API.post('/companies', body); }
+  async function apiUpdate(id, body) { return API.put(`/companies/${id}`, body); }
+
+  // ── Color palette for avatars ─────────────────────────────
+  const PALETTES = [
+    ['#6366f1','#4338ca'],
+    ['#8b5cf6','#6d28d9'],
+    ['#ec4899','#be185d'],
+    ['#f59e0b','#b45309'],
+    ['#10b981','#047857'],
+    ['#06b6d4','#0e7490'],
+    ['#3b82f6','#1d4ed8'],
+    ['#ef4444','#b91c1c'],
+  ];
+  function pal(name) {
+    const idx = [...(name||'?')].reduce((s,c)=>s+c.charCodeAt(0),0) % PALETTES.length;
+    return PALETTES[idx];
+  }
+  function initials(name) {
+    return (name||'?').split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
   }
 
   // ── Load ─────────────────────────────────────────────────
   async function load() {
     const list = $('comp-list');
     if (!list) return;
-    list.innerHTML = UI.skeletonCardList(3);
+    list.innerHTML = skeleton(4);
     try {
-      const res = await _co().list();
-      ALL = Array.isArray(res) ? res : [];
+      ALL = await apiList();
     } catch (e) {
-      ALL = [];
-      list.innerHTML = UI.errorState(e.message, 'window._reloadCompanies()');
+      list.innerHTML = `<div style="padding:40px 24px;text-align:center;color:var(--color-danger);font-size:14px;">
+        Errore: ${e?.message||'Caricamento fallito'} — <a href="#" onclick="window._reloadCompanies();return false">Riprova</a></div>`;
       return;
     }
     updateKpis();
     render();
   }
-
   window._reloadCompanies = load;
 
+  function skeleton(n) {
+    return Array(n).fill(0).map((_,i) => `
+      <div class="cx-row" style="pointer-events:none;opacity:${1-i*0.15};">
+        <div class="cx-logo skeleton"></div>
+        <div style="flex:1;min-width:0;">
+          <div class="skeleton" style="height:14px;width:${140+i*20}px;border-radius:6px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:12px;width:80px;border-radius:4px;"></div>
+        </div>
+        <div class="skeleton" style="height:22px;width:70px;border-radius:20px;"></div>
+      </div>`).join('');
+  }
+
   function updateKpis() {
-    const total  = ALL.length;
-    const windoc = ALL.filter(c => c.windoc_active).length;
-    const zoho   = ALL.filter(c => c.zoho_active).length;
-    const none   = ALL.filter(c => !c.windoc_active && !c.zoho_active).length;
-    const set = (id, v, m) => {
-      const el = $(id); if (el) el.textContent = v;
-      const em = $(id + '-meta'); if (em && m !== undefined) em.textContent = m;
-    };
-    set('kpi-comp-total',  total,  'Tenant registrati');
-    set('kpi-comp-windoc', windoc, 'Con firma digitale');
-    set('kpi-comp-zoho',   zoho,   'Con firma Zoho');
-    set('kpi-comp-none',   none,   'Da configurare');
+    const s=(id,v,m)=>{ const e=$(`kpi-comp-${id}`); if(e) e.textContent=v; const em=$(`kpi-comp-${id}-meta`); if(em&&m) em.textContent=m; };
+    s('total',  ALL.length,        'tenant registrati');
+    s('windoc', ALL.filter(c=>c.windoc_active).length, 'con Windoc attivo');
+    s('zoho',   ALL.filter(c=>c.zoho_active).length,   'con Zoho Sign');
+    s('email',  ALL.filter(c=>c.email_active).length,  'con Brevo Email');
   }
 
   function render() {
     const list = $('comp-list');
     if (!list) return;
-    if (!ALL.length) {
-      list.innerHTML = `<div class="list-card">${UI.createEmptyState(null, 'Nessuna azienda trovata. Crea la prima con il pulsante in alto.')}</div>`;
+    let filtered = ALL;
+    if (currentFilter === 'windoc') filtered = ALL.filter(c => c.windoc_active);
+    else if (currentFilter === 'zoho') filtered = ALL.filter(c => c.zoho_active);
+    else if (currentFilter === 'email') filtered = ALL.filter(c => c.email_active);
+
+    if (!filtered.length) {
+      list.innerHTML = `<div style="padding:48px 24px;text-align:center;">
+        <div style="font-size:40px;margin-bottom:12px;">🏢</div>
+        <div style="font-size:16px;font-weight:600;color:var(--gray-700);margin-bottom:6px;">Nessuna azienda</div>
+        <div style="font-size:13px;color:var(--gray-400);">Non ci sono aziende per questo filtro.</div>
+      </div>`;
       return;
     }
-    const activeId = API.getCompanyId();
-    list.innerHTML = ALL.map(c => {
-      const isActive   = c.id === activeId;
-      const initials   = (c.name || '?').split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('');
-      const safeName   = (c.name || '').replace(/'/g, "\\'");
-      const windocPill = c.windoc_active
-        ? `<span style="font-size:11px;font-weight:600;color:var(--color-success);background:#f0fdf4;padding:2px 8px;border-radius:20px;">Windoc ✓</span>`
-        : `<span style="font-size:11px;font-weight:600;color:var(--gray-400);background:var(--gray-100);padding:2px 8px;border-radius:20px;">Windoc —</span>`;
-      const zohoPill = c.zoho_active
-        ? `<span style="font-size:11px;font-weight:600;color:#0ea5e9;background:#f0f9ff;padding:2px 8px;border-radius:20px;">Zoho ✓</span>`
-        : `<span style="font-size:11px;font-weight:600;color:var(--gray-400);background:var(--gray-100);padding:2px 8px;border-radius:20px;">Zoho —</span>`;
-      return `<div class="list-card fade-in" data-id="${c.id}">
-        <div class="list-card-header">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div class="avatar" style="width:40px;height:40px;font-size:14px;flex-shrink:0;">${initials}</div>
-            <div>
-              <div class="list-card-title" style="margin:0;display:flex;align-items:center;gap:8px;">
-                ${c.name}
-                ${isActive ? '<span style="font-size:11px;color:var(--brand-600);font-weight:600;background:var(--brand-50,#eff6ff);padding:1px 6px;border-radius:10px;">Attiva</span>' : ''}
-              </div>
-              <div style="font-size:12px;color:var(--gray-500);margin-top:2px;">
-                slug: <code style="background:var(--gray-100);padding:1px 5px;border-radius:4px;font-size:11px;">${c.slug}</code>
-                &nbsp;·&nbsp; ${c.default_lang?.toUpperCase() || 'IT'}
-              </div>
-            </div>
+
+    const activeId = API.getCompanyId?.() || null;
+    list.innerHTML = filtered.map((c,i) => {
+      const [c1, c2] = pal(c.name);
+      const ini = initials(c.name);
+      const isEnabled = c.is_active !== false;
+      let avatarHtml = '';
+      if (c.logo_url) {
+        avatarHtml = `<div style="width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid var(--border);background:#fff;overflow:hidden;padding:4px;"><img src="${c.logo_url}" alt="${ini}" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.innerHTML='<div class=\\'avatar\\' style=\\'background:linear-gradient(135deg,${c1},${c2});width:100%;height:100%;font-size:13px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;border-radius:50%;margin:-4px;\\'>${ini}</div>'"></div>`;
+      } else {
+        avatarHtml = `<div class="avatar" style="background:linear-gradient(135deg,${c1},${c2});width:40px;height:40px;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;"><span style="font-weight:800;color:#fff;letter-spacing:-.5px;">${ini}</span></div>`;
+      }
+
+      const badges = [
+        c.windoc_active ? `<span class="cx-pill cx-pill-green">Windoc ✓</span>` : '',
+        c.zoho_active   ? `<span class="cx-pill cx-pill-blue">Zoho ✓</span>`    : '',
+        c.email_active  ? `<span class="cx-pill cx-pill-purple">Brevo ✓</span>` : '',
+      ].filter(Boolean).join('') || `<span class="cx-pill cx-pill-gray">Nessuna integrazione</span>`;
+
+      const disabledStyle = isEnabled ? '' : 'opacity:.5;';
+
+      return `<div class="cl-row fade-in" data-id="${c.id}" onclick="goDetail('${c.id}')" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s; cursor:pointer; ${disabledStyle}">
+        <!-- Colonna 1: Logo e Nome -->
+        <div class="cl-col" style="flex:2; min-width:0; display:flex; flex-direction:row; align-items:center; gap:12px;">
+          ${avatarHtml}
+          <div style="min-width:0;">
+            <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.name}</div>
+            <div class="cl-row-meta" style="font-size:12px; color:var(--gray-500); margin-top:2px;">🔗 ${c.slug||'—'}</div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">${windocPill}${zohoPill}</div>
         </div>
-        <div class="list-card-body" style="flex-wrap:wrap;">
-          <div class="list-card-meta">
-            <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
-            Creata: ${UI.date(c.created_at)}
-          </div>
-          <div class="row-actions" style="width:100%;justify-content:flex-end;margin-top:4px;">
-            <button class="btn btn-secondary btn-sm" onclick="openIntegrationsModal('${c.id}','${safeName}')">
-              <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-              Integrazioni
-            </button>
-            <button class="btn btn-ghost btn-sm" onclick="openCompanyModal('${c.id}','${safeName}','${c.slug}')">Rinomina</button>
-            ${!isActive ? `<button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="deleteCompany('${c.id}','${safeName}')">Elimina</button>` : ''}
-          </div>
+
+        <!-- Colonna 2: Integrazioni -->
+        <div class="cl-col" style="flex:2; min-width:0; display:flex; flex-direction:row; gap:6px; flex-wrap:wrap; align-items:center;">
+          ${badges}
+        </div>
+
+        <!-- Colonna 3: Stato -->
+        <div class="cl-col cl-col-actions" style="flex-shrink:0; display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
+          ${!isEnabled ? '<span class="tag-pill" style="color:var(--color-danger); border-color:var(--color-danger);">Disabilitata</span>' : '<span class="tag-pill" style="color:var(--color-success); border-color:var(--color-success);">Attiva</span>'}
         </div>
       </div>`;
     }).join('');
   }
 
-  // ── Company modal ─────────────────────────────────────────
-  window.openCompanyModal = function(id, name, slug) {
-    _editingId = id || null;
-    $('modal-comp-title').textContent = id ? 'Rinomina azienda' : 'Nuova azienda';
-    const nameEl = $('comp-name'); if (nameEl) nameEl.value = name || '';
-    const slugEl = $('comp-slug'); if (slugEl) slugEl.value = slug || '';
-    const sg = $('comp-slug-group'); if (sg) sg.style.display = id ? 'none' : '';
-    $('modal-company').classList.add('open');
-    setTimeout(() => $('comp-name')?.focus(), 100);
+  window.goDetail = id => { location.href = `admin_company_detail.html?id=${id}`; };
+
+  // ── openEditModal ──────────────────────────────────────────
+  window.openEditModal = function(id, name, slug, isEnabled) {
+    _editingId = id;
+    const nEl = $('edit-comp-name'); if (nEl) nEl.value = name || '';
+    const tog = $('edit-comp-enabled'); if (tog) tog.checked = isEnabled !== false;
+    $('modal-edit-company')?.classList.add('open');
+    setTimeout(() => $('edit-comp-name')?.focus(), 80);
   };
 
-  // ── Integrations modal ────────────────────────────────────
-  window.openIntegrationsModal = function(companyId, companyName) {
-    _intCompanyId = companyId;
-    const t = $('modal-int-title'); if (t) t.textContent = `Integrazioni — ${companyName}`;
-    ['int-windoc-token-app','int-windoc-token','int-zoho-client-id','int-zoho-client-secret','int-zoho-refresh-token']
-      .forEach(id => { const el = $(id); if (el) el.value = ''; });
-    switchIntTab('windoc');
-    $('modal-integrations').classList.add('open');
-  };
-
-  // ── Delete ────────────────────────────────────────────────
-  window.deleteCompany = async function(id, name) {
-    if (!confirm(`Eliminare l'azienda "${name}"?\n\nQuesta operazione è irreversibile.`)) return;
+  window.toggleActive = async function(id, currentlyEnabled) {
+    const newVal = !currentlyEnabled;
     try {
-      await _co().remove(id);
-      UI.toast('Azienda eliminata', 'info');
-      await load();
-    } catch(e) { UI.toast(e?.message || 'Errore eliminazione', 'error'); }
+      await API.patch(`/companies/${id}/set-active`, { is_active: newVal });
+      UI.toast(newVal ? 'Azienda abilitata' : 'Azienda disabilitata', 'success');
+      load();
+    } catch (e) { UI.toast(e?.message || 'Errore', 'error'); }
   };
 
-  // ── Init: everything DOM-dependent here ──────────────────
-  document.addEventListener('DOMContentLoaded', async () => {
+  let _pendingDeleteId   = null;
+  let _pendingDeleteName = null;
+
+  window.deleteCompany = function(id, name) {
+    _pendingDeleteId   = id;
+    _pendingDeleteName = name;
+    const modal = document.getElementById('modal-delete-company');
+    const nameEl = document.getElementById('del-company-name');
+    if (nameEl) nameEl.textContent = name;
+    if (modal) modal.classList.add('open');
+  };
+
+  window.openCompanyModal = function() {
+    _editingId = null;
+    const nEl=$('comp-name'); if(nEl) nEl.value='';
+    const sEl=$('comp-slug'); if(sEl) sEl.value='';
+    const sg=$('comp-slug-group'); if(sg) sg.style.display='';
+    $('modal-company')?.classList.add('open');
+    setTimeout(()=>$('comp-name')?.focus(),80);
+  };
+
+  window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');
 
-    // Page action buttons (rendered by HTML, wired here)
-    $('btn-refresh')?.addEventListener('click', load);
-    $('btn-new-company')?.addEventListener('click', () => openCompanyModal());
+    document.querySelectorAll('.cl-status-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cl-status-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.tab;
+        render();
+      });
+    });
 
-    // Inject page-actions HTML if the slot exists
+    // Inject action buttons
     const act = $('page-actions');
-    if (act && !$('btn-refresh')) {
+    if (act) {
       act.innerHTML = `
         <button class="btn btn-secondary" id="btn-refresh">
           <svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-          <span>Aggiorna</span>
+          Aggiorna
         </button>
         <button class="btn btn-primary" id="btn-new-company">
           <svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-          <span>Nuova azienda</span>
+          Nuova azienda
         </button>`;
-      $('btn-refresh').addEventListener('click', load);
+      $('btn-refresh').addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
       $('btn-new-company').addEventListener('click', () => openCompanyModal());
     }
-
-    $('int-tab-bar')?.querySelectorAll('[data-int-tab]').forEach(btn =>
-      btn.addEventListener('click', () => switchIntTab(btn.dataset.intTab))
-    );
 
     $('btn-save-company')?.addEventListener('click', async () => {
       const name = $('comp-name')?.value?.trim();
       const slug = $('comp-slug')?.value?.trim() || undefined;
       if (!name) { UI.toast('Il nome è obbligatorio', 'warning'); return; }
-      const btn = $('btn-save-company');
-      if (btn) btn.disabled = true;
+      const btn = $('btn-save-company'); if(btn) btn.disabled=true;
       try {
         if (_editingId) {
-          await _co().update(_editingId, { name });
+          await apiUpdate(_editingId, { name });
           UI.toast('Azienda rinominata', 'success');
         } else {
-          await _co().create({ name, slug });
+          await apiCreate({ name, slug });
           UI.toast('Azienda creata', 'success');
         }
-        $('modal-company').classList.remove('open');
+        $('modal-company')?.classList.remove('open');
         await load();
-      } catch(e) { UI.toast(e?.message || 'Errore', 'error'); }
-      finally { if (btn) btn.disabled = false; }
+      } catch(e) { UI.toast(e?.message||'Errore salvataggio', 'error'); }
+      finally { if(btn) btn.disabled=false; }
     });
-
-    $('btn-save-integration')?.addEventListener('click', async () => {
-      const btn = $('btn-save-integration');
-      if (btn) btn.disabled = true;
+    // ── Save edit (rename + toggle) ─────────────────────────
+    $('btn-save-edit-company')?.addEventListener('click', async () => {
+      if (!_editingId) return;
+      const name = $('edit-comp-name')?.value?.trim();
+      if (!name) { UI.toast('Il nome è obbligatorio', 'warning'); return; }
+      const enabled = $('edit-comp-enabled')?.checked !== false;
+      const btn = $('btn-save-edit-company'); if (btn) btn.disabled = true;
       try {
-        let cfg;
-        if (_activeIntTab === 'windoc') {
-          const tokenApp = $('int-windoc-token-app')?.value?.trim();
-          const token    = $('int-windoc-token')?.value?.trim();
-          if (!tokenApp || !token) { UI.toast('Token App e Token sono obbligatori', 'warning'); return; }
-          cfg = { token_app: tokenApp, token };
-        } else {
-          const clientId     = $('int-zoho-client-id')?.value?.trim();
-          const clientSecret = $('int-zoho-client-secret')?.value?.trim();
-          const refreshToken = $('int-zoho-refresh-token')?.value?.trim();
-          const domain       = $('int-zoho-domain')?.value || 'eu';
-          if (!clientId || !clientSecret || !refreshToken) { UI.toast('Tutti i campi Zoho sono obbligatori', 'warning'); return; }
-          cfg = { client_id: clientId, client_secret: clientSecret, refresh_token: refreshToken, domain };
-        }
-        await _co().saveIntegration(_intCompanyId, _activeIntTab, cfg);
-        UI.toast('Integrazione salvata', 'success');
-        $('modal-integrations').classList.remove('open');
+        await apiUpdate(_editingId, { name, is_active: enabled });
+        $('modal-edit-company')?.classList.remove('open');
+        UI.toast('Azienda aggiornata', 'success');
         await load();
       } catch(e) { UI.toast(e?.message || 'Errore salvataggio', 'error'); }
       finally { if (btn) btn.disabled = false; }
     });
+    $('edit-btn-delete')?.addEventListener('click', () => {
+      const name = $('edit-comp-name')?.value || '?';
+      $('modal-edit-company')?.classList.remove('open');
+      deleteCompany(_editingId, name);
+    });
+
+
+    // ── Delete confirm modal ────────────────────────────────
+    $('del-btn-cancel')?.addEventListener('click', () => {
+      $('modal-delete-company').classList.remove('open');
+      _pendingDeleteId = _pendingDeleteName = null;
+    });
+    $('del-btn-confirm')?.addEventListener('click', async () => {
+      if (!_pendingDeleteId) return;
+      const btn = $('del-btn-confirm');
+      if (btn) { btn.disabled = true; btn.textContent = 'Eliminazione…'; }
+      try {
+        await API.del(`/companies/${_pendingDeleteId}`);
+        $('modal-delete-company').classList.remove('open');
+        UI.toast(`"${_pendingDeleteName}" eliminata`, 'info');
+        _pendingDeleteId = _pendingDeleteName = null;
+        await load();
+      } catch (e) {
+        UI.toast(e?.message || 'Errore eliminazione', 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Elimina definitivamente'; }
+      }
+    });
+    // Close modal on backdrop click
+    $('modal-delete-company')?.addEventListener('click', (e) => {
+      if (e.target === $('modal-delete-company')) {
+        $('modal-delete-company').classList.remove('open');
+        _pendingDeleteId = _pendingDeleteName = null;
+      }
+    });
 
     await load();
   });
+
+  // Re-render when active company changes (company switcher in header)
+  window.addEventListener('nexusCompanyChanged', () => render());
 })();

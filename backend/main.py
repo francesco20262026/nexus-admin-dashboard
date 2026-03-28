@@ -22,8 +22,12 @@ from modules.dashboard.router  import router as dashboard_router
 from modules.settings.router   import router as settings_router
 from modules.payments.router   import router as payments_router
 from modules.onboarding.router  import router as onboarding_router
+from modules.quotes.router      import router as quotes_router
 from modules.users.router       import router as users_router
 from modules.companies.router   import router as companies_router
+from modules.activity.router    import client_router as activity_client_router
+from modules.activity.router    import onboarding_router as activity_onboarding_router
+from modules.activity.router    import global_router as activity_global_router
 from routers.health    import router as health_router
 from routers.jobs      import router as jobs_router
 from routers.webhooks  import router as webhooks_router
@@ -80,11 +84,12 @@ async def lifespan(app: FastAPI):
 
 # ── App ──────────────────────────────────────────────────────
 app = FastAPI(
-    title="Nexus CRM API",
+    title="Nova CRM API",
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     lifespan=lifespan,
+    debug=True,
 )
 
 # CORS — wildcard in development; restrict to known origins in production
@@ -110,8 +115,12 @@ app.include_router(dashboard_router, prefix="/api")
 app.include_router(settings_router,    prefix="/api")
 app.include_router(payments_router,    prefix="/api")
 app.include_router(onboarding_router,  prefix="/api")
+app.include_router(quotes_router,      prefix="/api")
 app.include_router(users_router,       prefix="/api")
 app.include_router(companies_router,   prefix="/api")
+app.include_router(activity_client_router,     prefix="/api")
+app.include_router(activity_onboarding_router, prefix="/api")
+app.include_router(activity_global_router,     prefix="/api")
 app.include_router(health_router,    prefix="/api")
 app.include_router(jobs_router,      prefix="/api")
 # Webhooks are NOT under /api — providers call the path directly

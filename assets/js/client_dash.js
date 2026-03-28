@@ -38,6 +38,53 @@
     set('dash-date', new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }));
   }
 
+  /* ── Quotes widget ───────────────────────────────────────────── */
+  async function loadQuotes() {
+    const quoteBody = get('dash-client-quotes');
+    if (quoteBody) quoteBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:20px;">Caricamento...</td></tr>`;
+
+    try {
+      // Assuming API.Quotes.list exists or we fallback to API.get('/quotes')
+      const req = API.Quotes ? API.Quotes.list({ status: 'sent' }) : API.get('/quotes?status=sent');
+      const res = await req;
+      const quotes = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
+
+      const pending = quotes.filter(q => q.status === 'sent');
+      const total = pending.reduce((s, q) => s + parseFloat(q.total || 0), 0);
+
+      set('chip-quotes', pending.length);
+      set('dash-quotes-subtitle', `${pending.length} preventiv${pending.length === 1 ? 'o' : 'i'} in attesa`);
+      set('dash-quotes-total', pending.length > 0 ? UI.currency(total) + ' da confermare' : '');
+
+      if (!quoteBody) return;
+      if (!pending.length) {
+        quoteBody.innerHTML = empty(3, 'Nessun preventivo in attesa. ✨');
+        return;
+      }
+
+      quoteBody.innerHTML = pending.slice(0, 3).map(q => {
+        const titleStr = 'Preventivo'; // or q.number if we had it
+        const dateStr  = safeDate(q.created_at, { day: '2-digit', month: 'short', year: 'numeric' });
+        const amtStr   = UI.currency(parseFloat(q.total || 0));
+
+        return `<tr>
+          <td>
+            <a href="client_quote_detail.html?id=${q.id}" class="link-brand" style="text-decoration:none;">
+              <div class="td-main">${titleStr} ${q.id.substring(0,6).toUpperCase()}</div>
+            </a>
+            ${dateStr ? `<div class="td-sub">Ricevuto ${dateStr}</div>` : ''}
+          </td>
+          <td><strong>${amtStr}</strong></td>
+          <td><span class="badge badge-warning">Da Valutare</span></td>
+        </tr>`;
+      }).join('');
+    } catch (e) {
+      console.error('[client_dash] loadQuotes error:', e);
+      set('chip-quotes', '0');
+      if (quoteBody) quoteBody.innerHTML = empty(3, 'Impossibile caricare i preventivi.');
+    }
+  }
+
   /* ── Invoices widget ─────────────────────────────────────────── */
   async function loadInvoices() {
     const invBody = get('dash-client-invoices');
@@ -256,10 +303,13 @@
     renderIdentity();
     // All widgets in parallel — one failing doesn't block the others
     Promise.allSettled([
+      loadQuotes(),
       loadInvoices(),
       loadContracts(),
       loadDocuments(),
       renderTimeline(),
+      // Silent first-login tracker — marks portal_first_login_at in onboarding DB
+      API.Onboarding?.markPortalLogin?.().catch(() => {}),
     ]);
   });
 

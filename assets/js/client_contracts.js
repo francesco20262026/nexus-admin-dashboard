@@ -165,11 +165,11 @@
         a.href = url; a.download = res?.name || 'contratto'; a.target = '_blank';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
       } else {
-        window.showToast?.('Download non ancora disponibile', 'info');
+        UI.toast('Download non ancora disponibile', 'info');
       }
     } catch (e) {
       console.error('[client_contracts] downloadContract error:', e);
-      window.showToast?.('Impossibile scaricare il contratto', 'error');
+      UI.toast('Impossibile scaricare il contratto', 'error');
     }
   };
 
@@ -180,12 +180,12 @@
       if (url) {
         window.open(url, '_blank');
       } else {
-        window.showToast?.('Il portale di firma non è ancora disponibile. Contatta il tuo account manager.', 'info');
+        UI.toast('Il portale di firma non è ancora disponibile. Contatta il tuo account manager.', 'info');
       }
     } catch (e) {
       console.error('[client_contracts] signContract error:', e);
       // Graceful fallback — do not crash or hang the page
-      window.showToast?.('Il portale di firma non è ancora disponibile. Contatta il tuo account manager.', 'info');
+      UI.toast('Il portale di firma non è ancora disponibile. Contatta il tuo account manager.', 'info');
     }
   };
 

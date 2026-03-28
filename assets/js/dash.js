@@ -48,14 +48,23 @@
   });
 
   /* ──────────────────────────────────────────────────────────
-     2. ACTIVE NAV ITEM
+     2. ACTIVE NAV ITEM  — set on page load by matching URL
   ────────────────────────────────────────────────────────── */
-  $$('.nav-item').forEach(item => {
-    on(item, 'click', () => {
-      $$('.nav-item').forEach(n => n.classList.remove('active'));
-      item.classList.add('active');
+  (function setActiveNavItem() {
+    // Extract just the filename from the current URL (e.g. "admin_calendar.html")
+    const currentFile = window.location.pathname.split('/').pop().split('?')[0] || 'admin_dash.html';
+
+    $$('.nav-item').forEach(item => {
+      const href = (item.getAttribute('href') || '').split('?')[0].split('/').pop();
+      // Exact match — avoids false positives like admin_calendar matching admin_clients
+      if (href && href === currentFile) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
     });
-  });
+  })();
+
 
   /* ──────────────────────────────────────────────────────────
      3. DROPDOWN MENUS
@@ -105,11 +114,7 @@
     on(btn, 'click', () => closeModal(btn.dataset.modalClose));
   });
 
-  $$('.modal-overlay').forEach(overlay => {
-    on(overlay, 'click', (e) => {
-      if (e.target === overlay) closeModal(overlay.id);
-    });
-  });
+
 
   on(document, 'keydown', (e) => {
     if (e.key === 'Escape') {
@@ -277,6 +282,15 @@
       'var(--warning-500)',
     ];
 
+    // ── Read default company from JWT (set at login)
+    let defaultCompanyId = localStorage.getItem('nexus_default_company_id');
+    if (!defaultCompanyId && window.Auth?.getPayload) {
+      const p = Auth.getPayload();
+      if (p?.active_company_id) {
+        defaultCompanyId = p.active_company_id;
+        localStorage.setItem('nexus_default_company_id', defaultCompanyId);
+      }
+    }
     // ── Read companies from login response stored in localStorage
     let companies = [];
     try {
@@ -292,27 +306,65 @@
       }
     }
 
-    // ── Restore current selection from storage ────────────────
-    const savedId    = localStorage.getItem('nexus_active_company_id');
-    const savedName  = localStorage.getItem('nexus_active_company_name') || savedId || '-';
+    // ── Auto-fix: if savedName looks like a UUID, replace with real name ──
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let savedId    = localStorage.getItem('nexus_active_company_id');
+    let savedName  = localStorage.getItem('nexus_active_company_name') || savedId || '-';
     const savedColor = localStorage.getItem('nexus_active_company_color') || PALETTE[0];
+    const savedLogo  = localStorage.getItem('nexus_active_company_logo');
+
+    // If savedName is a UUID, look up the real name from the companies list
+    if (UUID_RE.test(savedName) && companies.length > 0) {
+      const match = companies.find(c => c.company_id === savedName || c.company_id === savedId);
+      if (match) {
+        const realName = match.name || match.company_name || savedName;
+        localStorage.setItem('nexus_active_company_name', realName);
+        savedName = realName;
+        if (match.logo_url) localStorage.setItem('nexus_active_company_logo', match.logo_url);
+      } else {
+        // Use first available company name as fallback
+        const first = companies[0];
+        const realName = first.name || first.company_name || savedName;
+        localStorage.setItem('nexus_active_company_name', realName);
+        savedName = realName;
+      }
+    }
 
     if (companyLabel) companyLabel.textContent = savedName;
     if (dot) {
-      dot.style.background = savedColor;
-      dot.textContent = savedName[0]?.toUpperCase() || '?';
+      if (savedLogo || companies.find(c=>c.company_id===savedId)?.logo_url) {
+        const l = savedLogo || companies.find(c=>c.company_id===savedId)?.logo_url;
+        dot.innerHTML = `<img src="${l}" style="width:100%;height:100%;object-fit:contain;border-radius:2px;">`;
+        dot.style.background = 'transparent';
+        dot.style.border = 'none';
+      } else {
+        dot.innerHTML = '';
+        dot.style.background = savedColor;
+        dot.textContent = savedName[0]?.toUpperCase() || '?';
+        dot.style.border = '';
+      }
     }
 
     // ── Click handler shared by all company buttons ───────────
-    function selectCompany(companyId, name, color) {
+    function selectCompany(companyId, name, color, logoUrl) {
       if (companyLabel) companyLabel.textContent = name;
       if (dot) {
-        dot.style.background = color;
-        dot.textContent = name[0]?.toUpperCase() || '?';
+        if (logoUrl) {
+          dot.innerHTML = `<img src="${logoUrl}" style="width:100%;height:100%;object-fit:contain;border-radius:2px;">`;
+          dot.style.background = 'transparent';
+          dot.style.border = 'none';
+        } else {
+          dot.innerHTML = '';
+          dot.style.background = color;
+          dot.textContent = name[0]?.toUpperCase() || '?';
+          dot.style.border = '';
+        }
       }
 
       localStorage.setItem('nexus_active_company_name',  name);
       localStorage.setItem('nexus_active_company_color', color);
+      if (logoUrl) localStorage.setItem('nexus_active_company_logo', logoUrl);
+      else localStorage.removeItem('nexus_active_company_logo');
 
       if (companyId === '__all__') {
         // "Tutte" — clear active company filter, keep pages in read-all mode
@@ -322,10 +374,11 @@
         showToast('Visualizzazione: tutte le aziende', 'info');
       } else {
         if (window.Auth?.setActiveCompany) {
-          Auth.setActiveCompany(companyId);
+          Auth.setActiveCompany(companyId, name); // ← passa anche il nome
         } else {
           localStorage.setItem('nexus_active_company_id', companyId);
           localStorage.setItem('nexus_active_company',    companyId);
+          localStorage.setItem('nexus_active_company_name', name);
           window.dispatchEvent(new CustomEvent('companyChanged', { detail: companyId }));
         }
         const msg = window.I18n?.t('header.switch_company') || 'Azienda cambiata';
@@ -333,18 +386,53 @@
       }
     }
 
+    // ── Set default company ────────────────────────────────────
+    async function setDefaultCompany(companyId, name) {
+      try {
+        const res = await API.patch('/auth/me/default-company', { company_id: companyId });
+        defaultCompanyId = companyId;
+        localStorage.setItem('nexus_default_company_id', companyId);
+        // Refresh stars in the list
+        list.querySelectorAll('.default-star').forEach(s => {
+          s.textContent = s.dataset.cid === companyId ? '⭐' : '☆';
+          s.title = s.dataset.cid === companyId ? 'Azienda predefinita' : 'Imposta come predefinita';
+        });
+        showToast(`Azienda predefinita: ${name}`, 'success');
+      } catch(e) {
+        showToast('Errore impostazione predefinita', 'error');
+      }
+    }
+
     // ── Build item HTML helper ────────────────────────────────
-    function buildItem(companyId, name, color) {
+    function buildItem(companyId, name, color, logoUrl) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;align-items:center;gap:2px;';
+
       const btn = document.createElement('button');
       btn.className = 'dropdown-item';
-      btn.innerHTML = `
-        <span class="company-dot" style="background:${color};width:16px;height:16px;font-size:9px;flex-shrink:0;">
-          ${name[0]?.toUpperCase() || '?'}
-        </span>
-        <span>${name}</span>
-      `;
-      btn.addEventListener('click', () => selectCompany(companyId, name, color));
-      return btn;
+      btn.style.flex = '1';
+      btn.innerHTML = logoUrl
+        ? `<img src="${logoUrl}" style="width:16px;height:16px;object-fit:contain;border-radius:4px;flex-shrink:0;">
+           <span>${name}</span>`
+        : `<span class="company-dot" style="background:${color};width:16px;height:16px;font-size:9px;flex-shrink:0;">${name[0]?.toUpperCase() || '?'}</span>
+           <span>${name}</span>`;
+      btn.addEventListener('click', () => selectCompany(companyId, name, color, logoUrl));
+
+      if (companyId !== '__all__') {
+        const star = document.createElement('button');
+        star.className = 'default-star';
+        star.dataset.cid = companyId;
+        const isDefault = companyId === defaultCompanyId;
+        star.textContent = isDefault ? '⭐' : '☆';
+        star.title = isDefault ? 'Azienda predefinita' : 'Imposta come predefinita';
+        star.style.cssText = 'background:none;border:none;cursor:pointer;font-size:14px;padding:4px 6px;opacity:0.8;flex-shrink:0;';
+        star.addEventListener('click', (e) => { e.stopPropagation(); setDefaultCompany(companyId, name); });
+        wrap.appendChild(btn);
+        wrap.appendChild(star);
+      } else {
+        wrap.appendChild(btn);
+      }
+      return wrap;
     }
 
     // ── Render ────────────────────────────────────────────────
@@ -362,8 +450,71 @@
       companies.forEach((c, i) => {
         const name  = c.name || c.company_name || c.company_id || `Azienda ${i + 1}`;
         const color = PALETTE[i % PALETTE.length];
-        list.appendChild(buildItem(c.company_id, name, color));
+        list.appendChild(buildItem(c.company_id, name, color, c.logo_url));
       });
+    }
+
+    // ── Refresh da API: aggiorna la UI con i nomi reali ──
+    // Skip if already fetched within the last 5 minutes (avoids re-fetch on every navigation).
+    const COMPANIES_TTL = 5 * 60 * 1000;
+    const lastFetch = parseInt(localStorage.getItem('nexus_companies_fetched_at') || '0');
+    if (window.API?.Companies?.list && (Date.now() - lastFetch >= COMPANIES_TTL)) {
+      API.Companies.list().then(apiCompanies => {
+        if (!Array.isArray(apiCompanies) || apiCompanies.length === 0) return;
+        localStorage.setItem('nexus_companies_fetched_at', String(Date.now()));
+
+        // Salva la lista normalizzata per il company-switcher
+        const normalized = apiCompanies.map(c => ({
+          company_id: c.id,
+          name: c.name || c.id,
+          logo_url: c.logo_url
+        }));
+        localStorage.setItem('nexus_companies', JSON.stringify(normalized));
+
+        // Ricostruisci il dropdown con i dati aggiornati
+        list.innerHTML = '';
+        list.appendChild(buildItem('__all__', 'Tutte le aziende', 'var(--gray-400)'));
+        apiCompanies.forEach((c, i) => {
+          const name  = c.name || c.id;
+          const color = PALETTE[i % PALETTE.length];
+          list.appendChild(buildItem(c.id, name, color, c.logo_url));
+        });
+
+        // Aggiorna il label e il dot con il nome reale —
+        // usa il nome dall'API solo se NON vuoto, altrimenti legge da localStorage
+        const currentId = localStorage.getItem('nexus_active_company_id');
+        if (currentId) {
+          const match = apiCompanies.find(c => c.id === currentId);
+          // Usa name dall'API, ma solo se è un valore non-UUID
+          const apiName = match?.name;
+          const UUID_RE2 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          const resolvedLabel = (apiName && !UUID_RE2.test(apiName))
+            ? apiName
+            : (localStorage.getItem('nexus_active_company_name') || apiName || currentId);
+          if (companyLabel && resolvedLabel) {
+            // Aggiorna localStorage solo se abbiamo un nome vero
+            if (apiName && !UUID_RE2.test(apiName)) {
+              localStorage.setItem('nexus_active_company_name', apiName);
+            }
+            if (match?.logo_url) {
+              localStorage.setItem('nexus_active_company_logo', match.logo_url);
+            }
+            companyLabel.textContent = resolvedLabel;
+            if (dot) {
+               if (match?.logo_url) {
+                  dot.innerHTML = `<img src="${match.logo_url}" style="width:100%;height:100%;object-fit:contain;border-radius:2px;">`;
+                  dot.style.background = 'transparent';
+                  dot.style.border = 'none';
+               } else {
+                  dot.innerHTML = '';
+                  dot.textContent = resolvedLabel[0]?.toUpperCase() || '?';
+                  dot.style.background = localStorage.getItem('nexus_active_company_color') || PALETTE[0];
+                  dot.style.border = '';
+               }
+            }
+          }
+        }
+      }).catch(() => {}); // non-fatal
     }
   })();
 

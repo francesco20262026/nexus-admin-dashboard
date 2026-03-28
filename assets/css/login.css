@@ -6,8 +6,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --brand:   #0a5c36;
-  --brand-d: #084c2c;
+  --brand:   #0a9669;
+  --brand-d: #088558;
   --brand-50:#e6efeb;
   --teal:    #20b2aa;
   --gray-50: #f8f9fb;
@@ -133,7 +133,7 @@ body {
 .role-tab.selected {
   border-color:var(--brand);
   background:var(--brand-50);
-  box-shadow:0 0 0 3px rgba(10,92,54,.08);
+  box-shadow:0 0 0 3px rgba(10,150,105,.08);
 }
 .role-tab-icon {
   width:44px; height:44px; border-radius:12px;
@@ -159,7 +159,7 @@ body {
   outline:none; transition:border-color var(--trans), box-shadow var(--trans);
 }
 .field input:focus {
-  border-color:var(--brand); box-shadow:0 0 0 3px rgba(10,92,54,.08);
+  border-color:var(--brand); box-shadow:0 0 0 3px rgba(10,150,105,.08);
 }
 
 .field-pw { position:relative; }
@@ -191,7 +191,7 @@ body {
   cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
   transition:background var(--trans), box-shadow var(--trans), transform var(--trans);
 }
-.btn-login:hover { background:var(--brand-d); box-shadow:0 4px 14px rgba(10,92,54,.35); transform:translateY(-1px); }
+.btn-login:hover { background:var(--brand-d); box-shadow:0 4px 14px rgba(10,150,105,.35); transform:translateY(-1px); }
 .btn-login:active { transform:translateY(0); }
 .btn-login svg { width:18px; height:18px; }
 
@@ -228,4 +228,12 @@ body {
   body { grid-template-columns:1fr; }
   .left-panel { display:none; }
   .right-panel { padding:32px 20px; }
+}
+
+/* ---- Nova CRM sidebar logo ---- */
+.sidebar-brand-logo {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+  display: block;
 }

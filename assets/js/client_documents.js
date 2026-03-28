@@ -159,11 +159,11 @@
         // Fallback: try generic download-url endpoint
         const data = await API.get(`/documents/${id}/download-url`);
         if (data?.url) window.open(data.url, '_blank');
-        else window.showToast?.('Download non disponibile', 'info');
+        else UI.toast('Download non disponibile', 'info');
       }
     } catch (e) {
       console.error('[client_documents] downloadDoc error:', e);
-      window.showToast?.('Impossibile scaricare il documento', 'error');
+      UI.toast('Impossibile scaricare il documento', 'error');
     }
   };
 
@@ -176,12 +176,12 @@
       } else if (res?.sign_url) {
         window.open(res.sign_url, '_blank');
       } else {
-        window.showToast?.('Il portale di firma non è ancora disponibile. Contatta il tuo account manager.', 'info');
+        UI.toast('Il portale di firma non è ancora disponibile. Contatta il tuo account manager.', 'info');
       }
     } catch (e) {
       console.error('[client_documents] signDoc error:', e);
       // If endpoint doesn't exist yet, show graceful fallback — do not crash
-      window.showToast?.('Il portale di firma non è ancora disponibile. Contatta il tuo account manager.', 'info');
+      UI.toast('Il portale di firma non è ancora disponibile. Contatta il tuo account manager.', 'info');
     }
   };
 

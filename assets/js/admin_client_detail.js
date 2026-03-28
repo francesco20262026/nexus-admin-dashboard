@@ -22,18 +22,58 @@
 
   let CLIENT = null;
 
-  /* ── Tabs ───────────────────────────────────────────────────── */
-  const tabButtons = document.querySelectorAll('.detail-tab');
-  const panels     = document.querySelectorAll('.detail-panel');
+  /* ── View Toggles (Panoramica vs Timeline) ──────────────────── */
+  window.switchMainView = function (viewId) {
+    $('btn-view-pan')?.classList.toggle('active', viewId === 'panoramica');
+    $('btn-view-time')?.classList.toggle('active', viewId === 'timeline');
+    
+    $('view-panoramica')?.classList.toggle('active', viewId === 'panoramica');
+    $('view-timeline')?.classList.toggle('active', viewId === 'timeline');
 
-  function activateTab(name) {
-    tabButtons.forEach(b => b.classList.toggle('active', b.dataset.panel === name));
-    panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+    // Sidebar Elenco Correlato
+    const sidebarList = $('elenco-correlato');
+    if (sidebarList) {
+      if (viewId === 'panoramica') {
+        sidebarList.style.opacity = '1';
+        sidebarList.style.pointerEvents = 'auto';
+      } else {
+        sidebarList.style.opacity = '0.4';
+        sidebarList.style.pointerEvents = 'none';
+      }
+    }
+
+    // Lazy load the timeline only when requested
+    if (viewId === 'timeline' && !loaded['storico']) {
+      loadStorico();
+      loaded['storico'] = true;
+    }
+  };
+
+  /* ── ScrollSpy for Elenco Correlato ─────────────────────────── */
+  function initScrollSpy() {
+    const sections = document.querySelectorAll('.z-card[id^="card-"]');
+    const navItems = document.querySelectorAll('.z-nav-item[href^="#card-"]');
+    
+    if (!sections.length || !navItems.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      let activeSection = null;
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+          activeSection = entry.target.id;
+        }
+      });
+
+      if (activeSection) {
+        navItems.forEach(item => {
+          if (item.getAttribute('href') === '#' + activeSection) item.classList.add('active');
+          else item.classList.remove('active');
+        });
+      }
+    }, { root: null, rootMargin: '-10% 0px -70% 0px', threshold: [0.1, 0.5, 1.0] });
+
+    sections.forEach(sec => observer.observe(sec));
   }
-
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => activateTab(btn.dataset.panel));
-  });
 
   /* ── Deep-link quick links from list page ────────────────────── */
   function updateDeepLinks() {
@@ -42,6 +82,10 @@
     const ec   = $('cd-link-contracts'); if (ec)  ec.href = `admin_contracts.html?client_id=${safe}`;
     const ed   = $('cd-link-docs');      if (ed)  ed.href = `admin_documents.html?client_id=${safe}`;
     const er   = $('cd-link-renewals');  if (er)  er.href = `admin_renewals.html?client_id=${safe}`;
+    // Quick-create links with client pre-selected
+    const eq   = $('cd-link-new-quote');   if (eq)  eq.href = `admin_quotes.html?new=1&client_id=${safe}`;
+    const einv = $('cd-link-new-invoice'); if (einv) einv.href = `admin_invoices.html?new=1&client_id=${safe}`;
+    const epro = $('cd-link-new-proforma');if (epro) epro.href = `admin_invoices.html?new=1&type=proforma&client_id=${safe}`;
   }
 
   /* ── Load main client ────────────────────────────────────────── */
@@ -58,41 +102,233 @@
     }
   }
 
-  /* ── Header ─────────────────────────────────────────────────── */
+  /* ── Header ──────────────────────────────────────────────── */
+  function _initials(str) {
+    if (!str) return '?';
+    const words = str.trim().split(/\s+/);
+    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+    return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+  }
+
   function renderHeader() {
     const c = CLIENT;
-    $('cd-title').textContent        = c.name || 0;
-    $('cd-subtitle').textContent     = c.email || '';
-    $('cd-status-pill').innerHTML    = UI.pill(c.status);
-    document.title                   = `${c.name} — Nexus Admin`;
+    // Name and title
+    $('cd-title').textContent     = c.company_name || c.name || '—';
+    $('cd-subtitle').textContent  = c.email || '';
+    $('cd-status-pill').innerHTML = UI.pill(c.status);
+    document.title               = `${c.company_name || c.name} — Nexus Admin`;
+
+    // Initials avatar
+    const av = $('pc-avatar');
+    if (av) {
+      av.textContent = _initials(c.company_name || c.name);
+    }
+
+    // Quick-info sidebar rows
+    const infoList = $('cd-anag-list');
+    if (infoList) {
+      const row = (icon, label, val, mono = false) => !val ? '' : `
+        <div class="profile-info-row">
+          <div class="profile-info-lbl">${icon} ${label}</div>
+          <div class="profile-info-val" style="${mono ? 'font-family:monospace;font-size:12px;' : ''}">${val}</div>
+        </div>`;
+
+      const createdStr = c.created_at
+        ? new Date(c.created_at).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' })
+        : null;
+
+      infoList.innerHTML = [
+        row('📧', 'Email',       c.email),
+        row('📞', 'Telefono',    c.phone),
+        row('📍', 'Città',       c.city),
+        row('🏢', 'Rag. Sociale', c.company_name && c.name && c.company_name !== c.name ? c.company_name : null),
+        row('💳', 'P.IVA',       c.vat_number, true),
+        row('📅', 'Cliente dal', createdStr),
+      ].filter(Boolean).join('');
+    }
   }
 
   /* ── ① Anagrafica ───────────────────────────────────────────── */
+  const STATUS_LABELS = {
+    prospect:   { label: 'Prospect',   color: '#7c3aed', bg: '#f3e8ff' },
+    pre_active: { label: 'Pre-attivo', color: '#d97706', bg: '#fef3c7' },
+    active:     { label: 'Attivo',     color: '#059669', bg: '#d1fae5' },
+    suspended:  { label: 'Sospeso',    color: '#dc2626', bg: '#fee2e2' },
+    ceased:     { label: 'Cessato',    color: '#6b7280', bg: '#f3f4f6' },
+  };
+
+  function statusBadge(s) {
+    const cfg = STATUS_LABELS[s] || { label: s || '—', color: '#6b7280', bg: '#f3f4f6' };
+    return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;
+      color:${cfg.color};background:${cfg.bg};padding:3px 10px;border-radius:20px;">
+      <span style="width:6px;height:6px;border-radius:50%;background:${cfg.color};flex-shrink:0;"></span>
+      ${cfg.label}</span>`;
+  }
+
+  let _editingAnag = false;
+
   function renderAnagrafica() {
     const c = CLIENT;
-    const fields = [
-      { label: I18n.t('cl.f_name')    || 'Ragione sociale',  val: c.name },
-      { label: I18n.t('cl.f_vat')     || 'Partita IVA',      val: c.vat_number || c.fiscal_code },
-      { label: I18n.t('cl.f_sdi')     || 'Codice SDI',       val: c.dest_code  || c.sdi_code },
-      { label: I18n.t('cl.f_sector')  || 'Settore',          val: c.sector },
-      { label: I18n.t('cl.f_pec')     || 'PEC',              val: c.pec },
-      { label: I18n.t('cl.f_address') || 'Indirizzo',        val: [c.address, c.city].filter(Boolean).join(', ') },
-      { label: I18n.t('cl.created_at') || 'Creato il',       val: c.created_at ? UI.date(c.created_at) : 0 },
-      { label: I18n.t('cl.status')    || 'Stato',            val: c.status },
-    ];
+    if (_editingAnag) { renderAnagForm(); return; }
 
-    $('cd-anag-grid').innerHTML = `
-      <div class="info-grid">
-        ${fields.map(f => `
-          <div class="info-field">
-            <div class="info-label">${f.label}</div>
-            <div class="info-val">${f.val || 0}</div>
-          </div>`).join('')}
-        ${c.notes ? `<div class="info-field" style="grid-column:1/-1;">
-          <div class="info-label">${I18n.t('cl.f_notes') || 'Note'}</div>
-          <div class="info-val" style="white-space:pre-wrap;">${c.notes}</div>
+    const grid = $('cd-anag-grid') || $('cd-anag-list');
+    if (!grid) return;
+    grid.innerHTML = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; align-items: start;">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Stato lifecycle</div>
+          <div>${statusBadge(c.status)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Ragione sociale</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.company_name || '—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Nome contatto</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.name || '—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Email</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.email || '—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Telefono</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.phone || '—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Partita IVA</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.vat_number || '—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">PEC</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.pec || '—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Codice SDI</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.dest_code || '—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">IBAN</div>
+          <div style="font-family:monospace;font-size:14px;font-weight:500;color:var(--gray-900);">${c.iban || '—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Indirizzo</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${[c.address, c.city].filter(Boolean).join(', ') || '—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Lingua</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${(c.lang || 'it').toUpperCase()}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Creato il</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-900);">${c.created_at ? UI.date(c.created_at) : '—'}</div>
+        </div>
+        ${c.notes ? `<div style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1;margin-top:8px;padding-top:16px;border-top:1px dashed var(--border);">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Note</div>
+          <div style="font-size:14px;line-height:1.5;color:var(--gray-800);white-space:pre-wrap;">${c.notes}</div>
         </div>` : ''}
       </div>`;
+  }
+
+  function renderAnagForm() {
+    const c = CLIENT;
+    const statusOpts = Object.entries(STATUS_LABELS).map(([v, cfg]) =>
+      `<option value="${v}" ${c.status===v?'selected':''}>${cfg.label}</option>`).join('');
+
+    const grid = $('cd-anag-grid') || $('cd-anag-list');
+    if (!grid) return;
+    grid.innerHTML = `
+      <div class="form-grid" style="gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Stato lifecycle</label>
+          <select class="form-input" id="anag-status">${statusOpts}</select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ragione sociale</label>
+          <input class="form-input" id="anag-company-name" type="text" value="${c.company_name||''}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nome contatto *</label>
+          <input class="form-input" id="anag-name" type="text" value="${c.name||''}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" id="anag-email" type="email" value="${c.email||''}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telefono</label>
+          <input class="form-input" id="anag-phone" type="tel" value="${c.phone||''}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Partita IVA</label>
+          <input class="form-input" id="anag-vat" type="text" value="${c.vat_number||''}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">PEC</label>
+          <input class="form-input" id="anag-pec" type="email" value="${c.pec||''}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Codice SDI</label>
+          <input class="form-input" id="anag-sdi" type="text" value="${c.dest_code||''}" maxlength="7"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">IBAN</label>
+          <input class="form-input" id="anag-iban" type="text" value="${c.iban||''}" placeholder="IT60X0542811101000000123456"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Indirizzo</label>
+          <input class="form-input" id="anag-address" type="text" value="${c.address||''}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Città</label>
+          <input class="form-input" id="anag-city" type="text" value="${c.city||''}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lingua</label>
+          <select class="form-input" id="anag-lang">
+            <option value="it" ${c.lang==='it'?'selected':''}>Italiano</option>
+            <option value="en" ${c.lang==='en'?'selected':''}>English</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Note</label>
+          <textarea class="form-input" id="anag-notes" rows="3">${c.notes||''}</textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn btn-primary" id="anag-save-btn">💾 Salva</button>
+        <button class="btn btn-ghost" id="anag-cancel-btn">Annulla</button>
+      </div>`;
+
+    $('anag-cancel-btn').onclick = () => { _editingAnag = false; renderAnagrafica(); };
+    $('anag-save-btn').onclick   = async () => {
+      const name = $('anag-name')?.value?.trim();
+      if (!name) { UI.toast('Nome obbligatorio', 'warning'); return; }
+      const payload = {
+        name,
+        company_name: $('anag-company-name')?.value?.trim() || null,
+        email:   $('anag-email')?.value?.trim() || null,
+        phone:   $('anag-phone')?.value?.trim() || null,
+        vat_number: $('anag-vat')?.value?.trim() || null,
+        pec:     $('anag-pec')?.value?.trim() || null,
+        dest_code: $('anag-sdi')?.value?.trim() || null,
+        iban:    $('anag-iban')?.value?.trim() || null,
+        address: $('anag-address')?.value?.trim() || null,
+        city:    $('anag-city')?.value?.trim() || null,
+        lang:    $('anag-lang')?.value || 'it',
+        status:  $('anag-status')?.value || 'prospect',
+        notes:   $('anag-notes')?.value?.trim() || null,
+      };
+      // Remove null values
+      Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
+      try {
+        CLIENT = await API.Clients.update(clientId, payload);
+        _editingAnag = false;
+        renderHeader();
+        renderAnagrafica();
+        UI.toast('Anagrafica aggiornata', 'success');
+      } catch (e) { UI.toast(e?.message || 'Errore', 'error'); }
+    };
   }
 
   /* ── ② Contacts ─────────────────────────────────────────────── */
@@ -132,6 +368,8 @@
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
       const chip = $('chip-services');
       if (chip) chip.textContent = data.length;
+      const kpi = $('chip-services-kpi');
+      if (kpi) kpi.textContent = data.length;
       if (!data.length) {
         el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('cl.no_services') || 'Nessun servizio attivo.')}</div>`;
         return;
@@ -163,6 +401,8 @@
       const active = data.filter(c => ['active','signed'].includes(c.status)).length;
       const chip = $('chip-contracts');
       if (chip) chip.textContent = active;
+      const kpi = $('chip-contracts-kpi');
+      if (kpi) kpi.textContent = active;
       if (!data.length) {
         el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('cl.no_contracts') || 'Nessun contratto.')}</div>`;
         return;
@@ -214,6 +454,36 @@
     }
   }
 
+  /* ── ⑤.1 Quotes (Preventivi) ────────────────────────────────── */
+  async function loadQuotes() {
+    const el = $('cd-quotes-list');
+    if (!el) return;
+    el.innerHTML = UI.skeletonCardList(2);
+    try {
+      const res  = await API.Clients.quotes(clientId);
+      const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
+      const chip = $('chip-quotes');
+      if (chip) chip.textContent = data.length;
+      if (!data.length) {
+        el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('cl.no_quotes') || 'Nessun preventivo.')}</div>`;
+        return;
+      }
+      el.innerHTML = data.map(q => `
+        <div class="list-card">
+          <div class="list-card-header">
+            <div class="list-card-title">${q.title || q.quote_number || q.number || 'Preventivo'}</div>
+            ${UI.pill(q.status)}
+          </div>
+          <div class="list-card-body">
+            <div class="list-card-meta" style="font-weight:700;color:var(--gray-900);">${UI.currency(q.total_amount || q.total || 0, q.currency)}</div>
+            <div class="list-card-meta">${I18n.t('cl.created_at') || 'Creato'}: ${UI.date(q.created_at)}</div>
+          </div>
+        </div>`).join('');
+    } catch {
+      el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('error.generic') || 'Errore.')}</div>`;
+    }
+  }
+
   /* ── ⑥ Invoices ─────────────────────────────────────────────── */
   async function loadInvoices() {
     const el = $('cd-invoices-list');
@@ -225,6 +495,8 @@
       const open = data.filter(i => !['paid','cancelled'].includes(i.status)).length;
       const chip = $('chip-invoices');
       if (chip) chip.textContent = open;
+      const kpi = $('chip-invoices-kpi');
+      if (kpi) kpi.textContent = open;
       if (!data.length) {
         el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('cl.no_invoices') || 'Nessuna fattura.')}</div>`;
         return;
@@ -256,6 +528,8 @@
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
       const chip = $('chip-renewals');
       if (chip) chip.textContent = data.length;
+      const kpi = $('chip-renewals-kpi');
+      if (kpi) kpi.textContent = data.length;
       if (!data.length) {
         el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('cl.no_renewals') || 'Nessun rinnovo.')}</div>`;
         return;
@@ -291,8 +565,8 @@
       if (!info && CLIENT) {
         info = {
           windoc_id:       CLIENT.windoc_id,
-          windoc_status:   CLIENT.windoc_sync_status,
-          windoc_last_sent: CLIENT.windoc_last_sent,
+          windoc_status:   CLIENT.windoc_sync_at ? 'synced' : 'not_configured',
+          windoc_last_sent: CLIENT.windoc_sync_at,
         };
       }
 
@@ -312,7 +586,7 @@
         <div class="info-grid" style="gap:16px;margin-bottom:20px;">
           <div class="info-field">
             <div class="info-label">${I18n.t('cl.windoc_id') || 'Windoc ID'}</div>
-            <div class="info-val" style="font-family:monospace;font-size:13px;">${windocId || 0}</div>
+            <div class="info-val" style="font-family:monospace;font-size:13px;">${windocId || '—'}</div>
           </div>
           <div class="info-field">
             <div class="info-label">${I18n.t('cl.windoc_status_label') || 'Stato sync'}</div>
@@ -320,7 +594,7 @@
           </div>
           <div class="info-field">
             <div class="info-label">${I18n.t('cl.windoc_last_sent') || 'Ultimo invio'}</div>
-            <div class="info-val">${lastSent ? UI.date(lastSent) : 0}</div>
+            <div class="info-val">${lastSent ? UI.date(lastSent) : '—'}</div>
           </div>
           <div class="info-field">
             <div class="info-label">${I18n.t('cl.windoc_anag') || 'Sync anagrafica'}</div>
@@ -356,6 +630,38 @@
     }
   }
 
+  /* ── ⑨ Storico Attività ──────────────────────────────────────── */
+  async function loadStorico() {
+    if (window.ActivityTimeline) {
+      await ActivityTimeline.init({
+        entityType:  'client',
+        entityId:    clientId,
+        containerId: 'timeline-feed-container',
+      });
+    } else {
+      console.warn('[Storico] ActivityTimeline not loaded');
+      const fc = $('timeline-feed-container');
+      if (fc) fc.innerHTML = '<p style="color:red;font-size:13px;">Impossibile isolare la timeline. Componente mancante.</p>';
+    }
+  }
+
+  /* ── Timeline Note Compose ──────────────────────────────────── */
+  window.saveTimelineNote = async () => {
+    const input = $('timeline-note-body');
+    const content = input?.value.trim();
+    if (!content) return;
+    try {
+       await window.API.post(`/clients/${clientId}/notes`, { content });
+       window.UI.toast('Aggiornamento registrato', 'success');
+       input.value = '';
+       // Ricarica sia le note di base che la timeline se è già attiva
+       loadNotes();
+       if (loaded['storico']) loadStorico();
+    } catch(e) {
+       window.UI.toast(e.message || 'Errore salvataggio nota', 'error');
+    }
+  };
+
   /* ── Windoc action buttons ──────────────────────────────────── */
   $('cd-btn-windoc-sync')?.addEventListener('click', async () => {
     try {
@@ -372,13 +678,8 @@
   });
 
   $('cd-btn-windoc-verify')?.addEventListener('click', async () => {
-    try {
-      UI.toast(I18n.t('cl.windoc_verifying') || 'Verifica in corso…', 'info');
-      const res = await API.post(`/clients/${clientId}/verify-windoc`);
-      UI.toast(res?.ok ? (I18n.t('cl.windoc_ok') || 'Connessione ok') : (I18n.t('cl.windoc_error') || 'Errore'), res?.ok ? 'success' : 'error');
-    } catch (e) {
-      UI.toast(e?.message || I18n.t('error.generic'), 'error');
-    }
+    // /verify-windoc non è implementato nel backend — usa sync-windoc per aggiornare
+    UI.toast(I18n.t('cl.windoc_use_sync') || 'Usa il pulsante Sincronizza per aggiornare i dati Windoc.', 'info');
   });
 
   /* ── Add Service Modal ──────────────────────────────────────── */
@@ -429,58 +730,133 @@
 
   /* ── Edit button (top header) ───────────────────────────────── */
   $('cd-btn-edit')?.addEventListener('click', () => {
-    UI.toast(I18n.t('common.coming_soon') || 'Modifica cliente — in arrivo', 'info');
+    _editingAnag = true;
+    activateTab('anagrafica');
+    renderAnagForm();
   });
   $('cd-btn-edit-anag')?.addEventListener('click', () => {
-    UI.toast(I18n.t('common.coming_soon') || 'Modifica anagrafica — in arrivo', 'info');
+    _editingAnag = true;
+    renderAnagForm();
   });
 
-  /* ── Lazy load tabs on click ────────────────────────────────── */
-  const loaded = {};
-  const tabLoaders = {
-    anagrafica: () => null,  // already loaded with client
-    contacts:   loadContacts,
-    services:   loadServices,
-    contracts:  loadContracts,
-    documents:  loadDocuments,
-    invoices:   loadInvoices,
-    renewals:   loadRenewals,
-    windoc:     loadWindoc,
+  /* ── Notes ──────────────────────────────────────────────────── */
+  async function loadNotes() {
+    const list = $('notes-list-container');
+    if (!list) return;
+    list.innerHTML = '<p style="color:var(--gray-400);font-size:13px;">Caricamento note...</p>';
+    try {
+      const notes = await API.get(`/clients/${clientId}/notes`); 
+      if (!notes || notes.length === 0) {
+        list.innerHTML = '<p style="color:var(--gray-500);font-size:13px;font-style:italic;">Nessuna nota presente.</p>';
+        return;
+      }
+      
+      list.innerHTML = notes.map(n => `
+        <div class="list-card" style="margin-bottom:12px;padding:16px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:12px;color:var(--gray-500);font-weight:600;">${n.created_by_name || 'Autore sconosciuto'}</div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="font-size:11px;color:var(--gray-400);">${UI.date(n.created_at)}</div>
+              ${CLIENT && window.User && (window.User.is_admin || false) ? `<button class="btn btn-ghost btn-xs text-danger" onclick="deleteNote('${n.id}')">Elimina</button>` : ''}
+            </div>
+          </div>
+          <div style="font-size:14px;color:var(--gray-800);white-space:pre-wrap;line-height:1.5;">${n.content}</div>
+        </div>
+      `).join('');
+    } catch (e) {
+      console.error('Failed to load notes', e);
+      list.innerHTML = '<p style="color:var(--danger);font-size:13px;">Errore nel caricamento delle note.</p>';
+    }
+  }
+
+  window.saveNote = async () => {
+    const input = $('note-input');
+    const content = input?.value.trim();
+    if (!content) return;
+    
+    document.getElementById('note-save-btn').disabled = true;
+    try {
+       await API.post(`/clients/${clientId}/notes`, { content });
+       UI.toast('Nota salvata', 'success');
+       input.value = '';
+       loadNotes();
+    } catch(e) {
+       console.error('Failed to save note', e);
+       UI.toast(e.message || 'Errore salvataggio nota', 'error');
+    } finally {
+       document.getElementById('note-save-btn').disabled = false;
+    }
   };
 
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const panel = btn.dataset.panel;
-      if (!loaded[panel] && tabLoaders[panel]) {
-        tabLoaders[panel]();
-        loaded[panel] = true;
-      }
-    });
-  });
+  window.deleteNote = async (noteId) => {
+    if(!confirm('Vuoi davvero eliminare questa nota?')) return;
+    try {
+      await API.del(`/clients/${clientId}/notes/${noteId}`);
+      UI.toast('Nota eliminata', 'success');
+      loadNotes();
+    } catch(e) {
+       console.error('Failed to delete note', e);
+       UI.toast('Errore eliminazione nota', 'error');
+    }
+  };
+
 
   /* ── Company switch ─────────────────────────────────────────── */
   window.addEventListener('nexusCompanyChanged', () => {
     location.href = 'admin_clients.html';
   });
 
+  /* ── Delete Client Danger Zone ──────────────────────────────── */
+  window.deleteClientFromDetail = async () => {
+    if (!confirm(I18n.t('cl.confirm_delete') || 'Eliminare definitivamente questo cliente?\nL\'operazione è IRREVERSIBILE e rimuoverà anche i contatti collegati.')) return;
+    try {
+      window.UI.toast('Eliminazione in corso...', 'info');
+      await window.API.Clients.remove(clientId);
+      window.UI.toast(I18n.t('cl.deleted_ok') || 'Cliente eliminato con successo', 'success');
+      setTimeout(() => { location.href = 'admin_clients.html'; }, 1000);
+    } catch (e) {
+      console.error(e);
+      window.UI.toast(I18n.t('error.generic') || 'Errore durante l\'eliminazione', 'error');
+    }
+  };
+
   /* ── Init ───────────────────────────────────────────────────── */
-  document.addEventListener('DOMContentLoaded', async () => {
+  const loaded = {};
+
+  window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');
     await loadClient();
+    
+    // Smooth scrolling bindings per sidebar sidebar anchor clicks
+    document.querySelectorAll('.z-nav-item').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href').substring(1);
+        const targetSection = document.getElementById(targetId);
+        if (targetSection) {
+          // Add a slight offset below the fixed header
+          const offset = 80;
+          const rect = targetSection.getBoundingClientRect();
+          const top = rect.top + window.scrollY - offset;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+        }
+      });
+    });
 
-    // Open tab from URL param & preload it
-    if (openTab && tabLoaders[openTab]) {
-      activateTab(openTab);
-      tabLoaders[openTab]();
-      loaded[openTab] = true;
-    } else {
-      // Preload all data for chips without rendering UI
-      loadServices();  loaded['services']  = true;
-      loadContracts(); loaded['contracts'] = true;
-      loadInvoices();  loaded['invoices']  = true;
-      loadDocuments(); loaded['documents'] = true;
-      loadRenewals();  loaded['renewals']  = true;
-    }
+    // Run scrolling spy
+    initScrollSpy();
+
+    // Load EVERYTHING immediately in the background since they are stacked sequentially
+    setTimeout(() => { loadContacts();  loaded['contacts']  = true; }, 50);
+    setTimeout(() => { loadNotes();     loaded['notes']     = true; }, 100);
+    setTimeout(() => { loadServices();  loaded['services']  = true; }, 150);
+    setTimeout(() => { loadContracts(); loaded['contracts'] = true; }, 200);
+    setTimeout(() => { loadQuotes();    loaded['quotes']    = true; }, 250);
+    setTimeout(() => { loadInvoices();  loaded['invoices']  = true; }, 300);
+    setTimeout(() => { loadDocuments(); loaded['documents'] = true; }, 350);
+
+    // Timeline will lazy load when view is switched via switchMainView()
   });
 
 })();
+

@@ -1,0 +1,48 @@
+0 - "GET /api/services/catalog?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&active_only=true HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/users?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/onboarding/d8dc9787-05e3-4c77-8027-66fb3229201a HTTP/1.1" 200 OK
+
+-----
+
+WeasyPrint could not import some external libraries. Please carefully follow the installation steps before reporting an issue:
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#troubleshooting 
+
+-----
+
+INFO:     109.233.83.25:0 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/companies HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "OPTIONS /api/dashboard/revenue-chart?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&months=6 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "OPTIONS /api/dashboard/kpi?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "OPTIONS /api/dashboard/recent-activity?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=8 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "OPTIONS /api/contracts/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=sent&limit=3 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "OPTIONS /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=overdue&limit=3 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/onboarding/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "OPTIONS /api/renewals/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&expiring_days=15&limit=3 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "OPTIONS /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=5 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "OPTIONS /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=unpaid&limit=5 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/companies HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/contracts/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=sent&limit=3 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=overdue&limit=3 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/dashboard/recent-activity?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=8 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/dashboard/kpi?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/dashboard/revenue-chart?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&months=6 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=5 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=unpaid&limit=5 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/renewals/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&expiring_days=15&limit=3 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/companies HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/onboarding/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/services/catalog?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&active_only=true HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/users?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/companies HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "OPTIONS /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/companies HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/onboarding/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/services/catalog?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&active_only=true HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/users?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
+INFO:     109.233.83.25:0 - "GET /api/onboarding/d8dc9787-05e3-4c77-8027-66fb3229201a HTTP/1.1" 200 OK
