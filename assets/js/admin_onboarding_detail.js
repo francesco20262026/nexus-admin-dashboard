@@ -25,7 +25,7 @@
 
   /* ── Tab Routing (SPA) ────────────────────────────────────────── */
   window.switchMainView = function (viewId) {
-    // Hide all tabs
+    // Hide all tab sections
     document.querySelectorAll('.mac-tab-section').forEach(el => {
       el.style.display = 'none';
       el.classList.remove('active');
@@ -38,10 +38,10 @@
       target.classList.add('active');
     }
 
-    // Update Sidebar Navigation state
-    document.querySelectorAll('.mac-sidebar .mac-nav-item').forEach(el => el.classList.remove('active'));
-    const activeNav = document.getElementById('tab-' + viewId);
-    if (activeNav) activeNav.classList.add('active');
+    // Update horizontal tab bar active state
+    document.querySelectorAll('.detail-tab').forEach(el => el.classList.remove('active'));
+    const activeTab = document.getElementById('tab-' + viewId);
+    if (activeTab) activeTab.classList.add('active');
 
     // Lazy load the timeline only when requested
     if (viewId === 'timeline' && !loaded['storico']) {
@@ -49,6 +49,7 @@
       loaded['storico'] = true;
     }
   };
+
 
   /* ── Deep-link quick links from list page ────────────────────── */
   function updateDeepLinks() {
@@ -97,9 +98,7 @@
   function renderPipeline() {
     const r = ONBOARDING;
     if (!r) return;
-    const container = document.getElementById('onb-pipeline-req-container');
-    if (!container) return;
-    
+
     const STATES = ['new','quote_draft','quote_sent','quote_accepted','contract_draft','contract_sent','contract_signed','proforma_draft','proforma_issued','payment_under_review'];
     const SLBL   = { new:'Nuova', quote_draft:'Prev. Bozza', quote_sent:'Prev. Inviato', quote_accepted:'Prev. Acc.', contract_draft:'Contr. Bozza', contract_sent:'Contr. Inv.', contract_signed:'Contr. Firmato', proforma_draft:'Proforma Bozza', proforma_issued:'Proforma Emessa', payment_under_review:'Fatturazione' };
 
@@ -117,44 +116,43 @@
     ];
 
     const pipelineHtml = r.status === 'cancelled'
-      ? `<div style="display:flex;align-items:center;gap:10px;padding:16px;background:#fff5f5;border:1px solid #fecaca;border-radius:10px;color:#dc2626;font-weight:600;font-size:14px;">
-           <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      ? `<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;background:#fff5f5;border:1px solid #fecaca;border-radius:10px;color:#dc2626;font-weight:600;font-size:13px;width:100%;">
+           <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
            Pratica annullata
          </div>`
-      : `<div class="mac-pipeline-wrap">
-           <div class="mac-pipeline-track">
-             <div class="mac-pipeline-track-bg"></div>
-             <div class="mac-pipeline-progress" style="width:${progressPct}%;"></div>
+      : `<div class="mac-pipeline-wrap" style="width:100%; font-size:10px; margin:0;">
+           <div style="font-size:9px;font-weight:700;letter-spacing:0.5px;color:#64748b;text-transform:uppercase;margin-bottom:8px;">Flusso di Lavoro</div>
+           <div class="mac-pipeline-track" style="margin-top:0;">
+             <div class="mac-pipeline-line" style="top:10px;"></div>
+             <div class="mac-pipeline-progress" style="top:10px; height:2px; background:#3b82f6; position:absolute; left:30px; z-index:0; width:${progressPct}%;"></div>
              ${STATES.map((s,i) => {
                const cls = i < idx ? 'done' : i === idx ? 'active' : '';
-               return `<div class="mac-pipeline-step ${cls}">
-                 <div class="mac-pipeline-dot"></div>
-                 <div class="mac-pipeline-label">${SLBL[s] || s}</div>
+               return `<div class="mac-pipeline-step ${cls}" onclick="changePipelineStatus('${s}')" style="cursor:pointer;" title="Imposta come ${SLBL[s]||s}">
+                 <div class="mac-pipeline-dot" style="width:20px; height:20px; border-width:3px;"></div>
+                 <div class="mac-pipeline-label" style="font-size:9px; margin-top:4px; text-align:center;">${SLBL[s] || s}</div>
                </div>`;
              }).join('')}
            </div>
          </div>`;
 
     const reqHtml = `
-      <div style="display:flex; align-items:center; gap:16px; padding:10px 16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; margin-top:20px; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling: touch;">
-        <div style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:12px; color:#64748b; padding-right:16px; border-right:1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em;">
-          <svg style="width:14px;height:14px;color:#94a3b8;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
-          Requisiti Proforma
+      <div style="display:flex; align-items:center; gap:8px; font-size:11px;">
+        <div style="font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; padding-right:8px; border-right:1px solid #e2e8f0; display:flex; align-items:center; gap:4px;">
+           <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
+           Requisiti Proforma
         </div>
-        <div style="display:flex; align-items:center; gap:20px;">
-          ${pFields.map(f => {
-            if (f.val) return `<div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:#3b82f6;"><svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg> ${f.label}</div>`;
-            return `<div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:500; color:#94a3b8;"><svg style="width:14px;height:14px;color:#f87171;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> ${f.label}</div>`;
-          }).join('')}
-        </div>
+        ${pFields.map(f => {
+          if (f.val) return `<div style="display:flex; align-items:center; gap:2px; font-weight:600; color:#10b981; background:#d1fae5; padding:2px 6px; border-radius:12px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg> ${f.label}</div>`;
+          return `<div style="display:flex; align-items:center; gap:2px; font-weight:600; color:#f97316; background:#ffedd5; padding:2px 6px; border-radius:12px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> ${f.label}</div>`;
+        }).join('')}
       </div>
     `;
 
-    container.innerHTML = `<div class="mac-section" style="padding-top:0;padding-bottom:16px;">
-      <div style="margin-bottom:16px;font-size:13.5px;font-weight:600;letter-spacing:-0.2px;">Flusso di Lavoro</div>
-      ${pipelineHtml}
-      ${reqHtml}
-    </div><div class="mac-divider" style="margin:0 0 32px;"></div>`;
+    const pipeContainer = document.getElementById('onb-pipeline-header-container');
+    if (pipeContainer) pipeContainer.innerHTML = pipelineHtml;
+
+    const reqContainer = document.getElementById('onb-req-inline-container');
+    if (reqContainer) reqContainer.innerHTML = reqHtml;
   }
 
   function renderHeader() {
@@ -174,21 +172,20 @@
     const subEl = $('cd-subtitle');
 
     if (titleEl) {
-      // Clear and rebuild to avoid mess
       titleEl.innerHTML = `<div style="font-size:16px; line-height:1.2; margin-bottom:4px;">${displayName}</div>`;
-      
+    }
+
+    // Status pill visible container -> Now used for Fornitrice and Servizio
+    const statusPillVisible = $('cd-status-pill-visible');
+    if (statusPillVisible) {
       let badgesHtml = '';
       if (fornitriceName) {
-        badgesHtml += `<div class="mac-status-pill-complete" style="font-size:10px; padding:2px 8px; margin-top:4px; display:inline-flex;">Fornitrice: ${fornitriceName}</div> `;
+        badgesHtml += `<div style="font-size:12px; color:#64748b; margin-top:2px;">Fornitrice: ${fornitriceName}</div>`;
       }
-      // Add service badge if it's different from the display name
       if (c.service_name && c.service_name !== displayName) {
-        badgesHtml += `<div class="mac-status-pill-complete" style="font-size:10px; padding:2px 8px; margin-top:4px; display:inline-flex; background:#f0f9ff; color:#0369a1; border-color:#bae6fd;">Servizio: ${c.service_name}</div>`;
+        badgesHtml += `<div style="font-size:12px; color:#64748b; margin-top:2px;">Servizio: ${c.service_name}</div>`;
       }
-      
-      if (badgesHtml) {
-        titleEl.innerHTML += `<div style="display:flex; flex-direction:column; align-items:flex-start; gap:2px;">${badgesHtml}</div>`;
-      }
+      statusPillVisible.innerHTML = badgesHtml;
     }
 
     if (subEl) {
@@ -210,10 +207,6 @@
     // Mac topbar title
     const topbarLabel = $('mac-topbar-label');
     if (topbarLabel) topbarLabel.textContent = displayName;
-
-    // Status pill in sidebar (visible)
-    const statusPillVisible = $('cd-status-pill-visible');
-    if (statusPillVisible) statusPillVisible.innerHTML = statusBadge(c.status);
 
     // Sidebar subtitle
     if (subEl && c.email) {
@@ -272,181 +265,189 @@
       ${cfg.label}</span>`;
   }
 
+  window.changePipelineStatus = async (newStatus) => {
+    if (ONBOARDING.status === newStatus) return;
+    const label = STATUS_LABELS[newStatus] ? STATUS_LABELS[newStatus].label : newStatus;
+    if (!confirm(`Spostare la pratica allo stato "${label}"?`)) return;
+    try {
+      UI.toast('Aggiornamento stato...', 'info');
+      ONBOARDING = await API.Onboarding.update(onboardingId, { status: newStatus });
+      UI.toast('Stato aggiornato', 'success');
+      renderHeader();
+      renderAnagrafica();
+      renderPipeline();
+    } catch (e) {
+      UI.toast(e.message || 'Errore', 'error');
+    }
+  };
+
   let _editingAnag = false;
 
   function renderAnagrafica() {
     const c = ONBOARDING;
-    if (_editingAnag) { renderAnagForm(); return; }
-
     const grid = $('cd-anag-grid') || $('cd-anag-list');
     if (!grid) return;
 
-    const f = (label, val, cls = '') => `
-      <div class="mac-form-row">
-        <div class="mac-form-label">${label}</div>
-        <div class="mac-form-value ${cls}">${val || ''}</div>
+    const f = (label, val, fieldId, type = "text") => {
+      let display;
+      if (_editingAnag) {
+          if (type === 'textarea') {
+              display = `<textarea class="mac-flat-input" id="${fieldId}" rows="3" style="width:100%; font-size:13px; padding:6px; min-height:60px; margin:0; resize:vertical;">${val || ''}</textarea>`;
+          } else if (type === 'lang') {
+              display = `<select class="mac-flat-input" id="${fieldId}" style="width:100%; font-size:13px; padding:4px 8px; margin:0; height:32px;">
+                 <option value="it" ${val==='it'?'selected':''}>Italiano</option>
+                 <option value="en" ${val==='en'?'selected':''}>English</option>
+              </select>`;
+          } else {
+              display = `<input class="mac-flat-input" id="${fieldId}" type="${type}" value="${(val||'').replace(/"/g, '&quot;')}" style="width:100%; font-size:13px; padding:4px 8px; margin:0; height:32px;"/>`;
+          }
+      } else {
+          // Read-only
+          if (type === 'textarea') {
+              display = val ? `<div style="white-space:pre-wrap; line-height:1.5;">${val}</div>` : `<span class="empty">—</span>`;
+          } else {
+              const link = type === 'email' && val ? `mailto:${val}` : type === 'tel' && val ? `tel:${val}` : null;
+              display = val ? (link ? `<a href="${link}">${val}</a>` : val) : `<span class="empty">—</span>`;
+          }
+          if (type === 'lang' && val) display = val.toUpperCase();
+      }
+      return `
+        <div class="detail-field">
+          <div class="detail-field-label">${label}</div>
+          <div class="detail-field-value" style="display:flex; align-items:center;">${display}</div>
+        </div>`;
+    };
+
+    const editToggle = `
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase;">Modifica</span>
+        <label class="mac-switch" title="Abilita/Disabilita Modifica">
+          <input type="checkbox" id="anag-edit-toggle" ${_editingAnag ? 'checked' : ''}>
+          <span class="mac-slider"></span>
+        </label>
       </div>`;
 
-    const editPencil = `<button class="btn-action-icon" id="cd-btn-edit-anag" title="Modifica" style="width:28px;height:28px;background:white;border:1px solid #e5e7eb;border-radius:6px;color:#3b82f6;margin-left:auto;"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"></path></svg></button>`;
-
     grid.innerHTML = `
-      <div class="mac-section-title" style="margin-top:0;">
-        <span>Dati Anagrafici</span>
-        ${editPencil}
-      </div>
-      <div class="mac-form-list">
-        ${f('Stato Lifecycle', statusBadge(c.status))}
-        ${f('Ragione sociale / Lead', c.company_name ? `<strong>${c.company_name}</strong>` : (c.lead_name ? `<strong>${c.lead_name}</strong>` : null))}
-        ${f('Nome referente', c.lead_name)}
-        ${f('Email', c.email ? `<a href="mailto:${c.email}">${c.email}</a>` : null)}
-        ${f('Telefono', c.phone ? `<a href="tel:${c.phone}">${c.phone}</a>` : null)}
-        ${f('Lingua', (c.lang || 'it').toUpperCase())}
-        ${f('Servizio richiesto', c.service_name || '')}
+      <!-- Section header -->
+      <div class="detail-section-header" style="flex-wrap: wrap; gap: 16px;">
+        <div class="detail-section-label" style="flex:1;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <span>Dati Anagrafici</span>
+            <div id="onb-req-inline-container"></div>
+          </div>
+        </div>
+        ${editToggle}
       </div>
 
-      <div class="mac-section-title" style="margin-top:24px;"><span>Indirizzo e Fatturazione</span></div>
-      <div class="mac-form-list">
-        ${f('Via / Indirizzo', c.address)}
-        ${f('Città', c.city)}
-        ${f('CAP', c.cap, 'mono')}
-        ${f('Provincia', c.prov, 'mono')}
-        ${f('Partita IVA', c.vat_number, 'mono')}
-        ${f('Codice Fiscale', c.cf, 'mono')}
-        ${f('Codice SDI', c.sdi, 'mono')}
-        ${f('PEC', c.pec)}
-      </div>
-
-      ${c.notes ? `<div class="mac-section-title" style="margin-top:24px;"><span>Note interne</span></div>
-      <div class="mac-form-list">
-        <div style="font-size:14.5px;line-height:1.6;color:#86868b;white-space:pre-wrap;padding:12px 16px;">${c.notes}</div>
-      </div>` : ''}`;
-
-    const pencilBtn = $('cd-btn-edit-anag');
-    if (pencilBtn) pencilBtn.onclick = () => { _editingAnag = true; renderAnagrafica(); };
-  }
-
-  function renderAnagForm() {
-    const c = ONBOARDING;
-    const statusOpts = Object.entries(STATUS_LABELS).map(([v, cfg]) =>
-      `<option value="${v}" ${c.status===v?'selected':''}>${cfg.label}</option>`).join('');
-
-    const grid = $('cd-anag-grid') || $('cd-anag-list');
-    if (!grid) return;
-    const sec = (title) => `<div class="zf-section-hd" style="margin-top:20px;margin-bottom:8px;padding-top:16px;border-top:1px solid #f1f5f9;"><div class="zf-section-title">${title}</div></div>`;
-
-    grid.innerHTML = `
-      <div class="mac-form-actions-header">
-        <div class="mac-form-title">Modifica Anagrafica</div>
-        <div class="mac-form-actions">
-          <button id="anag-cancel-btn-top" class="mac-btn-text text-cancel" style="color:#6b7280; font-weight:500;">Annulla</button>
-          <button id="anag-save-btn" class="btn btn-primary" style="padding:6px 14px; border-radius:6px; font-size:12px;">Salva</button>
+      <div class="detail-section-body">
+        <div class="detail-field-grid">
+          ${f('Ragione Sociale / Lead', c.company_name || c.lead_name, 'anag-company-name', 'text')}
+          ${f('Nome Referente', c.lead_name, 'anag-lead-name', 'text')}
+          ${f('Email', c.email, 'anag-email', 'email')}
+          ${f('Telefono', c.phone, 'anag-phone', 'tel')}
+          ${f('Lingua', c.lang, 'anag-lang', 'lang')}
+          ${_editingAnag ? '' : f('Servizio Richiesto', c.service_name, 'anag-service', 'text')}
         </div>
       </div>
 
-      <div class="mac-form-section-title" style="margin-top:20px;">Stato & Lifecycle</div>
-      <div class="mac-flat-list">
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">Stato</label>
-          <select class="mac-flat-input" id="anag-status">${statusOpts}</select>
+      <!-- Indirizzo & Fatturazione -->
+      <div class="detail-section-header" style="border-top:1px solid #f1f5f9;">
+        <div class="detail-section-label">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+          Indirizzo &amp; Fatturazione
+        </div>
+      </div>
+      <div class="detail-section-body">
+        <div class="detail-field-grid">
+          ${f('Indirizzo', c.address, 'anag-address', 'text')}
+          ${f('Città', c.city, 'anag-city', 'text')}
+          ${f('Partita IVA', c.vat_number, 'anag-vat', 'text')}
+          ${f('IBAN', c.iban, 'anag-iban', 'text')}
+          ${f('PEC', c.pec, 'anag-pec', 'email')}
+          ${f('Codice SDI', c.dest_code || c.sdi, 'anag-sdi', 'text')}
         </div>
       </div>
 
-      <div class="mac-form-section-title">Informazioni Aziendali</div>
-      <div class="mac-flat-list">
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">Ragione Sociale</label>
-          <input class="mac-flat-input" id="anag-company-name" type="text" value="${c.company_name||''}" placeholder="Inserisci ragione sociale..."/>
-        </div>
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">Referente</label>
-          <input class="mac-flat-input" id="anag-lead-name" type="text" value="${c.lead_name||''}" placeholder="Nome contatto principale..."/>
-        </div>
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">Email</label>
-          <input class="mac-flat-input" id="anag-email" type="email" value="${c.email||''}" placeholder="es. email@dominio.it"/>
-        </div>
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">Telefono</label>
-          <input class="mac-flat-input" id="anag-phone" type="tel" value="${c.phone||''}" placeholder="+39 ..."/>
-        </div>
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">Lingua</label>
-          <select class="mac-flat-input" id="anag-lang">
-            <option value="it" ${c.lang==='it'?'selected':''}>Italiano</option>
-            <option value="en" ${c.lang==='en'?'selected':''}>English</option>
-          </select>
+      <div class="detail-section-header" style="border-top:1px solid #f1f5f9;">
+        <div class="detail-section-label">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>
+          Note Interne
         </div>
       </div>
-
-      <div class="mac-form-section-title">Dati Fiscali & Fatturazione</div>
-      <div class="mac-flat-list">
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">Indirizzo Sede</label>
-          <input class="mac-flat-input" id="anag-address" type="text" value="${c.address||''}" placeholder="Via/Piazza, CAP..."/>
-        </div>
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">Città</label>
-          <input class="mac-flat-input" id="anag-city" type="text" value="${c.city||''}" placeholder="Città (Provincia)"/>
-        </div>
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">Partita IVA</label>
-          <input class="mac-flat-input" id="anag-vat" type="text" value="${c.vat_number||''}" placeholder="Partita IVA / C.F."/>
-        </div>
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">IBAN</label>
-          <input class="mac-flat-input" id="anag-iban" type="text" value="${c.iban||''}" placeholder="IT..."/>
-        </div>
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">PEC</label>
-          <input class="mac-flat-input" id="anag-pec" type="email" value="${c.pec||''}" placeholder="Indirizzo PEC"/>
-        </div>
-        <div class="mac-flat-row">
-          <label class="mac-flat-label">Codice SDI</label>
-          <input class="mac-flat-input" id="anag-sdi" type="text" value="${c.dest_code||''}" maxlength="7" placeholder="es. M5UXCR1"/>
-        </div>
-      </div>
-
-      <div class="mac-form-section-title">Note Interne</div>
-      <div class="mac-flat-list">
-        <div class="mac-flat-row" style="align-items:flex-start;">
-          <textarea class="mac-flat-input" id="anag-notes" rows="4" style="min-height:80px; resize:vertical;" placeholder="Aggiungi una nota...">${c.notes||''}</textarea>
-        </div>
+      <div class="detail-section-body">
+        ${f('Note', c.notes, 'anag-notes', 'textarea')}
       </div>
     `;
 
+    const pFields = [
+      { val: c.company_name || c.lead_name, label: 'Ragione Sociale' },
+      { val: c.email, label: 'Email' },
+      { val: c.address, label: 'Indirizzo' },
+      { val: c.city, label: 'Città' },
+      { val: c.vat_number, label: 'Partita IVA' }
+    ];
+    const missingCount = pFields.filter(f => !f.val).length;
+    const btnProforma = $('cd-link-new-proforma');
+    if (btnProforma) {
+      if (missingCount === 0) {
+        btnProforma.disabled = false;
+        btnProforma.style.opacity = '1';
+        btnProforma.style.cursor = 'pointer';
+        btnProforma.title = '';
+      } else {
+        btnProforma.disabled = true;
+        btnProforma.style.opacity = '0.5';
+        btnProforma.style.cursor = 'not-allowed';
+        btnProforma.title = 'Completa tutti i requisiti (Dati Anagrafici e Indirizzo) per sbloccare';
+      }
+    }
 
-
-    const _cancelAnag = () => { _editingAnag = false; renderAnagrafica(); };
-    $('anag-cancel-btn-top').onclick = _cancelAnag;
-    $('anag-save-btn').onclick   = async () => {
-      const name = $('anag-lead-name')?.value?.trim() || null;
-      const payload = {
-        lead_name: name,
-        company_name: $('anag-company-name')?.value?.trim() || null,
-        email:   $('anag-email')?.value?.trim() || null,
-        phone:   $('anag-phone')?.value?.trim() || null,
-        vat_number: $('anag-vat')?.value?.trim() || null,
-        pec:     $('anag-pec')?.value?.trim() || null,
-        dest_code: $('anag-sdi')?.value?.trim() || null,
-        iban:    $('anag-iban')?.value?.trim() || null,
-        address: $('anag-address')?.value?.trim() || null,
-        city:    $('anag-city')?.value?.trim() || null,
-        lang:    $('anag-lang')?.value || 'it',
-        status:  $('anag-status')?.value || 'prospect',
-        notes:   $('anag-notes')?.value?.trim() || null,
+    const toggle = $('anag-edit-toggle');
+    if (toggle) {
+      toggle.onchange = async (e) => {
+        if (e.target.checked) {
+          _editingAnag = true;
+          renderAnagrafica();
+        } else {
+          // Time to save!
+          const payload = {
+            lead_name: $('anag-lead-name')?.value?.trim() || null,
+            company_name: $('anag-company-name')?.value?.trim() || null,
+            email:   $('anag-email')?.value?.trim() || null,
+            phone:   $('anag-phone')?.value?.trim() || null,
+            vat_number: $('anag-vat')?.value?.trim() || null,
+            pec:     $('anag-pec')?.value?.trim() || null,
+            dest_code: $('anag-sdi')?.value?.trim() || null,
+            iban:    $('anag-iban')?.value?.trim() || null,
+            address: $('anag-address')?.value?.trim() || null,
+            city:    $('anag-city')?.value?.trim() || null,
+            lang:    $('anag-lang')?.value || 'it',
+            notes:   $('anag-notes')?.value?.trim() || null,
+          };
+          Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
+          
+          try {
+            toggle.disabled = true;
+            UI.toast('Salvataggio in corso...', 'info');
+            ONBOARDING = await API.Onboarding.update(onboardingId, payload);
+            UI.toast('Anagrafica aggiornata', 'success');
+            _editingAnag = false;
+            renderHeader();
+            renderAnagrafica(); // re-renders as read-only
+          } catch (err) {
+            UI.toast(err?.message || 'Errore', 'error');
+            e.target.checked = true; // revert toggle physically on error
+            toggle.disabled = false;
+          }
+        }
       };
-      // Remove null values
-      Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
-      try {
-        ONBOARDING = await API.Onboarding.update(onboardingId, payload);
-        _editingAnag = false;
-        renderHeader();
-        renderAnagrafica();
-        renderPipeline();
-        UI.toast('Anagrafica aggiornata', 'success');
-      } catch (e) { UI.toast(e?.message || 'Errore', 'error'); }
-    };
+    }
+
+    renderPipeline();
   }
+
+
 
   /* ── ② Contacts ─────────────────────────────────────────────── */
   async function loadContacts() {

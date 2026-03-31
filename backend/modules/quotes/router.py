@@ -246,8 +246,8 @@ def _upsert_lines(quote_id: str, lines: list[QuoteLineIn]) -> None:
 @router.get("/")
 async def list_quotes(
     status_filter:  Optional[str]  = Query(None, alias="status"),
-    client_id:      Optional[UUID] = None,
-    onboarding_id:  Optional[UUID] = None,
+    client_id:      Optional[str] = None,
+    onboarding_id:  Optional[str] = None,
     page:           int            = Query(1, ge=1),
     page_size:      int            = Query(50, ge=1, le=200),
     user: CurrentUser = Depends(get_current_user),

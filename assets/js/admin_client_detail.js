@@ -25,7 +25,7 @@
 
   /* ── Tab Routing (SPA) ────────────────────────────────────────── */
   window.switchMainView = function (viewId) {
-    // Hide all tabs
+    // Hide all tab sections
     document.querySelectorAll('.mac-tab-section').forEach(el => {
       el.style.display = 'none';
       el.classList.remove('active');
@@ -38,10 +38,10 @@
       target.classList.add('active');
     }
 
-    // Update Sidebar Navigation state
-    document.querySelectorAll('.mac-sidebar .mac-nav-item').forEach(el => el.classList.remove('active'));
-    const activeNav = document.getElementById('tab-' + viewId);
-    if (activeNav) activeNav.classList.add('active');
+    // Update horizontal tab bar active state
+    document.querySelectorAll('.detail-tab').forEach(el => el.classList.remove('active'));
+    const activeTab = document.getElementById('tab-' + viewId);
+    if (activeTab) activeTab.classList.add('active');
 
     // Lazy load the timeline only when requested
     if (viewId === 'timeline' && !loaded['storico']) {
@@ -49,6 +49,7 @@
       loaded['storico'] = true;
     }
   };
+
 
   /* ── Deep-link quick links from list page ────────────────────── */
   function updateDeepLinks() {

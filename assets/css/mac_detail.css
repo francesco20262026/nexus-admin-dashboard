@@ -1,738 +1,604 @@
 /* ============================================================
-   mac_detail.css — macOS-inspired detail page layout (refined)
-   v2 — tighter sidebar, continuous surfaces, typography-driven
+   mac_detail.css — Detail page v4 (macOS App Mockup Style)
+   Perfect match for the provided mockup.
+   CSS-only redesign: logic and HTML structure unchanged
    ============================================================ */
 
-/* ── Shell ──────────────────────────────────────────────────── */
-.mac-shell {
-  min-height: 100vh;
-  background: #f5f5f7;
-  padding: 20px 20px 48px;
-  box-sizing: border-box;
+/* ── Variables ──────────────────────────────────────────────── */
+:root {
+  --detail-radius: 12px;
+  --detail-shadow: 0 4px 14px rgba(0,0,0,0.05);
+  --detail-border: #e2e8f0;
+  --bg-app: #f1f5f9;
+  --bg-tabs: #eef2f6;
+  --blue-primary: #3b82f6;
 }
 
-/* ── Window ─────────────────────────────────────────────────── */
-.mac-window {
+body {
+  background-color: var(--bg-app);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   IDENTITY BAR  (Top Header)
+   ══════════════════════════════════════════════════════════════ */
+.detail-page-header {
   display: flex;
-  max-width: 1280px;
-  margin: 0 auto;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.04),
-    0 8px 24px rgba(0,0,0,0.07),
-    0 0 0 1px rgba(0,0,0,0.05);
-  overflow: hidden;
-  min-height: calc(100vh - 80px);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ── Sidebar ─────────────────────────────────────────────────── */
-.mac-sidebar {
-  width: 220px;
-  flex-shrink: 0;
-  background: #f9fafb;
-  border-right: 1px solid rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* Identity block */
-.mac-sb-identity {
-  padding: 24px 16px 18px;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.mac-back-link {
-  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #3b82f6;
-  text-decoration: none;
-  margin-bottom: 18px;
-  letter-spacing: -0.01em;
-  transition: opacity 0.15s;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 32px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--detail-border);
+  margin-bottom: 0;
 }
-.mac-back-link:hover { opacity: 0.7; }
-.mac-back-link svg { width: 11px; height: 11px; }
 
-.mac-sb-avatar {
+.detail-page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.detail-avatar {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: #e2e8f0;
-  color: #475569;
+  background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.detail-header-title {
   font-size: 18px;
   font-weight: 700;
+  color: #111827;
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
-  flex-shrink: 0;
-  letter-spacing: -0.03em;
+  gap: 12px;
 }
 
-.mac-sb-name {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  margin-bottom: 3px;
-  word-break: break-word;
-}
-
-.mac-sb-sub {
-  font-size: 11.5px;
+.detail-header-sub {
+  font-size: 13px;
   color: #6b7280;
-  line-height: 1.4;
-  word-break: break-word;
+  margin-top: 4px;
 }
-.mac-sb-sub a { color: #3b82f6; text-decoration: none; }
 
-.mac-sb-status {
+/* Nuova Badge inline with title */
+#cd-status-pill-visible {
+  display: inline-block;
+}
+
+.detail-status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 9px;
-  border-radius: 20px;
-  margin-top: 8px;
-}
-
-/* Scroll area */
-.mac-sb-scroll {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.mac-sb-scroll::-webkit-scrollbar { width: 4px; }
-.mac-sb-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 2px; }
-
-.mac-nav-section-label {
-  font-size: 10px;
-  font-weight: 700;
-  color: #b0b7c3;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  padding: 10px 8px 3px;
-}
-
-.mac-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: #3a3a3c;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: transparent;
-  border: none;
-  width: auto;
-  margin: 0 8px 1px;
-  text-align: left;
-}
-.mac-nav-item:hover { background: rgba(0,0,0,0.05); }
-.mac-nav-item.active {
-  background: #3b82f6;
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(59,130,246,0.25);
-}
-
-/* Hide icon box background when active for a cleaner look */
-.mac-nav-item.active .mac-icon-box {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-.mac-nav-item.active svg { color: #fff !important; opacity: 1; }
-
-/* Badge numerico sidebar — sobrio: solo testo grigio */
-.mac-nav-badge {
-  margin-left: auto;
-  font-size: 10.5px;
-  font-weight: 500;
-  color: #b0b7c3;
-  flex-shrink: 0;
-}
-.mac-nav-item.active .mac-nav-badge { color: rgba(255,255,255,0.65); }
-
-/* Compat: mac-sb-status usato come chip nei nav item */
-.mac-nav-item .mac-sb-status {
-  margin-top: 0;
-  margin-left: auto;
-  font-size: 10.5px;
-  font-weight: 500;
-  padding: 0;
-  background: transparent !important;
-  color: #b0b7c3 !important;
-}
-.mac-nav-item.active .mac-sb-status { color: rgba(255,255,255,0.65) !important; }
-
-.mac-sb-divider {
-  height: 1px;
-  background: rgba(0,0,0,0.05);
-  margin: 6px 0;
-}
-
-/* Sidebar actions */
-.mac-sb-actions {
-  padding: 10px;
-  border-top: 1px solid rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.mac-sb-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 6px;
-  padding: 7px 10px;
-  border-radius: 6px;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: all 0.15s;
-  font-family: inherit;
-  letter-spacing: -0.01em;
-}
-.mac-sb-btn svg { width: 13px; height: 13px; }
-
-.mac-sb-btn-primary { background: #3b82f6; color: #fff; }
-.mac-sb-btn-primary:hover { background: #2563eb; }
-
-.mac-sb-btn-secondary {
-  background: rgba(0,0,0,0.03);
-  color: #374151;
-  border: 1px solid rgba(0,0,0,0.08);
-}
-.mac-sb-btn-secondary:hover { background: rgba(0,0,0,0.06); }
-
-.mac-sb-btn-danger {
-  background: transparent;
-  color: #dc2626;
-  border: 1px solid rgba(220,38,38,0.15);
-  font-weight: 500;
-}
-.mac-sb-btn-danger:hover { background: #fef2f2; }
-
-/* ── Main Body ───────────────────────────────────────────────── */
-.mac-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-}
-
-
-
-
-
-
-
-
-
-/* ── Scroll area ─────────────────────────────────────────────── */
-.mac-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 40px 52px 72px;
-}
-.mac-content::-webkit-scrollbar { width: 6px; }
-.mac-content::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.08);
-  border-radius: 3px;
-  border: 1px solid transparent;
-  background-clip: content-box;
-}
-
-/* ── Sections ────────────────────────────────────────────────── */
-.mac-section {
-  padding: 28px 0;
-}
-.mac-section:first-child { padding-top: 0; }
-
-.mac-section-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.mac-section-title-action {
   font-size: 12px;
   font-weight: 600;
-  color: #3b82f6;
-  text-transform: none;
-  letter-spacing: 0;
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: inherit;
-  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #dcfce7;
+  color: #16a34a;
 }
-.mac-section-title-action:hover { opacity: 0.75; }
-
-/* ── Hairline divider ────────────────────────────────────────── */
-.mac-divider {
-  height: 1px;
-  background: rgba(0,0,0,0.05);
-  margin: 0;
+.detail-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-/* ── Field list — NO outer box, only inner separators ────────── */
-/* ── Form Card — Unifies header and list ────────────────────── */
-.mac-card {
-  background: #f9fafb; /* Light gray background requested by user */
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.05);
-  margin-bottom: 24px;
-  overflow: hidden;
-}
-
-.mac-card-header {
+.detail-header-actions {
   display: flex;
+  gap: 12px;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  background: rgba(0,0,0,0.02);
 }
 
-.mac-card-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #111827;
-  letter-spacing: -0.2px;
-}
-
-.mac-card-content {
-  padding: 0 16px;
-}
-
-.mac-form-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.mac-form-row {
-  display: flex;
+.detail-back-link {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.03);
-}
-.mac-form-row:last-child { border-bottom: none; }
-
-.mac-form-label {
+  gap: 6px;
   font-size: 13px;
   font-weight: 500;
   color: #6b7280;
-  flex-shrink: 0;
-  min-width: 140px;
+  text-decoration: none;
+  margin-right: 12px;
+  /* subtle vertical separator before buttons */
+  position: relative;
 }
+.detail-back-link::after {
+  content: "";
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 16px;
+  width: 1px;
+  background: #cbd5e1;
+}
+.detail-back-link:hover { color: #111827; }
+.detail-back-link svg { width: 14px; height: 14px; }
 
-.mac-form-value {
+/* Header Buttons */
+.detail-page-header .btn {
   font-size: 13px;
-  color: #111827;
-  text-align: right;
-  flex: 1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.detail-page-header .btn-secondary {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+.detail-page-header .btn-primary {
+  background: var(--blue-primary);
+  color: #fff;
+  border: none;
 }
 
-/* ── Pipeline stepper ────────────────────────────────────────── */
-.mac-pipeline-wrap {
-  padding: 4px 0 28px;
+/* ══════════════════════════════════════════════════════════════
+   macOS SYSTEM SETTINGS STYLE TABS (Horizontal)
+   ══════════════════════════════════════════════════════════════ */
+.detail-tabs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-tabs);
+  border-bottom: 1px solid var(--detail-border);
+  padding: 16px 32px;
+  margin-bottom: 32px;
+  overflow-x: auto;
+}
+.detail-tabs::-webkit-scrollbar { display: none; }
+
+/* Individual Tab (Pill) */
+.detail-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 6px; /* tightly wrap icon on left */
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+.detail-tab:hover {
+  background: #e2e8f0;
+}
+
+.detail-tab.active {
+  background: #007aff;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* The Squircle Icon inside the tab */
+.detail-tab svg {
+  width: 24px !important; /* override any inline heights/widths from HTML */
+  height: 24px !important;
+  border-radius: 6px;
+  padding: 4px;
+  stroke: #ffffff;
+  stroke-width: 1.5px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15), inset 0 1px 1px rgba(255,255,255,0.2);
+  transition: transform 0.2s;
+}
+
+/* Specific gradients for each tab icon (macOS style) */
+.detail-tabs .detail-tab:nth-child(1) svg { background: linear-gradient(180deg, #60a5fa, #3b82f6); } /* Anagrafica */
+.detail-tabs .detail-tab:nth-child(2) svg { background: linear-gradient(180deg, #34d399, #10b981); } /* Contatti */
+.detail-tabs .detail-tab:nth-child(3) svg { background: linear-gradient(180deg, #fb923c, #f97316); } /* Servizi */
+.detail-tabs .detail-tab:nth-child(4) svg { background: linear-gradient(180deg, #fcd34d, #f59e0b); } /* Preventivi */
+.detail-tabs .detail-tab:nth-child(5) svg { background: linear-gradient(180deg, #a78bfa, #8b5cf6); } /* Contratti */
+.detail-tabs .detail-tab:nth-child(6) svg { background: linear-gradient(180deg, #38bdf8, #0ea5e9); } /* Documenti */
+.detail-tabs .detail-tab:nth-child(7) svg { background: linear-gradient(180deg, #f87171, #ef4444); } /* Attività */
+.detail-tabs .detail-tab:nth-child(8) svg { background: linear-gradient(180deg, #60a5fa, #2563eb); } /* Fatture */
+.detail-tabs .detail-tab:nth-child(9) svg { background: linear-gradient(180deg, #94a3b8, #64748b); } /* Storico */
+
+/* Badges positioned inside the pill */
+.detail-tab-badge {
+  background: #cbd5e1;
+  color: #475569;
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 4px;
+  transition: all 0.2s;
+}
+
+.detail-tab.active .detail-tab-badge {
+  background: rgba(255,255,255,0.2);
+  color: #ffffff;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CARDS MODULE
+   ══════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════
+   MAIN CONTENT CARDS
+   ══════════════════════════════════════════════════════════════ */
+.mac-tab-section { display: none; padding: 0 32px; }
+.mac-tab-section.active { display: block; }
+.detail-tab-section { display: none; padding: 0 32px; }
+.detail-tab-section.active { display: block; }
+
+.card {
+  background: #ffffff;
+  border-radius: var(--detail-radius);
+  box-shadow: var(--detail-shadow);
+  border: 1px solid var(--detail-border);
+  margin-bottom: 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Card Headers */
+.detail-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--detail-border);
+  background: #ffffff;
+}
+
+.detail-section-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Icons inside Card Headers */
+.detail-section-label svg {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  padding: 6px;
+  stroke: #fff;
+  stroke-width: 2px;
+}
+
+.detail-section-body {
+  padding: 0; /* padding logic moved to the grid rows for the table-like look */
+}
+
+/* Color specific to cards */
+#sec-anagrafica {
+  border-left: 5px solid #3b82f6;
+}
+#sec-anagrafica .detail-section-label svg {
+  background: #3b82f6;
+  box-shadow: 0 2px 5px rgba(59,130,246,0.3);
+}
+
+#sec-contatti { border-left: 5px solid #22c55e; }
+#sec-servizi { border-left: 5px solid #f97316; }
+/* Indirizzo falls under Anagrafica usually, let's style the second inner header */
+.card .detail-section-header:nth-of-type(2) .detail-section-label svg {
+    background: #f97316;
+    box-shadow: 0 2px 5px rgba(249,115,22,0.3);
+}
+
+/* Modifica Button Integration */
+#cd-btn-edit-anag,
+#cd-btn-edit-client {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+#cd-btn-edit-anag:hover,
+#cd-btn-edit-client:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+#cd-btn-edit-anag svg,
+#cd-btn-edit-client svg {
+  width: 12px;
+  height: 12px;
+  background: transparent;
+  stroke: currentColor;
+  padding: 0;
+  box-shadow: none;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DATA GRID (Table-like look from mockup)
+   ══════════════════════════════════════════════════════════════ */
+.detail-field-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-field-row {
+  display: flex;
+  border-bottom: 1px solid #f1f5f9;
+}
+.detail-field-row:last-child {
+  border-bottom: none;
+}
+
+/* We don't have row divs wrapping pairs in JS, so we use grid directly but mimic rows */
+.detail-field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two distinct column groups */
+  gap: 0; /* no gap, we'll use borders on the items */
+  background: #fff;
+}
+
+.detail-field {
+  display: grid;
+  grid-template-columns: 120px 1fr; /* Label width, then value */
+  gap: 16px;
+  padding: 16px 24px;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* To get the 2-col look with borders on alternate items, we could do complex nth-child,
+   but a simple approach: right column items get a left border */
+.detail-field:nth-child(even) {
+  border-left: 1px solid #f1f5f9;
+}
+
+.detail-field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: none;
+  letter-spacing: normal;
+  margin-bottom: 0;
+}
+
+.detail-field-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.detail-field-value a { color: #3b82f6; text-decoration: none; }
+.detail-field-value a:hover { text-decoration: underline; }
+
+/* ══════════════════════════════════════════════════════════════
+   macOS TOGGLE SWITCH
+   ══════════════════════════════════════════════════════════════ */
+.mac-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+.mac-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.mac-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #cbd5e1;
+  transition: .3s;
+  border-radius: 20px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+.mac-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2), 0 1px 1px rgba(0,0,0,0.1);
+}
+.mac-switch input:checked + .mac-slider {
+  background-color: #3b82f6; /* macOS Blue for toggles */
+}
+.mac-switch input:checked + .mac-slider:before {
+  transform: translateX(16px);
+}
+.mac-switch input:disabled + .mac-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PIPELINE / FLUSSO DI LAVORO
+   ══════════════════════════════════════════════════════════════ */
+#onb-pipeline-req-container,
+#cd-pipeline-container {
+  background: #ffffff;
+  border-radius: var(--detail-radius);
+  box-shadow: var(--detail-shadow);
+  border: 1px solid var(--detail-border);
+  border-left: 5px solid #3b82f6; /* consistent blue border */
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.mac-pipeline-section {
+  padding: 0;
+  margin: 0;
+  border: none;
 }
 
 .mac-pipeline-track {
   position: relative;
   display: flex;
   justify-content: space-between;
-  padding: 0 6px;
+  margin-top: 10px;
 }
 
-.mac-pipeline-track-bg {
+.mac-pipeline-line {
   position: absolute;
-  top: 5px;
-  left: 6px;
-  right: 6px;
-  height: 1.5px;
-  background: #e5e7eb;
-  z-index: 1;
-}
-
-.mac-pipeline-progress {
-  position: absolute;
-  top: 5px;
-  left: 6px;
-  height: 1.5px;
-  background: #3b82f6;
-  z-index: 2;
-  transition: width 0.7s cubic-bezier(0.2,0,0,1);
+  top: 14px; /* center of dots */
+  left: 30px;
+  right: 30px;
+  height: 2px;
+  background: #e2e8f0;
+  z-index: 0;
 }
 
 .mac-pipeline-step {
-  position: relative;
-  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 16px;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+  flex: 1;
 }
 
 .mac-pipeline-dot {
-  width: 11px;
-  height: 11px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: #d1d5db;
-  box-shadow: 0 0 0 3px #fff;
-  transition: all 0.35s cubic-bezier(0.2,0,0,1);
+  background: #e2e8f0;
+  border: 4px solid #fff;
+  transition: all 0.3s;
 }
-.mac-pipeline-step.done .mac-pipeline-dot { background: #3b82f6; }
+
+.mac-pipeline-step.done .mac-pipeline-dot {
+  background: #22c55e; /* Green for done */
+}
+
 .mac-pipeline-step.active .mac-pipeline-dot {
-  background: #fff;
-  border: 2px solid #3b82f6;
-  box-shadow: 0 0 0 3px #fff, 0 0 0 6px rgba(59,130,246,0.15);
-  transform: scale(1.2);
+  background: #3b82f6; /* Blue for active */
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.2); /* Glow effect */
 }
 
 .mac-pipeline-label {
-  position: absolute;
-  top: 20px;
-  width: 76px;
-  text-align: center;
-  font-size: 10px;
-  font-weight: 500;
-  color: #c0c7d0;
-  line-height: 1.2;
-  white-space: normal;
-  letter-spacing: 0;
-}
-.mac-pipeline-step.done .mac-pipeline-label { color: #9ca3af; }
-.mac-pipeline-step.active .mac-pipeline-label { color: #111827; font-weight: 700; }
-
-/* ── Checklist grid ──────────────────────────────────────────── */
-.mac-chk-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 10px;
-}
-
-.mac-chk-item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12.5px;
-  color: #374151;
-  font-weight: 500;
-}
-.mac-chk-item svg { width: 15px; height: 15px; flex-shrink: 0; }
-.mac-chk-item.ok { color: #111827; }
-.mac-chk-item.miss { color: #c0c7d0; font-weight: 400; }
-
-/* ── Inline table (Quotes, Invoices) ─────────────────────────── */
-.mac-rel-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.mac-rel-table thead th {
-  padding: 0 0 8px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  font-weight: 600;
   font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #9ca3af;
-  text-align: left;
-}
-.mac-rel-table tbody td {
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.04);
-  color: #1d1d1f;
-  vertical-align: middle;
-}
-.mac-rel-table tbody tr:last-child td { border-bottom: none; }
-.mac-rel-table .mac-link { color: #3b82f6; font-weight: 500; text-decoration: none; }
-.mac-rel-table .mac-link:hover { text-decoration: underline; }
-
-/* ── Activity feed ───────────────────────────────────────────── */
-.mac-activity-wrap {
-  border-radius: 0;
-}
-
-/* ── Empty state — premium, minimal ─────────────────────────── */
-.mac-empty {
-  padding: 36px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-}
-
-.mac-empty-icon {
-  font-size: 22px;
-  opacity: 0.25;
-  margin-bottom: 4px;
-}
-
-.mac-empty-text {
-  font-size: 13px;
-  color: #9ca3af;
-  font-weight: 400;
-}
-
-.mac-empty-cta {
-  font-size: 12.5px;
-  color: #3b82f6;
   font-weight: 600;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-family: inherit;
-  text-decoration: none;
+  color: #64748b;
+  text-align: center;
 }
-.mac-empty-cta:hover { opacity: 0.75; }
+.mac-pipeline-step.active .mac-pipeline-label { color: #0f172a; }
+.mac-pipeline-step.done .mac-pipeline-label { color: #0f172a; }
 
-/* Fallback semplice */
-.mac-empty-simple {
-  padding: 28px 0;
-  font-size: 12.5px;
-  color: #c0c7d0;
-  font-style: italic;
-}
-
-/* ── Responsive ──────────────────────────────────────────────── */
-@media (max-width: 1024px) {
-  .mac-window { flex-direction: column; border-radius: 0; }
-  .mac-sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.05); }
-  .mac-shell { padding: 0; }
+/* REQUISITI PILLS */
+.mac-pipeline-req {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
 }
 
-@media (max-width: 768px) {
-  .mac-content { padding: 24px 20px 48px; }
-}
-
-/* ── Text buttons (Modifica, Annulla, etc.) ─────────────── */
-.mac-btn-text {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: #3b82f6;
-  font-family: inherit;
-  padding: 0;
-  transition: opacity 0.15s;
+.mac-req-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
 }
-.mac-btn-text:hover { opacity: 0.7; }
-.mac-btn-text.text-danger { color: #ef4444; }
-.mac-btn-text.text-save   { color: #3b82f6; }
-.mac-btn-cancel { background: none; border: none; cursor: pointer; font-size: 14px; font-weight: 500; color: #6b7280; font-family: inherit; padding: 0; transition: opacity 0.15s; }
-.mac-btn-cancel:hover { opacity: 0.7; }
+.mac-req-chip.ok { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+.mac-req-chip.bad { background: #ffedd5; color: #9a3412; border-color: #fed7aa; } /* orange */
+.mac-req-chip.warn{ background: #fef3c7; color: #92400e; }
 
-/* ── UI Utilities (CSP Safe) ────────────────────────────────── */
-.cl-row-avatar-blue {
-  background: #3b82f6 !important;
-  color: #ffffff !important;
-}
-
-.cl-row-badge-fornitrice {
-  background: #fffbeb !important;
-  border: 1px solid #f59e0b !important;
-  color: #b45309 !important;
-  font-weight: 700 !important;
-}
-
-.mac-select-btn.selected .mac-checkbox {
-  background-color: #3b82f6 !important;
-  border-color: #3b82f6 !important;
-}
-
-.mac-select-btn.selected .mac-checkbox::after {
-  content: '';
-  position: absolute;
-  top: 1px;
-  left: 4px;
-  width: 4px;
-  height: 8px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.cl-row.selected-row {
-  background-color: #f0f7ff !important;
-}
-
-.mac-sb-btn-green-to-blue {
-  background: #3b82f6 !important;
-  color: #fff !important;
-}
-.mac-sb-btn-green-to-blue:hover {
-  background: #2563eb !important;
-}
-
-.mac-status-pill-complete {
-  color: #3b82f6 !important;
-  background: #eff6ff !important;
-}
-
-/* ============================================================
-   UNIFIED DETAIL SYSTEM — CSS-first, zero inline styles needed
-   Applies to: admin_client_detail, admin_onboarding_detail
-   ============================================================ */
-
-/* ── Section Title (canonical, replaces mac-form-header) ─────── */
-/* Use .mac-section-title (already defined above) as the standard */
-/* Ensure first section title inside a tab has no top margin */
-.mac-tab-section > .mac-section-title:first-child,
-.mac-tab-section > *:first-child > .mac-section-title:first-child,
-#cd-anag-grid > .mac-section-title:first-child {
-  margin-top: 0;
-}
-
-/* Section title spacing between sections */
-.mac-section-title + .mac-form-list {
-  margin-top: 0;
-}
-.mac-form-list + .mac-section-title {
-  margin-top: 28px;
-  padding-top: 0;
-}
-
-/* ── Form List — two-column label/value rows ─────────────────── */
-/* (Overrides mac_detail.css defaults for clarity) */
-.mac-form-list {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.mac-form-row {
+/* ══════════════════════════════════════════════════════════════
+   MAC-FLAT FORM (inline edit mode)
+   ══════════════════════════════════════════════════════════════ */
+.mac-form-actions-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.035);
-  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
 }
-.mac-form-row:last-child {
-  border-bottom: none;
+.mac-form-title { font-size: 16px; font-weight: 700; color: #0f172a; }
+.mac-form-actions { display: flex; gap: 8px; }
+
+.mac-form-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 24px 24px 8px;
 }
 
-.mac-form-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #6b7280;
-  flex-shrink: 0;
-  min-width: 150px;
-  max-width: 180px;
-}
+.mac-flat-list { padding: 0 24px 16px; display: flex; flex-direction: column; }
 
-.mac-form-value {
-  font-size: 13.5px;
-  color: #111827;
-  text-align: right;
-  flex: 1;
-  word-break: break-word;
-}
-.mac-form-value a {
-  color: #2563eb;
-  text-decoration: none;
-}
-.mac-form-value a:hover { text-decoration: underline; }
-.mac-form-value.mono { font-family: ui-monospace, monospace; font-size: 12.5px; }
-.mac-form-value strong { font-weight: 600; color: #111827; }
-
-/* ── Edit pencil button (universal, used in section title) ───── */
-.mac-edit-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  color: #3b82f6;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  flex-shrink: 0;
-  margin-left: auto;
-  padding: 0;
-}
-.mac-edit-btn svg { width: 14px; height: 14px; }
-.mac-edit-btn:hover { background: #eff6ff; border-color: #bfdbfe; }
-
-/* ── Save / Cancel inline buttons in edit forms ──────────────── */
-.mac-inline-actions {
+.mac-flat-row {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 4px 0 16px;
+  min-height: 48px;
+  gap: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.mac-flat-row:last-child { border-bottom: none; }
+
+.mac-flat-label {
+  flex: 0 0 160px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
 }
 
-/* ── Notes block (inside mac-form-list) ──────────────────────── */
-.mac-form-notes {
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: #6b7280;
-  white-space: pre-wrap;
-  padding: 10px 0;
-  width: 100%;
+.mac-flat-input {
+  flex: 1;
+  font-size: 14px;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: #fff;
+  transition: all 0.2s;
+  outline: none;
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.mac-flat-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
 
-/* ── Pipeline container ──────────────────────────────────────── */
-.mac-pipeline-section {
-  padding: 0 0 24px;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  margin-bottom: 28px;
+/* Component compatibility tweaks */
+.mac-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    border-bottom: 1px solid #f1f5f9;
 }
-.mac-pipeline-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  margin-bottom: 16px;
+.mac-list-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
 }
-
-/* ── Content full-width guarantee ────────────────────────────── */
-.mac-content,
-.mac-tab-section,
-#cd-anag-grid {
-  box-sizing: border-box;
-  width: 100%;
-}
-

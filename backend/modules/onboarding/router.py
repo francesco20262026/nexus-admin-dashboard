@@ -79,6 +79,9 @@ class OnboardingCreate(BaseModel):
     dest_code:       Optional[str] = None
     address:         Optional[str] = None
     city:            Optional[str] = None
+    lead_name:       Optional[str] = None
+    iban:            Optional[str] = None
+    lang:            Optional[str] = "it"
 
     # Workflow fields
     status:          str = "new"
@@ -132,6 +135,9 @@ class OnboardingUpdate(BaseModel):
     dest_code:       Optional[str] = None
     address:         Optional[str] = None
     city:            Optional[str] = None
+    lead_name:       Optional[str] = None
+    iban:            Optional[str] = None
+    lang:            Optional[str] = None
 
     # Workflow fields
     status:           Optional[str] = None
@@ -296,7 +302,7 @@ async def list_onboarding(
 
 @router.get("/{onboarding_id}")
 async def get_onboarding(
-    onboarding_id: UUID,
+    onboarding_id: str,
     user: CurrentUser = Depends(require_admin),
 ):
     # Try looking in the active company first (fast path)
@@ -370,12 +376,12 @@ async def create_onboarding(
 
 @router.put("/{onboarding_id}")
 async def update_onboarding(
-    onboarding_id: UUID,
+    onboarding_id: str,
     body: OnboardingUpdate,
     user: CurrentUser = Depends(require_admin),
 ):
-    company_id = str(user.active_company_id)
     old = _require_onboarding(onboarding_id, user)
+    actual_company_id = old.get("company_id")
 
     # Terminal records are immutable
     if old.get("status") in _TERMINAL_STATUSES:
@@ -397,17 +403,24 @@ async def update_onboarding(
     if not updates:
         return old
 
-    res = (
-        supabase.table("onboarding")
-        .update(updates)
-        .eq("id", str(onboarding_id))
-        .eq("company_id", company_id)
-        .execute()
-    )
+    try:
+        res = (
+            supabase.table("onboarding")
+            .update(updates)
+            .eq("id", str(onboarding_id))
+            .eq("company_id", actual_company_id)
+            .execute()
+        )
+    except Exception as exc:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Eccezione DB: {exc}")
+
     if not res.data:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Errore durante l'aggiornamento")
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            f"Nessun match: id={onboarding_id}, c={actual_company_id}, keys={list(updates.keys())}"
+        )
     updated = res.data[0]
-    _audit(company_id, str(user.user_id), str(onboarding_id), "update", new=updates)
+    _audit(actual_company_id, str(user.user_id), str(onboarding_id), "update", new=updates)
     return updated
 
 
@@ -416,7 +429,7 @@ async def update_onboarding(
 
 @router.delete("/{onboarding_id}", status_code=status.HTTP_200_OK)
 async def delete_onboarding(
-    onboarding_id: UUID,
+    onboarding_id: str,
     force: bool = False,    # ?force=true → hard delete even if has history (admin explicit)
     user: CurrentUser = Depends(require_admin),
 ):
@@ -507,7 +520,7 @@ async def delete_onboarding(
 
 @router.post("/{onboarding_id}/cancel")
 async def cancel_onboarding(
-    onboarding_id: UUID,
+    onboarding_id: str,
     user: CurrentUser = Depends(require_admin),
 ):
     """Set status=cancelled without deleting any data."""
@@ -526,7 +539,7 @@ async def cancel_onboarding(
 
 @router.post("/{onboarding_id}/convert")
 async def convert_onboarding(
-    onboarding_id: UUID,
+    onboarding_id: str,
     user: CurrentUser = Depends(require_admin),
 ):
     """
@@ -637,7 +650,7 @@ async def convert_onboarding(
 
 @router.post("/{onboarding_id}/abandon")
 async def abandon_onboarding(
-    onboarding_id: UUID,
+    onboarding_id: str,
     user: CurrentUser = Depends(require_admin),
 ):
     """Mark a workflow as abandoned (client walked away)."""
@@ -662,7 +675,7 @@ async def abandon_onboarding(
 
 @router.post("/{onboarding_id}/cancel")
 async def cancel_onboarding(
-    onboarding_id: UUID,
+    onboarding_id: str,
     user: CurrentUser = Depends(require_admin),
 ):
     """Mark a workflow as cancelled (admin decision)."""
@@ -691,7 +704,7 @@ class PortalInviteRequest(BaseModel):
 
 @router.post("/{onboarding_id}/invite")
 async def invite_portal_user(
-    onboarding_id: UUID,
+    onboarding_id: str,
     body: PortalInviteRequest,
     user: CurrentUser = Depends(require_admin),
 ):
