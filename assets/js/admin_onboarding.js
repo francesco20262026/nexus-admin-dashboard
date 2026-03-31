@@ -527,7 +527,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
           <div class="mac-checkbox"></div>
         </div>
         <div class="cl-row-identity">
-          <div class="avatar cl-row-avatar cl-row-avatar-blue">${avatarInitial}</div>
+          <div class="avatar cl-row-avatar" style="background:${sm.color}; color:#ffffff;">${avatarInitial}</div>
           <div class="cl-row-identity-body">
             <div class="cl-row-name truncate" title="${companyLine}">${companyLine}</div>
           </div>

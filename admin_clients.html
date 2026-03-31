@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="assets/css/header_bar.css">
   <link rel="stylesheet" href="assets/css/filter_bar.css">
   <link rel="stylesheet" href="assets/css/search_bar.css">
+  <link rel="stylesheet" href="assets/css/mac_forms.css?v=2026131">
 </head>
 <body>
 <div class="shell" id="shell">
@@ -176,17 +177,6 @@
       </div>
     </div>
 
-    <!-- Mass Action Bar (hidden by default) -->
-    <div id="mass-action-bar" style="display:none; align-items:center; gap:20px; padding:12px 20px; background:#f0f9ff; border-top:1px solid #bae6fd; border-bottom:1px solid #bae6fd;">
-      <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#0369a1;">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-        <span id="mass-count">0 selezionati</span>
-      </div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn btn-secondary btn-sm" id="btn-mass-delete" onclick="massDelete()">Elimina selezionati</button>
-        <button class="btn btn-secondary btn-sm" id="btn-mass-sync-windoc" onclick="massSyncWindoc()">Push su Windoc</button>
-      </div>
-    </div>
 
     <!-- Table Header (with Select All) -->
     <div class="cl-col-header-row">
@@ -218,19 +208,19 @@
 
 <!-- ===== MODAL: Nuovo Cliente ===== -->
 <div class="modal-overlay" id="modal-add-client" onclick="if(event.target===this) this.classList.remove('open')">
-  <div class="modal" style="max-width:700px;width:95vw;">
+  <div class="modal onb-form-modal" id="modal-client-dialog" style="max-width:700px;width:95vw;" onclick="event.stopPropagation()">
     <div class="modal-header" style="padding:20px 24px 16px;">
       <div style="display:flex;align-items:flex-start;gap:12px;">
-        <div class="mac-modal-icon-box blue">
+        <div style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#e0e7ff;color:#4338ca;">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px;height:24px"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
         </div>
         <div>
-          <div class="modal-title" id="modal-client-title" style="font-size:20px;font-weight:800;color:#111827;margin-bottom:2px;" data-i18n="cl.modal_new">Nuovo cliente</div>
+          <div class="modal-title" id="modal-client-title" style="font-size:20px;font-weight:800;color:#111827;margin-bottom:2px;" data-i18n="cl.modal_new">Nuovo Cliente</div>
           <div style="font-size:12px;color:#6b7280;">Gestisci le informazioni del cliente selezionato</div>
         </div>
       </div>
       <button class="icon-btn" onclick="document.getElementById('modal-add-client').classList.remove('open')">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
       </button>
     </div>
     
@@ -238,12 +228,11 @@
       
       <!-- Sezione 1 -->
       <div class="modal-section-label">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
         Anagrafica Azienda
       </div>
-      <div style="margin-bottom:24px;">
+      <div style="border-left:2px solid #c7d2fe;padding-left:16px;margin-bottom:24px;">
         <div class="form-grid">
-          <!-- Azienda fornitrice: evidenziata come nel mockup -->
           <div class="form-group form-grid--full" style="border:1.5px solid #3b82f6;border-radius:10px;padding:10px 12px;background:#eff6ff;">
             <label class="form-label" style="color:#2563eb;">
               Azienda fornitrice <span style="color:#ef4444;font-weight:700;">*</span>
@@ -253,8 +242,8 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" data-i18n="cl.f_name">Ragione sociale *</label>
+          <div class="form-group form-grid--full">
+            <label class="form-label" data-i18n="cl.f_name">Ragione sociale <span style="color:#ef4444">*</span></label>
             <input class="form-input" id="f-name" type="text" placeholder="Es. Rossi Srl"/>
           </div>
           <div class="form-group">
@@ -262,10 +251,10 @@
             <input class="form-input" id="f-vat" type="text" placeholder="IT12345678901"/>
           </div>
           <div class="form-group">
-            <label class="form-label" data-i18n="cl.f_sdi">Codice destinatario (SDI)</label>
+            <label class="form-label" data-i18n="cl.f_sdi">Codice SDI</label>
             <input class="form-input" id="f-sdi" type="text" placeholder="XXXXXXX" maxlength="7"/>
           </div>
-          <div class="form-group">
+          <div class="form-group form-grid--full">
             <label class="form-label" data-i18n="cl.f_sector">Settore</label>
             <input class="form-input" id="f-sector" type="text" placeholder="Es. Tecnologia, Edilizia…"/>
           </div>
@@ -274,17 +263,17 @@
 
       <!-- Sezione 2 -->
       <div class="modal-section-label">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
         Contatto principale
       </div>
-      <div style="margin-bottom:24px;">
+      <div style="border-left:2px solid #fbcfe8;padding-left:16px;margin-bottom:24px;">
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label" data-i18n="cl.f_referente">Nome referente</label>
             <input class="form-input" id="f-referente" type="text" placeholder="Mario Rossi"/>
           </div>
           <div class="form-group">
-            <label class="form-label" data-i18n="cl.f_email">Email *</label>
+            <label class="form-label" data-i18n="cl.f_email">Email <span style="color:#ef4444">*</span></label>
             <input class="form-input" id="f-email" type="email" placeholder="info@azienda.it"/>
           </div>
           <div class="form-group">
@@ -300,10 +289,10 @@
 
       <!-- Sezione 3 -->
       <div class="modal-section-label">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
         Indirizzo &amp; Altro
       </div>
-      <div>
+      <div style="border-left:2px solid #bbf7d0;padding-left:16px;">
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label" data-i18n="cl.f_city">Città</label>
@@ -314,7 +303,7 @@
             <input class="form-input" id="f-address" type="text" placeholder="Via Esempio 12, 20121 Milano"/>
           </div>
           <div class="form-group form-grid--full">
-            <label class="form-label" data-i18n="cl.f_notes">Note</label>
+            <label class="form-label" data-i18n="cl.f_notes">Note interne</label>
             <textarea class="form-input" id="f-notes" rows="2" style="resize:vertical;" placeholder="Eventuali note…"></textarea>
           </div>
           <label class="form-group form-grid--full" style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:12px;background:var(--brand-50);border:1px solid rgba(10,92,54,.15);border-radius:10px;margin-top:4px;">
@@ -370,6 +359,18 @@
       </button>
     </div>
   </div>
+</div>
+
+<!-- ======= MAC MASS ACTION BAR ======= -->
+<div id="mac-mass-action-bar" class="mac-mass-action-bar">
+  <div class="mac-mass-action-selected" id="mac-selected-count">0 selezionati</div>
+  <div class="mac-mass-action-buttons">
+    <button class="mac-mass-action-btn" onclick="window.massSyncWindoc()" style="color:#0a84ff;">Push Windoc</button>
+    <button class="mac-mass-action-btn" onclick="window.massDelete()" style="color:#ff453a;">Elimina</button>
+  </div>
+  <button class="mac-mass-action-close" onclick="window.toggleSelectAll()" aria-label="Annulla selezione">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg>
+  </button>
 </div>
 
 <div id="toast-container" class="toast-container"></div>

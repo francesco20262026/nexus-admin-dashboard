@@ -410,7 +410,7 @@
   };
 
   window.toggleMassBar = () => {
-    const bar = $('mass-action-bar');
+    const bar = $('mac-mass-action-bar');
     if (!bar) return;
     
     const selectedBtns = document.querySelectorAll('.mac-select-btn.selected[data-id]');
@@ -425,9 +425,13 @@
       }
     });
 
-    bar.style.display = checked > 0 ? 'flex' : 'none';
-    const count = $('mass-count');
-    if (count) count.textContent = `${checked} selezionati`;
+    if (checked > 0) {
+      bar.classList.add('visible');
+    } else {
+      bar.classList.remove('visible');
+    }
+    const count = $('mac-selected-count');
+    if (count) count.textContent = `${checked} selezionat` + (checked === 1 ? 'o' : 'i');
     
     const selectAllBtn = $('btn-select-all');
     const allBtns = document.querySelectorAll('.mac-select-btn[data-id]');
@@ -456,6 +460,7 @@
   };
 
   window.onPageReady(async () => {
+    load(true);
     // Select all listener is now generic via window.toggleSelectAll onclick
   });
 

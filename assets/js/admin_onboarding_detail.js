@@ -335,85 +335,84 @@
     const sec = (title) => `<div class="zf-section-hd" style="margin-top:20px;margin-bottom:8px;padding-top:16px;border-top:1px solid #f1f5f9;"><div class="zf-section-title">${title}</div></div>`;
 
     grid.innerHTML = `
-      <div class="mac-form-header" style="justify-content:space-between;margin-top:0;">
-        <button id="anag-cancel-btn-top" class="mac-btn-text text-cancel">Annulla</button>
-        <button id="anag-save-btn" class="mac-btn-text text-save">Salva</button>
-      </div>
-
-      <div class="mac-form-list" style="margin-top:16px;">
-        <div class="mac-form-row">
-          <label class="mac-form-label">Stato lifecycle</label>
-          <select class="mac-form-input" id="anag-status">${statusOpts}</select>
+      <div class="mac-form-actions-header">
+        <div class="mac-form-title">Modifica Anagrafica</div>
+        <div class="mac-form-actions">
+          <button id="anag-cancel-btn-top" class="mac-btn-text text-cancel" style="color:#6b7280; font-weight:500;">Annulla</button>
+          <button id="anag-save-btn" class="btn btn-primary" style="padding:6px 14px; border-radius:6px; font-size:12px;">Salva</button>
         </div>
       </div>
 
-      <div class="mac-form-section">Dati Azienda</div>
-      <div class="mac-form-list">
-        <div class="mac-form-row">
-          <label class="mac-form-label">Ragione sociale</label>
-          <input class="mac-form-input" id="anag-company-name" type="text" value="${c.company_name||''}"/>
+      <div class="mac-form-section-title" style="margin-top:20px;">Stato & Lifecycle</div>
+      <div class="mac-flat-list">
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">Stato</label>
+          <select class="mac-flat-input" id="anag-status">${statusOpts}</select>
         </div>
-        <div class="mac-form-row">
-          <label class="mac-form-label">Nome contatto</label>
-          <input class="mac-form-input" id="anag-lead-name" type="text" value="${c.lead_name||''}"/>
+      </div>
+
+      <div class="mac-form-section-title">Informazioni Aziendali</div>
+      <div class="mac-flat-list">
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">Ragione Sociale</label>
+          <input class="mac-flat-input" id="anag-company-name" type="text" value="${c.company_name||''}" placeholder="Inserisci ragione sociale..."/>
         </div>
-        <div class="mac-form-row">
-          <label class="mac-form-label">Email</label>
-          <input class="mac-form-input" id="anag-email" type="email" value="${c.email||''}"/>
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">Referente</label>
+          <input class="mac-flat-input" id="anag-lead-name" type="text" value="${c.lead_name||''}" placeholder="Nome contatto principale..."/>
         </div>
-        <div class="mac-form-row">
-          <label class="mac-form-label">Telefono</label>
-          <input class="mac-form-input" id="anag-phone" type="tel" value="${c.phone||''}"/>
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">Email</label>
+          <input class="mac-flat-input" id="anag-email" type="email" value="${c.email||''}" placeholder="es. email@dominio.it"/>
         </div>
-        <div class="mac-form-row">
-          <label class="mac-form-label">Lingua</label>
-          <select class="mac-form-input" id="anag-lang">
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">Telefono</label>
+          <input class="mac-flat-input" id="anag-phone" type="tel" value="${c.phone||''}" placeholder="+39 ..."/>
+        </div>
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">Lingua</label>
+          <select class="mac-flat-input" id="anag-lang">
             <option value="it" ${c.lang==='it'?'selected':''}>Italiano</option>
             <option value="en" ${c.lang==='en'?'selected':''}>English</option>
           </select>
         </div>
       </div>
 
-      <div class="mac-form-section">Dati Fiscali</div>
-      <div class="mac-form-list">
-        <div class="mac-form-row">
-          <label class="mac-form-label">Partita IVA</label>
-          <input class="mac-form-input" id="anag-vat" type="text" value="${c.vat_number||''}"/>
+      <div class="mac-form-section-title">Dati Fiscali & Fatturazione</div>
+      <div class="mac-flat-list">
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">Indirizzo Sede</label>
+          <input class="mac-flat-input" id="anag-address" type="text" value="${c.address||''}" placeholder="Via/Piazza, CAP..."/>
         </div>
-        <div class="mac-form-row">
-          <label class="mac-form-label">PEC</label>
-          <input class="mac-form-input" id="anag-pec" type="email" value="${c.pec||''}"/>
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">Città</label>
+          <input class="mac-flat-input" id="anag-city" type="text" value="${c.city||''}" placeholder="Città (Provincia)"/>
         </div>
-        <div class="mac-form-row">
-          <label class="mac-form-label">Codice SDI</label>
-          <input class="mac-form-input" id="anag-sdi" type="text" value="${c.dest_code||''}" maxlength="7"/>
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">Partita IVA</label>
+          <input class="mac-flat-input" id="anag-vat" type="text" value="${c.vat_number||''}" placeholder="Partita IVA / C.F."/>
         </div>
-        <div class="mac-form-row">
-          <label class="mac-form-label">IBAN</label>
-          <input class="mac-form-input" id="anag-iban" type="text" value="${c.iban||''}" placeholder="IT..."/>
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">IBAN</label>
+          <input class="mac-flat-input" id="anag-iban" type="text" value="${c.iban||''}" placeholder="IT..."/>
         </div>
-      </div>
-
-      <div class="mac-form-section">Indirizzo</div>
-      <div class="mac-form-list">
-        <div class="mac-form-row">
-          <label class="mac-form-label">Indirizzo</label>
-          <input class="mac-form-input" id="anag-address" type="text" value="${c.address||''}"/>
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">PEC</label>
+          <input class="mac-flat-input" id="anag-pec" type="email" value="${c.pec||''}" placeholder="Indirizzo PEC"/>
         </div>
-        <div class="mac-form-row">
-          <label class="mac-form-label">Città</label>
-          <input class="mac-form-input" id="anag-city" type="text" value="${c.city||''}"/>
+        <div class="mac-flat-row">
+          <label class="mac-flat-label">Codice SDI</label>
+          <input class="mac-flat-input" id="anag-sdi" type="text" value="${c.dest_code||''}" maxlength="7" placeholder="es. M5UXCR1"/>
         </div>
       </div>
 
-      <div class="mac-form-section">Note Interne</div>
-      <div class="mac-form-list">
-        <div class="mac-form-row" style="align-items:flex-start;">
-          <textarea class="mac-form-input" id="anag-notes" rows="4" style="text-align:left;height:80px!important;padding-left:0;color:#000;" placeholder="Digita le note...">${c.notes||''}</textarea>
+      <div class="mac-form-section-title">Note Interne</div>
+      <div class="mac-flat-list">
+        <div class="mac-flat-row" style="align-items:flex-start;">
+          <textarea class="mac-flat-input" id="anag-notes" rows="4" style="min-height:80px; resize:vertical;" placeholder="Aggiungi una nota...">${c.notes||''}</textarea>
         </div>
       </div>
-
-      `;
+    `;
 
 
 

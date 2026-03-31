@@ -172,17 +172,14 @@
 </div>
 </div>
   
-<!-- ③ Bar Action Massiva (Nascosta di default) -->
-<div id="mac-mass-action-bar" class="mac-mass-action-bar" style="display:none; position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 100px; padding: 8px 16px; align-items: center; gap: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); z-index: 9999; color: #fff;">
-  <div style="font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
-    <div style="width: 20px; height: 20px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;" id="mac-mass-count">1</div>
-    <span>selezionati</span>
+<!-- ======= MAC MASS ACTION BAR ======= -->
+<div id="mac-mass-action-bar" class="mac-mass-action-bar">
+  <div class="mac-mass-action-selected" id="mac-selected-count">0 selezionati</div>
+  <div class="mac-mass-action-buttons">
+    <button class="mac-mass-action-btn" onclick="window.massDelete()" style="color:#ff453a;">Elimina</button>
   </div>
-  <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.2);"></div>
-  <button class="btn btn-ghost" style="color:#ef4444; border:none; background:transparent; font-size:13px; padding: 4px 8px;" onclick="window.massDelete()">Elimina</button>
-  <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.2);"></div>
-  <button class="btn btn-ghost" style="color:#a1a1aa; border:none; background:transparent; padding: 4px; border-radius: 50%;" onclick="window.clearSelection()" title="Annulla selezione">
-    <svg fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+  <button class="mac-mass-action-close" onclick="window.clearSelection()" aria-label="Annulla selezione">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg>
   </button>
 </div>
 

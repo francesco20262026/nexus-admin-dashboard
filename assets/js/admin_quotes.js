@@ -258,10 +258,10 @@
     const bar = document.getElementById('mac-mass-action-bar');
     if (bar) {
       if (window.selectedIds.size > 0) {
-        document.getElementById('mac-mass-count').textContent = window.selectedIds.size;
-        bar.style.display = 'flex';
+        document.getElementById('mac-selected-count').textContent = window.selectedIds.size + ' selezionat' + (window.selectedIds.size === 1 ? 'o' : 'i');
+        bar.classList.add('visible');
       } else {
-        bar.style.display = 'none';
+        bar.classList.remove('visible');
       }
     }
   };
