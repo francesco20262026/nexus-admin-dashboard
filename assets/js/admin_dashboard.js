@@ -1,5 +1,5 @@
 /* ============================================================
-   admin_dashboard.js — Dashboard operativo Nova CRM
+   admin_dashboard.js Dashboard operativo Nova CRM
    Lingua: italiano per default, i18n-ready
    ============================================================ */
 'use strict';
@@ -32,7 +32,7 @@
     },
   };
 
-  // Optional DOM nodes — warn but do not crash
+  // Optional DOM nodes warn but do not crash
   [
     ['subtitle', '#dash-subtitle'], ['activityList', '#dashboard-activity-list'],
     ['attentionList', '#attention-list'], ['clientsTbody', '#dash-clients-tbody'],
@@ -51,7 +51,7 @@
     const company = localStorage.getItem('nexus_active_company_name')
                  || localStorage.getItem('nexus_active_company') || '';
     const dateCap = date.charAt(0).toUpperCase() + date.slice(1);
-    els.subtitle.textContent = company ? `${dateCap} — ${company}` : dateCap;
+    els.subtitle.textContent = company ? `${dateCap} ${company}` : dateCap;
   }
 
   // ── Skeletons (render instantly before any fetch) ───────────
@@ -88,7 +88,7 @@
     const KPI_KEYS = ['clients', 'openInvoices', 'contracts', 'renewals'];
 
     if (!kpis) {
-      // Error state — show 0 + "Non disponibile"
+      // Error state show 0 + "Non disponibile"
       KPI_KEYS.forEach(k => {
         if (els.kpi[k])        els.kpi[k].innerHTML     = `<span class="fade-in">0</span>`;
         if (els.kpi[k+'Meta']) els.kpi[k+'Meta'].innerHTML = `<span class="fade-in" style="color:var(--gray-400);">Non disponibile</span>`;
@@ -116,7 +116,7 @@
           ? `<span class="fade-in"><span style="color:var(--warning-text)">${UI.currency(amount)}</span> da incassare</span>`
           : `<span class="fade-in">Fatture non ancora pagate</span>`;
       }
-      // Nav badge — only show if there are open invoices
+      // Nav badge only show if there are open invoices
       if (els.navBadgeInvoices && open > 0) {
         els.navBadgeInvoices.textContent = open;
         els.navBadgeInvoices.style.display = '';
@@ -192,7 +192,7 @@
       onboarding:      { color: 'purple', emoji: '🚀' },
     };
     const meta     = typeMap[act.type] || { color: 'amber', emoji: '⚡' };
-    const desc     = act.description || act.title || '—';
+    const desc     = act.description || act.title || '';
     const timeAgo  = act.time_ago || (act.created_at ? UI.date(act.created_at) : '');
     let clickAttr = '';
     if (act.type === 'invoice'  && act.entity_id) clickAttr = `onclick="location.href='admin_invoices.html?highlight=${act.entity_id}'" style="cursor:pointer;"`;
@@ -209,7 +209,7 @@
       </div>`;
   }
 
-  // ── Attention — parallel fetch, not sequential awaits ───────
+  // ── Attention parallel fetch, not sequential awaits ───────
   async function loadAttention() {
     if (!els.attentionList) return;
 
@@ -225,7 +225,7 @@
       const overdue = overdueRes.value?.items || overdueRes.value?.data || [];
       overdue.forEach(inv => items.push({
         color: 'red',
-        text:  `${I18n.t('dash.overdue_invoice')} <strong>${inv.invoice_number}</strong> — ${UI.currency(inv.total_amount || 0, inv.currency)}`,
+        text:  `${I18n.t('dash.overdue_invoice')} <strong>${inv.invoice_number}</strong> ${UI.currency(inv.total_amount || 0, inv.currency)}`,
         href:  `admin_invoices.html?highlight=${inv.id}`,
       }));
     }
@@ -234,7 +234,7 @@
       const pending = pendingRes.value?.items || pendingRes.value?.data || [];
       pending.forEach(c => items.push({
         color: 'blue',
-        text:  `Contratto in attesa di firma — <strong>${c.client_name || c.title || (c.id ? c.id.slice(0,8) : 'N/D')}</strong>`,
+        text:  `Contratto in attesa di firma <strong>${c.client_name || c.title || (c.id ? c.id.slice(0,8) : 'N/D')}</strong>`,
         href:  `admin_contracts.html?highlight=${c.id}`,
       }));
     }
@@ -243,13 +243,13 @@
       const ren = renewRes.value?.items || renewRes.value?.data || [];
       ren.forEach(r => items.push({
         color: 'amber',
-        text:  `Rinnovo in scadenza: <strong>${r.client_name || r.service_name || (r.id ? r.id.slice(0,8) : 'N/D')}</strong> — ${UI.date(r.renewal_date)}`,
+        text:  `Rinnovo in scadenza: <strong>${r.client_name || r.service_name || (r.id ? r.id.slice(0,8) : 'N/D')}</strong> ${UI.date(r.renewal_date)}`,
         href:  `admin_renewals.html`,
       }));
     }
 
     if (!items.length) {
-      els.attentionList.innerHTML = `<div class="activity-item fade-in"><div class="activity-content"><div class="activity-text" style="color:var(--gray-400);">Nessun elemento urgente — tutto in ordine ✓</div></div></div>`;
+      els.attentionList.innerHTML = `<div class="activity-item fade-in"><div class="activity-content"><div class="activity-text" style="color:var(--gray-400);">Nessun elemento urgente tutto in ordine ✓</div></div></div>`;
       return;
     }
 
@@ -295,7 +295,7 @@
               <span data-col="sector" style="font-weight:500;">${c.sector || ''}</span>
             </div>
             <div class="list-card-meta" title="Servizi/Valore">
-              Servizi: <span style="font-weight:600;color:var(--gray-900);">${c.services_count ?? 0}</span> —
+              Servizi: <span style="font-weight:600;color:var(--gray-900);">${c.services_count ?? 0}</span>
               Valore: <span style="font-weight:600;color:var(--gray-900);">${UI.currency(c.monthly_value || 0, c.currency)}</span>
             </div>
             <div style="flex-grow:1;"></div>
@@ -388,7 +388,7 @@
     renderSubtitle();
     renderSkeletons();
 
-    // All fetches fire in parallel — no sequential blocking
+    // All fetches fire in parallel no sequential blocking
     loadKpis();
     loadChart();
     loadActivity();
@@ -397,7 +397,7 @@
     loadInvoices();
   }
 
-  // Company switch — canonical event name
+  // Company switch canonical event name
   window.addEventListener('companyChanged', () => {
     renderSubtitle();
     loadDashboard();

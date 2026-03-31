@@ -4,134 +4,142 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Nova CRM —– Onboarding</title>
+<title>Nova CRM– Onboarding</title>
 <meta content="Pipeline di acquisizione e attivazione pre-clienti." name="description"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link as="image" href="/assets/img/nova-crm-logo-sidebar.svg" rel="preload"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-<link href="assets/css/dash.css?v=92" rel="stylesheet"/>
-<link href="assets/css/onboarding_split.css?v=88" rel="stylesheet"/>
+<link as="image" href="/assets/img/crm.png" rel="preload"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="assets/css/dash.css?v=152" rel="stylesheet">
+<link href="assets/css/onboarding_split.css?v=152" rel="stylesheet"/>
 <link href="assets/css/global_search.css" rel="stylesheet"/>
 <style>
+
     /* Prospect modal section divider */
+
     .prospect-section-label {
+
       font-size: 11px;
+
       font-weight: 700;
+
       text-transform: uppercase;
+
       letter-spacing: .06em;
+
       color: var(--gray-400);
+
       margin: 16px 0 8px;
+
       padding-bottom: 6px;
+
       border-bottom: 1px solid var(--border);
+
     }
+
     /* Hide create-prospect btn in edit mode */
+
     #onb-btn-create-prospect[data-mode="edit"] { display: none !important; }
+
   </style>
-</link></head>
+</link>
+  <!-- Shared Components: canonical single-source-of-truth CSS -->
+  <link rel="stylesheet" href="assets/css/header_bar.css">
+  <link rel="stylesheet" href="assets/css/filter_bar.css">
+  <link rel="stylesheet" href="assets/css/search_bar.css">
+</head>
 <body>
 <div class="shell" id="shell">
 <!-- ==================== SIDEBAR ==================== -->
 <aside class="sidebar">
 <div class="sidebar-brand">
-<img alt="Nova CRM" class="sidebar-brand-logo" fetchpriority="high" height="46" loading="eager" src="/assets/img/nova-crm-logo-sidebar.svg" width="140"/>
+<img alt="Nova CRM" class="sidebar-brand-logo" fetchpriority="high" loading="eager" src="/assets/img/crm.png" style="max-width: 220px; height: auto; max-height: 90px; object-fit: contain;"/>
 </div>
 <nav class="sidebar-nav avatar-colors">
 <div class="nav-section-label" data-i18n="nav.main">Principale</div>
-<a class="nav-item" href="admin_dash.html?v=88">
+<a class="nav-item" href="admin_dash.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect></svg>
 <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
 </a>
-<a class="nav-item" href="admin_onboarding.html?v=88">
+<a class="nav-item" href="admin_onboarding.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.onboarding">Onboarding</span>
 </a>
 <div class="nav-section-label" data-i18n="nav.management">Gestione</div>
-<a class="nav-item" href="admin_clients.html?v=88">
+<a class="nav-item" href="admin_clients.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.clients">Clienti</span>
 </a>
-<a class="nav-item" href="admin_quotes.html?v=88">
+<a class="nav-item" href="admin_quotes.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.quotes">Preventivi</span>
 </a>
-<a class="nav-item" href="admin_services.html?v=88">
+<a class="nav-item" href="admin_services.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.services">Servizi</span>
 </a>
-<a class="nav-item" href="admin_contracts.html?v=88">
+<a class="nav-item" href="admin_contracts.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.contracts">Contratti</span>
 </a>
-<a class="nav-item" href="admin_documents.html?v=88">
+<a class="nav-item" href="admin_documents.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.documents">Documenti</span>
 </a>
 <div class="nav-section-label" data-i18n="nav.finance">Finanza</div>
-<a class="nav-item" href="admin_invoices.html?v=88">
+<a class="nav-item" href="admin_invoices.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.invoices">Fatture</span>
 <span class="nav-badge" id="nav-badge-invoices" style="display:none"></span>
 </a>
-<a class="nav-item" href="admin_renewals.html?v=88">
+<a class="nav-item" href="admin_renewals.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.renewals">Rinnovi</span>
 </a>
 <div class="nav-section-label" data-i18n="nav.tools">Strumenti</div>
-<a class="nav-item" href="admin_calendar.html?v=88">
+<a class="nav-item" href="admin_calendar.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.calendar">Calendario</span>
 </a>
-<a class="nav-item" href="admin_activities.html?v=88">
+<a class="nav-item" href="admin_activities.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375M9 15l2.25 2.25L15 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.activities">Attività</span>
 </a>
 <div class="nav-section-label" data-i18n="nav.analytics">Analisi</div>
-<a class="nav-item" href="admin_reports.html?v=88">
+<a class="nav-item" href="admin_reports.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.reports">Report</span>
 </a>
 <div class="nav-section-label" data-i18n="nav.system">Sistema</div>
-<a class="nav-item" href="admin_companies.html?v=88">
+<a class="nav-item" href="admin_companies.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.companies">Aziende</span>
-</a><a class="nav-item" href="admin_users.html?v=88">
+</a><a class="nav-item" href="admin_users.html?v=152">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.users">Utenti</span>
 </a>
 </nav>
-<div class="sidebar-footer">
-<div class="nav-item" style="gap:10px;">
-<div class="avatar" id="sidebar-avatar" style="width:30px;height:30px;font-size:11px;">–</div>
-<div style="overflow:hidden;">
-<div class="nav-label" id="sidebar-name" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
-<div class="nav-label" style="color:var(--gray-500);font-size:11px;">Admin</div>
-</div>
-</div>
-</div>
 </aside>
-<script src="components/header.js?v=88"></script>
+<script src="components/header.js?v=152"></script>
 <!-- ===== MAIN ===== -->
-<main class="main" style="padding-bottom:0; display:flex; flex-direction:column; height:100vh; overflow:hidden;">
+<main class="main" style="padding-bottom:0; display:flex; flex-direction:column; gap:8px; height:100vh; overflow:hidden;">
 <!-- Page header -->
-<div class="page-header" style="margin-bottom:12px; flex-shrink:0;">
+<div class="page-header" style="flex-shrink:0;">
 <div>
 <h1 class="page-title" data-i18n="onb.title">Onboarding</h1>
-<p class="page-subtitle" data-i18n="onb.subtitle">Pipeline di acquisizione e attivazione pre-clienti</p>
 </div>
 <div class="page-header-actions">
 <button class="btn btn-secondary" id="btn-refresh-onb">
 <svg fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span data-i18n="common.refresh">Aggiorna</span>
 </button>
-<button class="btn btn-primary" id="btn-new-onboarding">
-<svg fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-<span data-i18n="onb.new">Nuova pratica</span>
+<button class="btn-action-icon" id="btn-new-onboarding" title="Nuova pratica">
+<svg fill="none" stroke="currentColor" stroke-width="3" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14m-7-7h14" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 </button>
 </div>
 </div>
 <!-- Pipeline summary bar -->
 <div class="cl-tab-filter-bar">
-<div class="cl-status-pills" id="onb-pipeline-bar">
+<div class="cl-status-pills mac-segmented-control" id="onb-pipeline-bar">
 <button class="cl-status-pill active" data-tab="all">
 <span data-i18n="onb.pipe_all">Tutti</span> <span class="badge" id="pp-all">0</span>
 </button>
@@ -157,33 +165,145 @@
 </div>
 <div class="card" style="margin-top:0;">
 <!-- Filter row -->
+<style>
+/* Mass Actions Bottom Bar */
+
+  position: fixed;
+  bottom: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(28, 28, 30, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  border-radius: 999px;
+  padding: 10px 10px 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 9999;
+  transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mac-mass-action-bar.visible {
+  bottom: 40px;
+}
+.mac-mass-action-selected {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+.mac-mass-action-buttons {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  padding-left: 16px;
+  height: 24px;
+}
+.mac-mass-action-btn {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.mac-mass-action-btn:hover {
+  opacity: 0.8;
+}
+.mac-mass-action-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffffff;
+  transition: all 0.2s;
+  margin-left: 4px;
+}
+.mac-mass-action-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+</style>
+
+
 <div class="cl-filter-row">
-<div class="cl-filter-search-wrap">
-<svg class="cl-filter-search-icon" fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-<input autocomplete="off" class="form-input cl-filter-search-input" id="onb-search" placeholder="Cerca pratica, email..." type="search"/>
+  <div class="cl-filter-search-wrap">
+    <span class="cl-filter-search-icon">
+      <svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </span>
+    <input autocomplete="off" class="cl-search-input" id="onb-search" placeholder="Cerca pratica, email..." type="search"/>
+  </div>
+  <div class="cl-filter-right">
+    <button class="cl-filter-reset-btn" id="btn-reset-filters" title="Reimposta filtri">
+      <svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      Reset
+    </button>
+  </div>
 </div>
-<select class="form-input cl-filter-select" id="onb-filter-priority" title="Filtra per priorità">
-<option value="">Priorità</option>
-<option value="high">▲ Alta</option>
-<option value="medium">■ Media</option>
-<option value="low">▼ Bassa</option>
-</select>
-<div style="display:flex;align-items:center;gap:4px;">
-<input class="form-input cl-filter-select" id="onb-filter-date-from" style="max-width:130px;" title="Da Data Creazione" type="date"/>
-<span style="color:#9ca3af;font-size:10px;font-weight:700;">→</span>
-<input class="form-input cl-filter-select" id="onb-filter-date-to" style="max-width:130px;" title="A Data Creazione" type="date"/>
+
+
+<div class="mac-header-row" style="display: grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 1fr 1fr 80px; align-items:center; gap:24px; padding: 12px 24px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-top-left-radius: 12px; border-top-right-radius: 12px; user-select: none;">
+  <div class="cl-col-identity">
+    <div id="btn-select-all" class="mac-select-btn" title="Seleziona tutti" onclick="window.toggleSelectAll()" style="flex-shrink:0;">
+      <div class="mac-checkbox"></div>
+    </div>
+    <div style="display:flex; align-items:center; gap:4px; cursor:pointer;" onclick="window.toggleSort()" title="Ordina per nome">
+      <span>Prospect</span>
+      <svg id="sort-icon-prospect" fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg" style="transition: transform 0.2s;"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </div>
+  </div>
+
+  <div class="cl-col cl-col-2" style="flex-direction: row; align-items: center;">
+    <span>Email</span>
+  </div>
+
+  <div class="cl-col cl-col-3" style="flex-direction: row; align-items: center;">
+    <span>Partita Iva</span>
+  </div>
+
+  <div class="cl-col cl-col-4" style="flex-direction: row; align-items: center;">
+    <select class="mac-header-select" id="onb-filter-status" title="Filtra per stato" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px;">
+      <option value="">Stato ▼</option>
+      <option value="new">Nuovo</option>
+      <option value="quote_draft">Prev. bozza</option>
+      <option value="quote_sent">Preventivo inv.</option>
+      <option value="quote_accepted">Prev. accettato</option>
+      <option value="contract_draft">Contratto bozza</option>
+      <option value="contract_sent">Contratto inv.</option>
+      <option value="contract_signed">Contr. firmato</option>
+      <option value="proforma_draft">Proforma bozza</option>
+      <option value="proforma_issued">Proforma emessa</option>
+      <option value="payment_under_review">In verifica</option>
+      <option value="cancelled">Annullata</option>
+      <option value="converted">Convertito</option>
+    </select>
+  </div>
+
+  <div class="cl-col cl-col-5" style="flex-direction: row; align-items: center;">
+    <select class="mac-header-select" id="onb-filter-priority" title="Filtra per priorità" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px;">
+      <option value="">Priorità ▼</option>
+      <option value="high">Alta</option>
+      <option value="medium">Media</option>
+      <option value="low">Bassa</option>
+    </select>
+  </div>
+
+  <div class="cl-col cl-col-actions"></div>
 </div>
-<select class="form-input cl-filter-select" id="onb-filter-assignee">
-<option value="">Tutti gli assegnatari</option>
-</select>
-<button class="btn btn-ghost" id="btn-reset-filters" style="padding: 0 12px; height: 36px; gap: 6px; flex-shrink: 0;" title="Reimposta filtri">
-<svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-<span>Reset</span>
-</button>
-</div>
+
 <!-- List (No headers, matching client UI) -->
 <!-- List -->
-<div id="onb-list" class="cl-list">
+<div class="cl-list" id="onb-list">
 <div class="cl-row skeleton" style="height:60px;margin-bottom:8px;"></div>
 <div class="cl-row skeleton" style="height:60px;"></div>
 </div>
@@ -206,213 +326,202 @@
 </div>
 </div>
 </div>
+<!-- Mass Actions Bottom Bar -->
+<div id="mac-mass-action-bar" class="mac-mass-action-bar">
+  <div id="mac-mass-action-selected" class="mac-mass-action-selected">0 selezionati</div>
+  <div class="mac-mass-action-buttons">
+    <button class="mac-mass-action-btn" style="color:#ff6b6b;" onclick="window.massDelete()">Elimina</button>
+  </div>
+  <button class="mac-mass-action-close" onclick="window.clearSelection()" aria-label="Annulla selezione">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg>
+  </button>
+</div>
 </main>
 </div><!-- end .shell -->
-<!-- ======= NEW / EDIT ONBOARDING MODAL ======= -->
-<div class="modal-overlay" id="onb-form-overlay">
-<div class="modal onb-form-modal" id="onb-form-modal" style="max-width:700px;width:95vw;">
-<!-- HEADER -->
-<div class="modal-header" id="onb-form-header" style="padding:20px 24px 16px;">
-<div style="display:flex;align-items:flex-start;gap:12px;">
-<div id="onb-form-header-icon" style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#d1fae5;"></div>
-<div>
-<div class="modal-title" id="onb-form-title" style="font-size:20px;font-weight:800;color:#111827;margin-bottom:2px;">Nuova pratica</div>
-<div id="onb-form-header-sub" style="font-size:12px;color:#6b7280;">Inserisci i dati del potenziale cliente</div>
-</div>
-</div>
-<button aria-label="Chiudi" class="icon-btn" onclick="closeOnbForm()">
-<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-</button>
-</div>
-<!-- BODY -->
-<div class="modal-body" style="max-height:calc(90vh - 148px);overflow-y:auto;padding:20px 24px;">
-<!-- ── SEZIONE 1: Dati Soggetto ── -->
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-<div style="width:24px;height:24px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;">1</div>
-<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#2563eb;padding:3px 10px;background:#eff6ff;border-radius:999px;">Dati soggetto</span>
-</div>
-<div style="margin-bottom:24px;">
-<div class="form-grid">
-<div class="form-group">
-<label class="form-label">Ragione Sociale <span class="form-required">*</span></label>
-<input autocomplete="organization" class="form-input" id="onb-f-company" placeholder="es. Mario Rossi SRL" type="text">
-</input></div>
-<div class="form-group">
-<label class="form-label">Nome Referente</label>
-<input class="form-input" id="onb-f-lead-name" placeholder="es. Mario Rossi" type="text">
-</input></div>
-<div class="form-group">
-<label class="form-label">Email <span class="form-required">*</span></label>
-<input class="form-input" id="onb-f-email" placeholder="email@azienda.it" type="email">
-</input></div>
-<div class="form-group">
-<label class="form-label">Telefono</label>
-<input class="form-input" id="onb-f-phone" placeholder="+39 ..." type="tel"/>
-</div>
-</div>
-</div>
-<!-- ── SEZIONE 2: Dati Fiscali (Winddoc) ── -->
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-<div style="width:24px;height:24px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;">2</div>
-<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#2563eb;padding:3px 10px;background:#eff6ff;border-radius:999px;">Dati fiscali (Winddoc)</span>
-</div>
-<div style="margin-bottom:24px;">
-<div class="form-grid">
-<div class="form-group">
-<label class="form-label">Partita IVA <span style="color:#0ea5e9;font-size:10px;font-weight:600;cursor:help;" title="Necessario per emettere la proforma">📄 proforma</span></label>
-<input class="form-input" id="onb-f-vat" placeholder="IT..." type="text"/>
-</div>
-<div class="form-group">
-<label class="form-label">Codice Fiscale</label>
-<input class="form-input" id="onb-f-fiscal-code" placeholder="Codice Fiscale" type="text"/>
-</div>
-<div class="form-group">
-<label class="form-label">Codice SDI <span style="color:#0ea5e9;font-size:10px;font-weight:600;cursor:help;" title="Necessario per emettere la proforma (o inserire PEC)">📄 proforma</span></label>
-<input class="form-input" id="onb-f-sdi" placeholder="es. M5UXCR1" type="text"/>
-</div>
-<div class="form-group">
-<label class="form-label">PEC <span style="color:#0ea5e9;font-size:10px;font-weight:600;cursor:help;" title="Necessario per emettere la proforma (o inserire SDI)">📄 proforma</span></label>
-<input class="form-input" id="onb-f-pec" placeholder="pec@pec.it" type="email"/>
-</div>
-<div class="form-group form-grid--full">
-<label class="form-label">Indirizzo <span style="color:#0ea5e9;font-size:10px;font-weight:600;cursor:help;" title="Necessario per emettere la proforma">📄 proforma</span></label>
-<input class="form-input" id="onb-f-address" placeholder="Via Roma 1" type="text"/>
-</div>
-<div class="form-group" style="flex:0 0 calc(33% - 8px);min-width:120px;">
-<label class="form-label">CAP</label>
-<input class="form-input" id="onb-f-cap" maxlength="5" placeholder="00100" type="text"/>
-</div>
-<div class="form-group">
-<label class="form-label">Città <span style="color:#0ea5e9;font-size:10px;font-weight:600;cursor:help;" title="Necessario per emettere la proforma">📄 proforma</span></label>
-<input class="form-input" id="onb-f-city" placeholder="Città" type="text"/>
-</div>
-<div class="form-group" style="flex:0 0 calc(33% - 8px);min-width:80px;">
-<label class="form-label">Prov.</label>
-<input class="form-input" id="onb-f-province" maxlength="2" placeholder="RM" type="text"/>
-</div>
-</div>
-</div>
-<!-- ── SEZIONE 3: Pipeline ── -->
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-<div style="width:24px;height:24px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;">3</div>
-<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#2563eb;padding:3px 10px;background:#eff6ff;border-radius:999px;">Pipeline &amp; Assegnazione</span>
-</div>
-<div>
-<div class="form-grid">
-<!-- Azienda fornitrice: evidenziata come nel mockup -->
-<div class="form-group form-grid--full" style="border:1.5px solid #f59e0b;border-radius:10px;padding:10px 12px;background:#fffbeb;">
-<label class="form-label" style="color:#92400e;">
-              Azienda fornitrice <span style="color:#ef4444;font-weight:700;">*</span>
-<span style="font-weight:400;color:#b45309;font-size:10px;"> — a chi appartiene questa pratica</span>
-</label>
-<select class="form-input" id="onb-f-supplier" style="background:transparent;border:none;padding:4px 0;font-weight:600;">
-<option value="">Seleziona fornitrice...</option>
-</select>
-</div>
-<div class="form-group">
-<label class="form-label">Servizio</label>
-<select class="form-input" id="onb-f-service">
-<option value="">Servizio richiesto...</option>
-</select>
-</div>
-<div class="form-group">
-<label class="form-label">Priorità</label>
-<select class="form-input" id="onb-f-priority">
-<option value="medium">■ Media</option>
-<option value="high">▲ Alta</option>
-<option value="low">▼ Bassa</option>
-</select>
-</div>
-<!-- Solo in Modifica: Stato pratica -->
-<div class="form-group form-grid--full" id="onb-f-status-wrapper" style="display:none;">
-<label class="form-label" style="color:#374151;">
-<span style="display:inline-flex;align-items:center;gap:4px;">Stato pratica <span style="width:8px;height:8px;border-radius:50%;background:#059669;display:inline-block;"></span></span>
-</label>
-<select class="form-input" id="onb-f-status">
-<option value="new">Nuova / Da gestire</option>
-<option value="quote_draft">Preventivo in bozza</option>
-<option value="quote_sent">Preventivo inviato</option>
-<option value="quote_accepted">Preventivo accettato</option>
-<option value="quote_rejected">Preventivo rifiutato</option>
-<option value="contract_draft">Contratto in bozza</option>
-<option value="contract_sent">Contratto inviato</option>
-<option value="contract_signed">Contratto firmato</option>
-<option value="contract_rejected">Contratto rifiutato</option>
-<option value="proforma_issued">Proforma emessa</option>
-<option value="payment_under_review">Verifica pagamento</option>
-<option value="active">Pratica attiva / Cliente</option>
-<option value="cancelled">Annullato</option>
-</select>
-</div>
-<div class="form-group form-grid--full">
-<label class="form-label">Assegnato a</label>
-<select class="form-input" id="onb-f-assignee">
-<option value="">Nessuno</option>
-</select>
-</div>
-<div class="form-group form-grid--full">
-<label class="form-label" style="color:#6b7280;">Note <span style="font-weight:400;color:#9ca3af;">(opzionale)</span></label>
-<textarea class="form-input" id="onb-f-notes" placeholder="Note sul processo di attivazione..." rows="3" style="resize:vertical;"></textarea>
-</div>
-</div>
-</div>
-</div><!-- /modal-body -->
-<!-- FOOTER -->
-<div class="modal-footer" style="padding:16px 24px;">
-<button class="btn btn-ghost" onclick="closeOnbForm()">Annulla</button>
-<button class="btn btn-primary" id="onb-form-save" style="gap:6px;">
-<svg fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-        Salva pratica
-      </button>
-</div>
-</div>
-</div>
-<!-- ======= PORTAL INVITE MODAL ======= -->
-<div class="modal-overlay" id="onb-portal-invite-overlay">
-<div class="modal" style="max-width:440px;">
-<div class="modal-header" style="padding:20px 24px 16px;">
-<div style="display:flex;align-items:center;gap:12px;">
-<div style="width:42px;height:42px;border-radius:12px;background:#ccfbf1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-<svg fill="none" stroke="#0d9488" stroke-width="2" style="width:20px;height:20px;" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-</div>
-<div>
-<div style="font-size:18px;font-weight:800;color:#111827;">Accesso al portale</div>
-<div id="portal-invite-name" style="font-size:12px;color:#6b7280;"></div>
-</div>
-</div>
-<button class="icon-btn" onclick="closePortalInvite()">
-<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-</button>
-</div>
-<div style="padding:16px 24px 8px;">
-<p style="font-size:13px;color:#6b7280;margin-bottom:16px;">Invia un invito al cliente per accedere al portale self-service dove potrà caricare documenti e seguire lo stato della pratica.</p>
-<div style="margin-bottom:16px;">
-<label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Email destinatario <span style="color:#ef4444;">*</span></label>
-<input class="form-input" id="portal-invite-email" placeholder="email@azienda.it" style="width:100%;" type="email"/>
-</div>
-<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;font-size:12px;color:#166534;">
-<strong>🔒 Accesso sicuro</strong> — Il cliente riceverà un link con token temporaneo valido 48 ore.
+<!-- ======= NEW / EDIT ONBOARDING MODAL (Fixed Structure) ======= -->
+<div class="modal-overlay" id="onb-form-overlay" onclick="if(event.target===this) closeOnbForm()">
+  <div class="modal" id="onb-form-modal" style="max-width:700px;width:95vw;" onclick="event.stopPropagation()">
+    <div class="modal-header" id="onb-form-header" style="padding:20px 24px 16px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div class="mac-modal-icon-box blue" id="onb-form-header-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px;height:24px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        </div>
+        <div>
+          <div class="modal-title" id="onb-form-title" style="font-size:20px;font-weight:800;color:#111827;margin-bottom:2px;">Nuova pratica</div>
+          <div id="onb-form-header-sub" style="font-size:12px;color:#6b7280;">Inserisci i dati del potenziale cliente</div>
+        </div>
       </div>
-</div>
-<div class="modal-footer" style="padding:16px 24px;">
-<button class="btn btn-ghost" onclick="closePortalInvite()">Annulla</button>
+      <button class="icon-btn" onclick="closeOnbForm()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    
+    <div class="modal-body" style="max-height:calc(90vh - 148px);overflow-y:auto;padding:20px 24px;background:#f9fafb;">
+      
+      <!-- Sezione 1: Informazioni iniziali -->
+      <div class="modal-section-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+        Informazioni iniziali
+      </div>
+      <div style="margin-bottom:24px;">
+        <div class="form-grid">
+          <div class="form-group form-grid--full">
+            <label class="form-label" style="font-weight:600;color:#374151;">Ragione Sociale / Nome <span style="color:#ef4444;">*</span></label>
+            <input type="text" class="form-input" id="onb-f-company" placeholder="Cognome Nome o Ragione Sociale">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Referente</label>
+            <input type="text" class="form-input" id="onb-f-lead-name" placeholder="Es. Mario Rossi">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefono</label>
+            <input type="text" class="form-input" id="onb-f-phone" placeholder="Es. +39 012 3456789">
+          </div>
+          <div class="form-group form-grid--full">
+            <label class="form-label" style="font-weight:600;color:#374151;">Email <span style="color:#ef4444;">*</span></label>
+            <input type="email" class="form-input" id="onb-f-email" placeholder="nome@esempio.it">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione 2: Assegnazione & Servizio -->
+      <div class="modal-section-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18h16.5M5.25 6H18.75m-13.5 3H18.75m-13.5 3H18.75m-13.5 3H18.75m-13.5 3H18.75"/></svg>
+        Assegnazione e Servizio
+      </div>
+      <div style="margin-bottom:24px;">
+        <div class="form-grid">
+          <div class="form-group form-grid--full" style="border:1.5px solid #3b82f6;border-radius:10px;padding:12px 14px;background:#eff6ff;">
+            <label class="form-label" style="color:#2563eb;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">Azienda fornitrice <span style="color:#ef4444;">*</span></label>
+            <select class="form-input" id="onb-f-supplier" style="background:#fff;border-color:#bfdbfe;color:#1e40af;font-weight:500;"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Responsabile Commerciale</label>
+            <select class="form-input" id="onb-f-assignee"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Servizio d'interesse</label>
+            <select class="form-input" id="onb-f-service"></select>
+          </div>
+          <div class="form-group" style="padding:12px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;">
+            <label class="form-label" style="font-weight:600;color:#374151;">Priorità <span style="color:#ef4444;">*</span></label>
+            <select class="form-input" id="onb-f-priority" style="margin-top:4px;">
+              <option value="low">🟡 Bassa</option>
+              <option value="medium" selected>🟠 Media</option>
+              <option value="high">🔴 Alta</option>
+              <option value="urgent">🚨 Urgente</option>
+            </select>
+          </div>
+          <div class="form-group" id="onb-f-status-wrapper" style="display:none;padding:12px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;">
+            <label class="form-label" style="font-weight:600;color:#374151;">Stato Pipeline</label>
+            <select class="form-input" id="onb-f-status" style="margin-top:4px;">
+              <option value="new">Nuovo</option>
+              <option value="quote_draft">Preventivo bozza</option>
+              <option value="quote_sent">Preventivo inviato</option>
+              <option value="contract_draft">Contratto bozza</option>
+              <option value="proforma_draft">Proforma bozza</option>
+              <option value="converted">Convertito</option>
+              <option value="cancelled">Annullata</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione 3: Dati Fiscali & Indirizzo -->
+      <div class="modal-section-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75m0 1.5v.75m0 1.5v.75m0 1.5V15m0 1.5V18m0 1.5v.75A2.25 2.25 0 0 0 6 22.5h13.5A2.25 2.25 0 0 0 21 20.25V18m-9-13.5h.008v.008H12V4.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+        Dati Azienda / Fiscali
+      </div>
+      <div style="margin-bottom:24px;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Partita IVA</label>
+            <input type="text" class="form-input" id="onb-f-vat" placeholder="11 cifre">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Codice Fiscale</label>
+            <input type="text" class="form-input" id="onb-f-fiscal-code" placeholder="CF o PIVA">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Codice SDI</label>
+            <input type="text" class="form-input" id="onb-f-sdi" placeholder="7 caratteri">
+          </div>
+          <div class="form-group">
+            <label class="form-label">PEC</label>
+            <input type="text" class="form-input" id="onb-f-pec" placeholder="Indirizzo PEC">
+          </div>
+          <div class="form-group form-grid--full">
+            <label class="form-label">Indirizzo Sede / Fatturazione</label>
+            <input type="text" class="form-input" id="onb-f-address" placeholder="Via, civico, interno">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Città</label>
+            <input type="text" class="form-input" id="onb-f-city" placeholder="Città">
+          </div>
+          <div class="form-group" style="display:grid; grid-template-columns: 1fr 2fr; gap:8px;">
+            <div>
+              <label class="form-label">Prov.</label>
+              <input type="text" class="form-input" id="onb-f-province" placeholder="Sigla">
+            </div>
+            <div>
+              <label class="form-label">CAP</label>
+              <input type="text" class="form-input" id="onb-f-cap" placeholder="Es. 00100">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione 4: Note -->
+      <div class="modal-section-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/></svg>
+        Note interne
+      </div>
+      <div>
+        <div class="form-grid">
+          <div class="form-group form-grid--full">
+            <textarea class="form-input" id="onb-f-notes" rows="3" style="resize:vertical;padding:12px;min-height:80px;" placeholder="Inserisci note commerciali, dettagli del servizio richiesto..."></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer" style="padding:16px 24px;border-top:1px solid #f1f5f9;display:flex;justify-content:flex-end;gap:12px;background:#f8fafc;border-bottom-left-radius:12px;border-bottom-right-radius:12px;">
+      <button class="btn btn-secondary" onclick="closeOnbForm()">Annulla</button>
+      <button class="btn-action-icon" id="onb-form-save" title="*">
+        <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14m-7-7h14" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
 <button class="btn btn-teal" id="portal-invite-send">
 <svg fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+
         Invia invito
+
       </button>
 </div>
 </div>
 </div>
+<!-- ======= MAC MASS ACTION BAR ======= -->
+<div id="mac-mass-action-bar" class="mac-mass-action-bar">
+  <div class="mac-mass-action-selected" id="mac-mass-action-selected">0 selezionati</div>
+  <div class="mac-mass-action-buttons">
+    <button class="mac-mass-action-btn" onclick="window.massAssign()" style="color:#0a84ff;">Assegna</button>
+    <button class="mac-mass-action-btn" onclick="window.massDelete()" style="color:#ff453a;">Elimina</button>
+  </div>
+  <button class="mac-mass-action-close" onclick="clearSelection()" title="Annulla selezione">
+    <svg fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+  </button>
+</div>
+
 <div class="toast-container" id="toast-container"></div>
 <!-- ==================== SCRIPTS ==================== -->
-<script src="assets/js/api.js?v=88"></script>
-<script src="assets/js/auth.js?v=88"></script>
-<script src="assets/js/ui.js?v=88"></script>
-<script src="assets/js/i18n.js?v=88"></script>
-<script src="assets/js/dash.js?v=88"></script>
-<script src="assets/js/router.js?v=88"></script>
+<script src="assets/js/api.js?v=152"></script>
+<script src="assets/js/auth.js?v=152"></script>
+<script src="assets/js/ui.js?v=152"></script>
+<script src="assets/js/i18n.js?v=152"></script>
+<script src="assets/js/dash.js?v=152"></script>
+<script src="assets/js/router.js?v=152"></script>
 <script src="assets/js/activity_timeline.js"></script>
-<script src="assets/js/admin_onboarding.js?v=88"></script>
+<script src="assets/js/admin_onboarding.js?v=152"></script>
 <script src="assets/js/global_search.js"></script>
 </body>
 </html>

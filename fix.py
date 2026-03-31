@@ -1,16 +1,20 @@
-import re
+import io
+client_html = io.open('admin_client_detail.html', 'r', encoding='utf-8').read()
+onboarding_html = io.open('admin_onboarding_detail.html', 'r', encoding='utf-8').read()
 
-def fix(html_file, script_file):
-    with open(html_file, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    pattern = r'<script src=\"assets/js/admin_clients\.js\?v=68\"></script>\s*<script src=\"assets/js/global_search\.js\"></script>'
-    new_script = f'<script src=\"assets/js/{script_file}\"></script>'
-    content = re.sub(pattern, new_script, content)
-    
-    with open(html_file, 'w', encoding='utf-8') as f:
-        f.write(content)
+start_modals = client_html.find('<!-- Modal Nuova Chiamata -->')
+end_modals = client_html.find('<!-- ==================== SCRIPTS ==================== -->')
+modals_content = client_html[start_modals:end_modals]
 
-fix('e:/App/crm/admin_activities.html', 'admin_activities.js?v=68')
-fix('e:/App/crm/admin_calendar.html', 'admin_calendar.js?v=68')
-print('Fixed HTML')
+if 'Modal Nuova Chiamata' not in onboarding_html:
+    onboarding_html = onboarding_html.replace('<!-- ==================== SCRIPTS ==================== -->', modals_content + '\n<!-- ==================== SCRIPTS ==================== -->')
+
+# Now add the scripts
+if 'admin_client_calls.js' not in onboarding_html:
+    scripts = '<script src="assets/js/admin_client_calls.js?v=152"></script>\n<script src="assets/js/admin_client_comms.js?v=152"></script>\n<script src="assets/js/admin_onboarding_detail.js'
+    onboarding_html = onboarding_html.replace('<script src="assets/js/admin_onboarding_detail.js', scripts)
+
+with io.open('admin_onboarding_detail.html', 'w', encoding='utf-8', newline='\n') as f:
+    f.write(onboarding_html)
+
+print("Injected modals and scripts successfully.")

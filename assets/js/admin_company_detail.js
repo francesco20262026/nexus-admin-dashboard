@@ -1,4 +1,4 @@
-/* admin_company_detail.js — Company detail: dati, integrazioni, template */
+/* admin_company_detail.js Company detail: dati, integrazioni, template */
 'use strict';
 (function () {
   Auth.guard('admin');
@@ -51,7 +51,7 @@
     const nameEl = $('page-company-name');
     if (nameEl) nameEl.textContent = c.name || 'Azienda';
     const slugEl = $('page-company-slug');
-    if (slugEl) slugEl.textContent = `slug: ${c.slug || '—'} · lingua: ${(c.default_lang || 'it').toUpperCase()}`;
+    if (slugEl) slugEl.textContent = `slug: ${c.slug || ''} · lingua: ${(c.default_lang || 'it').toUpperCase()}`;
   }
 
   function fillDati(c) {
@@ -234,7 +234,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
           <div>
             <div style="font-weight:600;font-size:14px;">📄 ${t.name}</div>
-            <div style="font-size:11px;color:var(--gray-500);">Creato: ${t.created_at ? new Date(t.created_at).toLocaleDateString('it-IT') : '—'}${t.is_default ? ' · <span style="color:#059669;">✓ Default</span>' : ''}</div>
+            <div style="font-size:11px;color:var(--gray-500);">Creato: ${t.created_at ? new Date(t.created_at).toLocaleDateString('it-IT') : ''}${t.is_default ? ' · <span style="color:#059669;">✓ Default</span>' : ''}</div>
           </div>
           <div style="display:flex;gap:6px;">
             <button class="btn btn-ghost btn-sm" onclick="openCtForm('${t.id}')">Modifica</button>
@@ -335,7 +335,7 @@
               ✉️ ${ET_LABELS[t.type] || t.type} 
               <span style="font-size:10px;background:var(--gray-100);color:var(--gray-600);border-radius:4px;padding:2px 6px;text-transform:uppercase;">${t.lang}</span>
             </div>
-            <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">Oggetto: ${t.subject || '—'}</div>
+            <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">Oggetto: ${t.subject || ''}</div>
           </div>
           <div style="display:flex;gap:6px;">
             <button class="btn btn-ghost btn-sm" onclick="openEtForm('${t.type}', '${t.lang}')">🖍️ Modifica</button>

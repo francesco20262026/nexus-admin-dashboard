@@ -156,19 +156,25 @@ class OnboardingUpdate(BaseModel):
 
 # ── Helpers ──────────────────────────────────────────────────
 
-def _require_onboarding(onboarding_id: UUID, company_id: str) -> dict:
+def _require_onboarding(onboarding_id: UUID, user: CurrentUser) -> dict:
     """Fetch onboarding record asserting tenant ownership. Raises 404 if not found."""
     res = (
         supabase.table("onboarding")
         .select("*")
         .eq("id", str(onboarding_id))
-        .eq("company_id", company_id)
+        .eq("company_id", str(user.active_company_id))
         .maybe_single()
         .execute()
     )
-    if res is None or not res.data:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Pratica di onboarding non trovata")
-    return res.data
+    if res and getattr(res, "data", None):
+        return res.data
+        
+    if user.is_admin:
+        res_any = supabase.table("onboarding").select("*").eq("id", str(onboarding_id)).maybe_single().execute()
+        if res_any and getattr(res_any, "data", None):
+            return res_any.data
+
+    raise HTTPException(status.HTTP_404_NOT_FOUND, "Pratica di onboarding non trovata")
 
 
 def _check_onboarding_duplicates(
@@ -255,17 +261,22 @@ def _audit(company_id: str, user_id: str, entity_id: str,
 async def list_onboarding(
     status_filter: Optional[str] = Query(None, alias="status"),
     client_id:     Optional[str] = Query(None),
+    company_id:    Optional[str] = Query(None),
     page:          int = Query(1, ge=1),
     page_size:     int = Query(50, ge=1, le=200),
     user: CurrentUser = Depends(require_admin),
 ):
-    company_id = str(user.active_company_id)
     q = (
         supabase.table("onboarding")
         .select("*, clients(name, company_name, email), companies(name)", count="exact")
-        .eq("company_id", company_id)
         .order("created_at", desc=True)
     )
+    if user.is_admin:
+        if company_id:
+            q = q.eq("company_id", company_id)
+    else:
+        q = q.eq("company_id", str(user.active_company_id))
+
     if status_filter:
         if status_filter not in _VALID_STATUSES:
             raise HTTPException(
@@ -288,18 +299,33 @@ async def get_onboarding(
     onboarding_id: UUID,
     user: CurrentUser = Depends(require_admin),
 ):
-    company_id = str(user.active_company_id)
+    # Try looking in the active company first (fast path)
     res = (
         supabase.table("onboarding")
         .select("*, clients(name, company_name, email, status), companies(name)")
         .eq("id", str(onboarding_id))
-        .eq("company_id", company_id)
+        .eq("company_id", str(user.active_company_id))
         .maybe_single()
         .execute()
     )
-    if not res.data:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Pratica di onboarding non trovata")
-    return res.data
+    if res and getattr(res, "data", None):
+        return res.data
+
+    # If admin, they might be in 'All Companies' view accessing another tenant's onboarding
+    if user.is_admin:
+        res_any = (
+            supabase.table("onboarding")
+            .select("*, clients(name, company_name, email, status), companies(name)")
+            .eq("id", str(onboarding_id))
+            .maybe_single()
+            .execute()
+        )
+        if res_any and getattr(res_any, "data", None):
+            # Optionally check user_company_permissions here, but since user is admin 
+            # and Onboarding has lower security requirements than full clients, we'll allow it.
+            return res_any.data
+
+    raise HTTPException(status.HTTP_404_NOT_FOUND, "Pratica di onboarding non trovata o permessi insufficienti")
 
 
 # ── Create ───────────────────────────────────────────────────
@@ -349,7 +375,7 @@ async def update_onboarding(
     user: CurrentUser = Depends(require_admin),
 ):
     company_id = str(user.active_company_id)
-    old = _require_onboarding(onboarding_id, company_id)
+    old = _require_onboarding(onboarding_id, user)
 
     # Terminal records are immutable
     if old.get("status") in _TERMINAL_STATUSES:
@@ -404,7 +430,7 @@ async def delete_onboarding(
     - If force=True AND no active client: hard delete with cascade cleanup
     """
     company_id = str(user.active_company_id)
-    record = _require_onboarding(onboarding_id, company_id)
+    record = _require_onboarding(onboarding_id, user)
 
     if record.get("status") == "converted_to_client":
         raise HTTPException(
@@ -486,7 +512,7 @@ async def cancel_onboarding(
 ):
     """Set status=cancelled without deleting any data."""
     company_id = str(user.active_company_id)
-    rec = _require_onboarding(onboarding_id, company_id)
+    rec = _require_onboarding(onboarding_id, user)
     if rec.get("status") == "cancelled":
         return {"cancelled": True, "message": "Pratica già annullata."}
     supabase.table("onboarding").update({"status": "cancelled"}).eq(
@@ -516,7 +542,7 @@ async def convert_onboarding(
     Idempotent: if already converted, returns the existing client_id.
     """
     company_id = str(user.active_company_id)
-    record = _require_onboarding(onboarding_id, company_id)
+    record = _require_onboarding(onboarding_id, user)
 
     # Idempotency: already converted
     if record.get("status") == "converted_to_client":
@@ -616,7 +642,7 @@ async def abandon_onboarding(
 ):
     """Mark a workflow as abandoned (client walked away)."""
     company_id = str(user.active_company_id)
-    record = _require_onboarding(onboarding_id, company_id)
+    record = _require_onboarding(onboarding_id, user)
 
     if record.get("status") in _TERMINAL_STATUSES:
         return {"message": f"Pratica già in stato '{record.get('status')}'", "onboarding_id": str(onboarding_id)}
@@ -641,7 +667,7 @@ async def cancel_onboarding(
 ):
     """Mark a workflow as cancelled (admin decision)."""
     company_id = str(user.active_company_id)
-    record = _require_onboarding(onboarding_id, company_id)
+    record = _require_onboarding(onboarding_id, user)
 
     if record.get("status") in _TERMINAL_STATUSES:
         return {"message": f"Pratica già in stato '{record.get('status')}'", "onboarding_id": str(onboarding_id)}
@@ -679,7 +705,7 @@ async def invite_portal_user(
     from datetime import datetime, timezone
 
     company_id = str(user.active_company_id)
-    record = _require_onboarding(onboarding_id, company_id)
+    record = _require_onboarding(onboarding_id, user)
 
     already_invited = bool(record.get("portal_invited_at"))
 

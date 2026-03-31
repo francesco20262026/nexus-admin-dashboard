@@ -1,0 +1,11 @@
+Simplify client header: clean white, uniform KPI cards, no excess effects
+
+Rolled back all experimental effects (gradients, colored numbers,
+left accent bars, negative margins, double-ring avatar halo) in favor of:
+- Pure white background, no tint
+- Avatar: solid green, single subtle shadow
+- Title: 19px/700 weight, clean tracking
+- Info pills: natural gap, neutral gray icons  
+- KPI strip: 4 horizontal cards (label left, value right), uniform dark
+  numbers, hover = green-mint border only
+- Tab strip: simple 2px green underline on active

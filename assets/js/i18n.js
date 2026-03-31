@@ -1,4 +1,4 @@
-/* i18n.js — Italian only. Language switcher removed. */
+/* i18n.js Italian only. Language switcher removed. */
 const I18n = {
   _fallback: {
     'nav.main':        'Principale',
@@ -40,12 +40,12 @@ const I18n = {
     document.documentElement.lang = 'it';
   },
 
-  /* init — just apply translations, no switcher, no fetch */
+  /* init just apply translations, no switcher, no fetch */
   async init(_ignored) {
     this.apply();
   },
 
-  /* setLang — no-op, kept for backwards compatibility */
+  /* setLang no-op, kept for backwards compatibility */
   async setLang() {},
 };
 

@@ -55,7 +55,7 @@ function renderEvent(ev) {
   const timeStr = new Date(ev.created_at).toLocaleString('it-IT', {
     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
   });
-  const title = ev.title || ev.description || '—';
+  const title = ev.title || ev.description || '';
   
   // Link to either client or onboarding
   let linkParams = '';

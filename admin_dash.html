@@ -1,281 +1,556 @@
 <!DOCTYPE html>
+
 <html lang="it">
+
 <head>
+
   <meta charset="UTF-8"/>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
   <title>Nova CRM  Dashboard</title>
+
   <meta name="description" content="Cruscotto operativo per la gestione aziendale su Nova CRM."/>
+
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preload" as="image" href="/assets/img/nova-crm-logo-sidebar.svg">
+
+  <link rel="preload" as="image" href="/assets/img/crm.png">
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/css/dash.css?v=92"/>
+
+  <link rel="stylesheet" href="assets/css/dash.css?v=147"/>
+
   <link rel="stylesheet" href="assets/css/global_search.css"/>
+
+
+
+  <!-- Shared Components: canonical single-source-of-truth CSS -->
+  <link rel="stylesheet" href="assets/css/header_bar.css">
+  <link rel="stylesheet" href="assets/css/filter_bar.css">
+  <link rel="stylesheet" href="assets/css/search_bar.css">
 </head>
+
 <body>
 
+
+
 <!-- ===================== SHELL ===================== -->
+
 <div class="shell" id="shell">
 
-<!-- ==================== SIDEBAR ==================== -->
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <img src="/assets/img/nova-crm-logo-sidebar.svg" alt="Nova CRM" class="sidebar-brand-logo" loading="eager" fetchpriority="high" width="140" height="46">
-  </div>
-  <nav class="sidebar-nav avatar-colors">
-    <div class="nav-section-label" data-i18n="nav.main">Principale</div>
-    <a class="nav-item" href="admin_dash.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
-    </a>
-    <a class="nav-item" href="admin_onboarding.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-      <span class="nav-label" data-i18n="nav.onboarding">Onboarding</span>
-    </a>
-    <div class="nav-section-label" data-i18n="nav.management">Gestione</div>
-    <a class="nav-item" href="admin_clients.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-      <span class="nav-label" data-i18n="nav.clients">Clienti</span>
-    </a>
-    <a class="nav-item" href="admin_quotes.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-      <span class="nav-label" data-i18n="nav.quotes">Preventivi</span>
-    </a>
-    <a class="nav-item" href="admin_services.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-      <span class="nav-label" data-i18n="nav.services">Servizi</span>
-    </a>
-    <a class="nav-item" href="admin_contracts.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-      <span class="nav-label" data-i18n="nav.contracts">Contratti</span>
-    </a>
-    <a class="nav-item" href="admin_documents.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
-      <span class="nav-label" data-i18n="nav.documents">Documenti</span>
-    </a>
-    <div class="nav-section-label" data-i18n="nav.finance">Finanza</div>
-    <a class="nav-item" href="admin_invoices.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
-      <span class="nav-label" data-i18n="nav.invoices">Fatture</span>
-      <span class="nav-badge" id="nav-badge-invoices" style="display:none"></span>
-    </a>
-    <a class="nav-item" href="admin_renewals.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-      <span class="nav-label" data-i18n="nav.renewals">Rinnovi</span>
-    </a>
-        <div class="nav-section-label" data-i18n="nav.tools">Strumenti</div>
-    <a class="nav-item" href="admin_calendar.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"/></svg>
-      <span class="nav-label" data-i18n="nav.calendar">Calendario</span>
-    </a>
-    <a class="nav-item" href="admin_activities.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375M9 15l2.25 2.25L15 12"/></svg>
-      <span class="nav-label" data-i18n="nav.activities">Attivit</span>
-    </a>
-<div class="nav-section-label" data-i18n="nav.analytics">Analisi</div>
-    <a class="nav-item" href="admin_reports.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
-      <span class="nav-label" data-i18n="nav.reports">Report</span>
-    </a>
-    <div class="nav-section-label" data-i18n="nav.system">Sistema</div>
-          <a class="nav-item" href="admin_companies.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
-      <span class="nav-label" data-i18n="nav.companies">Aziende</span>
-    </a><a class="nav-item" href="admin_users.html?v=88">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
-      <span class="nav-label" data-i18n="nav.users">Utenti</span>
-    </a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="nav-item" style="gap:10px;">
-      <div class="avatar" style="width:30px;height:30px;font-size:11px;" id="sidebar-avatar"></div>
-      <div style="overflow:hidden;">
-        <div class="nav-label" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="sidebar-name"></div>
-        <div class="nav-label" style="color:var(--gray-500);font-size:11px;">Admin</div>
-      </div>
-    </div>
-  </div>
-</aside>
 
-<script src="components/header.js?v=88"></script>
+
+<!-- ==================== SIDEBAR ==================== -->
+
+<aside class="sidebar">
+
+  <div class="sidebar-brand">
+
+    <img src="/assets/img/crm.png" alt="Nova CRM" class="sidebar-brand-logo" loading="eager" fetchpriority="high" style="max-width: 220px; height: auto; max-height: 90px; object-fit: contain;">
+
+  </div>
+
+  <nav class="sidebar-nav avatar-colors">
+
+    <div class="nav-section-label" data-i18n="nav.main">Principale</div>
+
+    <a class="nav-item" href="admin_dash.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+
+      <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
+
+    </a>
+
+    <a class="nav-item" href="admin_onboarding.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+
+      <span class="nav-label" data-i18n="nav.onboarding">Onboarding</span>
+
+    </a>
+
+    <div class="nav-section-label" data-i18n="nav.management">Gestione</div>
+
+    <a class="nav-item" href="admin_clients.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+
+      <span class="nav-label" data-i18n="nav.clients">Clienti</span>
+
+    </a>
+
+    <a class="nav-item" href="admin_quotes.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+
+      <span class="nav-label" data-i18n="nav.quotes">Preventivi</span>
+
+    </a>
+
+    <a class="nav-item" href="admin_services.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+
+      <span class="nav-label" data-i18n="nav.services">Servizi</span>
+
+    </a>
+
+    <a class="nav-item" href="admin_contracts.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+
+      <span class="nav-label" data-i18n="nav.contracts">Contratti</span>
+
+    </a>
+
+    <a class="nav-item" href="admin_documents.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+
+      <span class="nav-label" data-i18n="nav.documents">Documenti</span>
+
+    </a>
+
+    <div class="nav-section-label" data-i18n="nav.finance">Finanza</div>
+
+    <a class="nav-item" href="admin_invoices.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
+
+      <span class="nav-label" data-i18n="nav.invoices">Fatture</span>
+
+      <span class="nav-badge" id="nav-badge-invoices" style="display:none"></span>
+
+    </a>
+
+    <a class="nav-item" href="admin_renewals.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+
+      <span class="nav-label" data-i18n="nav.renewals">Rinnovi</span>
+
+    </a>
+
+        <div class="nav-section-label" data-i18n="nav.tools">Strumenti</div>
+
+    <a class="nav-item" href="admin_calendar.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"/></svg>
+
+      <span class="nav-label" data-i18n="nav.calendar">Calendario</span>
+
+    </a>
+
+    <a class="nav-item" href="admin_activities.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375M9 15l2.25 2.25L15 12"/></svg>
+
+      <span class="nav-label" data-i18n="nav.activities">Attivit</span>
+
+    </a>
+
+<div class="nav-section-label" data-i18n="nav.analytics">Analisi</div>
+
+    <a class="nav-item" href="admin_reports.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+
+      <span class="nav-label" data-i18n="nav.reports">Report</span>
+
+    </a>
+
+    <div class="nav-section-label" data-i18n="nav.system">Sistema</div>
+
+          <a class="nav-item" href="admin_companies.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+
+      <span class="nav-label" data-i18n="nav.companies">Aziende</span>
+
+    </a><a class="nav-item" href="admin_users.html?v=147">
+
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+
+      <span class="nav-label" data-i18n="nav.users">Utenti</span>
+
+    </a>
+
+  </nav>
+
+  </aside>
+
+
+
+<script src="components/header.js?v=147"></script>
+
+
 
 <!-- ===== MAIN ===== -->
+
 <main class="main">
 
+
+
   <!-- Page header -->
+
   <div class="page-header">
+
     <div>
+
       <h1 class="page-title" data-i18n="admin.dash.title">Overview</h1>
-      <p class="page-subtitle" id="dash-subtitle" data-i18n="admin.dash.subtitle">Dashboard principale della tua azienda</p>
+
     </div>
+
   </div>
+
+
 
   <!-- ? KPI Cards -->
+
   <div class="stat-grid stat-grid--sm">
+
     <div class="stat-card stat-card--brand">
+
       <div class="stat-card-top">
+
         <div class="stat-card-label" data-i18n="dash.active_clients">Clienti attivi</div>
+
         <div class="stat-card-icon">
+
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+
         </div>
+
       </div>
+
       <div class="stat-card-val" id="kpi-clients"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
+
       <div class="stat-card-meta" id="kpi-clients-meta"><div class="skeleton-text skeleton short"></div></div>
+
     </div>
+
+
 
     <div class="stat-card stat-card--amber">
+
       <div class="stat-card-top">
+
         <div class="stat-card-label" data-i18n="dash.open_invoices">Fatture aperte</div>
+
         <div class="stat-card-icon">
+
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
+
         </div>
+
       </div>
+
       <div class="stat-card-val" id="kpi-open-invoices"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
+
       <div class="stat-card-meta" id="kpi-open-invoices-meta"><div class="skeleton-text skeleton short"></div></div>
+
     </div>
+
+
 
     <div class="stat-card stat-card--info">
+
       <div class="stat-card-top">
+
         <div class="stat-card-label" data-i18n="dash.contracts_signing">Contratti in firma</div>
+
         <div class="stat-card-icon">
+
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+
         </div>
+
       </div>
+
       <div class="stat-card-val" id="kpi-contracts"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
+
       <div class="stat-card-meta" id="kpi-contracts-meta"><div class="skeleton-text skeleton short"></div></div>
+
     </div>
+
+
 
     <div class="stat-card stat-card--purple">
+
       <div class="stat-card-top">
+
         <div class="stat-card-label" data-i18n="dash.renewals_expiring">Rinnovi in scadenza</div>
+
         <div class="stat-card-icon">
+
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+
         </div>
+
       </div>
+
       <div class="stat-card-val" id="kpi-renewals"><div class="skeleton-text skeleton" style="width:40px;height:36px;"></div></div>
+
       <div class="stat-card-meta" id="kpi-renewals-meta"><div class="skeleton-text skeleton short"></div></div>
+
     </div>
+
   </div>
+
+
 
   <!-- ? Quick Actions -->
+
   <div class="quick-actions-bar">
+
     <a class="quick-action-btn" href="admin_clients.html?action=new" id="qa-new-client">
+
       <div class="quick-action-icon qa-icon--brand">
+
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg>
+
       </div>
+
       <span data-i18n="dash.new_client">Nuovo cliente</span>
+
     </a>
+
     <a class="quick-action-btn" href="admin_quotes.html?new=1" id="qa-new-quote">
+
       <div class="quick-action-icon qa-icon--success">
+
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+
       </div>
+
       <span>Nuovo preventivo</span>
+
     </a>
+
     <a class="quick-action-btn" href="admin_invoices.html?action=new" id="qa-new-invoice">
+
       <div class="quick-action-icon qa-icon--amber">
+
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+
       </div>
+
       <span data-i18n="dash.new_invoice">Nuova fattura</span>
+
     </a>
+
     <a class="quick-action-btn" href="admin_contracts.html?action=new" id="qa-new-contract">
+
       <div class="quick-action-icon qa-icon--info">
+
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+
       </div>
+
       <span data-i18n="dash.new_contract">Nuovo contratto</span>
+
     </a>
+
     <a class="quick-action-btn" href="admin_onboarding.html?action=new" id="qa-new-onboarding">
+
       <div class="quick-action-icon qa-icon--purple">
+
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+
       </div>
+
       <span data-i18n="dash.new_onboarding">Nuovo onboarding</span>
+
     </a>
+
   </div>
+
+
 
   <!-- ? Main operational blocks  2 columns -->
+
   <div class="dash-grid-2" style="align-items:start;">
 
+
+
     <!-- Attivit recenti -->
+
     <div class="card">
+
       <div class="card-header">
+
         <div>
+
           <div class="card-title" data-i18n="dash.recent_activity">Attivit recenti</div>
+
           <div class="card-subtitle" data-i18n="dash.recent_activity_sub">Ultime operazioni sull'azienda</div>
+
         </div>
+
       </div>
+
       <div class="card-body">
+
         <div class="activity-list" id="dashboard-activity-list" style="display:flex;flex-direction:column;gap:8px;">
+
           <!-- skeleton rendered by JS -->
+
         </div>
+
       </div>
+
     </div>
+
+
 
     <!-- Da attenzionare -->
+
     <div class="card">
+
       <div class="card-header">
+
         <div>
+
           <div class="card-title" data-i18n="dash.attention">Da attenzionare</div>
+
           <div class="card-subtitle" data-i18n="dash.attention_sub">Elementi che richiedono azione immediata</div>
+
         </div>
+
       </div>
+
       <div class="card-body">
+
         <div class="activity-list" id="attention-list" style="display:flex;flex-direction:column;gap:8px;">
+
           <!-- skeleton rendered by JS -->
+
         </div>
+
       </div>
+
     </div>
 
+
+
   </div>
+
+
 
   <!-- ? Clienti recenti -->
+
   <div class="card">
+
     <div class="card-header">
+
       <div>
+
         <div class="card-title" data-i18n="dash.recent_clients">Clienti recenti</div>
+
         <div class="card-subtitle" data-i18n="dash.recent_clients_sub">Clienti aggiunti di recente</div>
+
       </div>
+
       <div class="card-actions">
-        <a class="btn btn-ghost btn-sm" href="admin_clients.html?v=88" data-i18n="dash.view_all_clients">Vedi tutti i clienti</a>
-        <a class="btn btn-primary btn-sm" href="admin_clients.html?action=new" data-i18n="dash.new_client">Nuovo cliente</a>
+
+        <a class="btn btn-ghost btn-sm" href="admin_clients.html?v=147" data-i18n="dash.view_all_clients">Vedi tutti i clienti</a>
+
+        <a class="btn-action-icon  " href="admin_clients.html?action=new" data-i18n="dash.new_client" title="Nuovo cliente">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+</a>
+
       </div>
+
     </div>
+
     <div class="card-list-container" id="dash-clients-tbody">
+
       <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
+
       <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
+
       <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
+
     </div>
+
   </div>
+
+
 
   <!-- ? Fatture da incassare -->
+
   <div class="card">
+
     <div class="card-header">
+
       <div>
+
         <div class="card-title" data-i18n="dash.invoices_to_collect">Fatture da incassare</div>
+
         <div class="card-subtitle" id="dash-invoices-subtitle"></div>
+
       </div>
+
       <div class="card-actions">
-        <a class="btn btn-ghost btn-sm" href="admin_invoices.html?v=88" data-i18n="dash.view_all_invoices">Vedi tutte le fatture</a>
-        <a class="btn btn-primary btn-sm" href="admin_invoices.html?action=new" data-i18n="dash.new_invoice">Nuova fattura</a>
+
+        <a class="btn btn-ghost btn-sm" href="admin_invoices.html?v=147" data-i18n="dash.view_all_invoices">Vedi tutte le fatture</a>
+
+        <a class="btn-action-icon  " href="admin_invoices.html?action=new" data-i18n="dash.new_invoice" title="Nuova fattura">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+</a>
+
       </div>
+
     </div>
+
     <div class="card-list-container" id="dash-invoices-tbody">
+
       <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
+
       <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
+
       <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
+
     </div>
+
   </div>
 
+
+
 </main>
+
 </div><!-- end .shell -->
 
+
+
 <!-- ==================== SCRIPTS ==================== -->
-<script src="assets/js/api.js?v=88"></script>
-<script src="assets/js/auth.js?v=88"></script>
-<script src="assets/js/ui.js?v=88"></script>
-<script src="assets/js/i18n.js?v=88"></script>
-<script src="assets/js/dash.js?v=88"></script>
-<script src="assets/js/router.js?v=88"></script>
-<script src="assets/js/admin_dashboard.js?v=88"></script>
+
+<script src="assets/js/api.js?v=147"></script>
+
+<script src="assets/js/auth.js?v=147"></script>
+
+<script src="assets/js/ui.js?v=147"></script>
+
+<script src="assets/js/i18n.js?v=147"></script>
+
+<script src="assets/js/dash.js?v=147"></script>
+
+<script src="assets/js/router.js?v=147"></script>
+
+<script src="assets/js/admin_dashboard.js?v=147"></script>
+
 <script src="assets/js/global_search.js"></script>
+
 </body>
+
 </html>
+
+
+
+
+
+
+
 
 

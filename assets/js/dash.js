@@ -1,7 +1,7 @@
 /* ============================================================
-   NEXUS ADMIN — dash.js
+   NEXUS ADMIN dash.js
    Shared app-shell behaviour for all admin and client pages.
-   Vanilla JS — no dependencies
+   Vanilla JS no dependencies
    ============================================================ */
 
 (function () {
@@ -22,7 +22,7 @@
 
   function isMobile() { return window.innerWidth <= 900; }
 
-  // All shell / sidebar operations are guarded — both elements
+  // All shell / sidebar operations are guarded both elements
   // are optional depending on the page layout.
   on(toggleBtn, 'click', () => {
     if (!shell) return;
@@ -48,7 +48,7 @@
   });
 
   /* ──────────────────────────────────────────────────────────
-     2. ACTIVE NAV ITEM  — set on page load by matching URL
+     2. ACTIVE NAV ITEM  set on page load by matching URL
   ────────────────────────────────────────────────────────── */
   (function setActiveNavItem() {
     // Extract just the filename from the current URL (e.g. "admin_calendar.html")
@@ -56,7 +56,7 @@
 
     $$('.nav-item').forEach(item => {
       const href = (item.getAttribute('href') || '').split('?')[0].split('/').pop();
-      // Exact match — avoids false positives like admin_calendar matching admin_clients
+      // Exact match avoids false positives like admin_calendar matching admin_clients
       if (href && href === currentFile) {
         item.classList.add('active');
       } else {
@@ -263,7 +263,7 @@
      9. COMPANY SELECTOR
      Companies are loaded from the JWT token (stored at login as
      'nexus_companies') and rendered dynamically.
-     "Tutte le aziende" is always shown first — it resets the
+     "Tutte le aziende" is always shown first it resets the
      active company filter without triggering a backend switch.
   ────────────────────────────────────────────────────────── */
   (function initCompanySelector() {
@@ -367,8 +367,8 @@
       else localStorage.removeItem('nexus_active_company_logo');
 
       if (companyId === '__all__') {
-        // "Tutte" — clear active company filter, keep pages in read-all mode
-        localStorage.removeItem('nexus_active_company_id');
+        // "Tutte" set explicit __all__ token to prevent jwt fallback
+        localStorage.setItem('nexus_active_company_id', '__all__');
         localStorage.removeItem('nexus_active_company');
         window.dispatchEvent(new CustomEvent('companyChanged', { detail: null }));
         showToast('Visualizzazione: tutte le aziende', 'info');
@@ -480,7 +480,7 @@
           list.appendChild(buildItem(c.id, name, color, c.logo_url));
         });
 
-        // Aggiorna il label e il dot con il nome reale —
+        // Aggiorna il label e il dot con il nome reale
         // usa il nome dall'API solo se NON vuoto, altrimenti legge da localStorage
         const currentId = localStorage.getItem('nexus_active_company_id');
         if (currentId) {
@@ -555,7 +555,7 @@
   window.closeModal = closeModal;
 
   /* ──────────────────────────────────────────────────────────
-     11. FILTER TABS — unified quick-filter tab wiring
+     11. FILTER TABS unified quick-filter tab wiring
      Dispatches 'filterchange' so each page's JS can listen.
      Sets window._activeFilter for imperative access.
   ────────────────────────────────────────────────────────── */
@@ -567,8 +567,54 @@
     container.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     const filterValue = tab.dataset.filter || 'all';
-    window._activeFilter = filterValue;
-    document.dispatchEvent(new CustomEvent('filterchange', { detail: { filter: filterValue } }));
+    // QUI SI DOVREBBE GESTIRE IL FILTRO SE NECESSARIO
+  }); // <--- CHIUSURA MANCANTE AGGIUNTA
+
+  /* ──────────────────────────────────────────────────────────
+     12. DYNAMIC SELECT WIDTH FOR FILTERS
+  ────────────────────────────────────────────────────────── */
+  function updateSelectWidth(select) {
+    let span = document.getElementById('select-width-measurer');
+    if (!span) {
+      span = document.createElement('span');
+      span.id = 'select-width-measurer';
+      span.style.cssText = 'visibility:hidden;position:absolute;white-space:pre;z-index:-1;';
+      document.body.appendChild(span);
+    }
+    const computed = window.getComputedStyle(select);
+    span.style.fontFamily = computed.fontFamily;
+    span.style.fontSize = computed.fontSize;
+    span.style.fontWeight = computed.fontWeight;
+    span.style.letterSpacing = computed.letterSpacing;
+    span.style.textTransform = computed.textTransform;
+    
+    const text = select.options[select.selectedIndex]?.text || '';
+    span.textContent = text;
+    
+    // 46px = 12px padding-left + 34px padding-right (per icona svg) + piccolo buffer di 4px
+    const textWidth = span.getBoundingClientRect().width;
+    select.style.width = (Math.ceil(textWidth) + 50) + 'px';
+  }
+
+  document.addEventListener('change', e => {
+    if (e.target.matches('select.cl-filter-select')) {
+      updateSelectWidth(e.target);
+    }
+  });
+
+  // Run on load, after short delay, and definitively when fonts are loaded
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('select.cl-filter-select').forEach(updateSelectWidth);
+    
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        document.querySelectorAll('select.cl-filter-select').forEach(updateSelectWidth);
+      });
+    } else {
+      setTimeout(() => {
+        document.querySelectorAll('select.cl-filter-select').forEach(updateSelectWidth);
+      }, 500);
+    }
   });
 
 })();

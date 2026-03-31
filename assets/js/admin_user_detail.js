@@ -1,4 +1,4 @@
-/* admin_user_detail.js — User detail: profile, company+client associations, security */
+/* admin_user_detail.js User detail: profile, company+client associations, security */
 'use strict';
 (function () {
   Auth.guard('admin');
@@ -46,7 +46,7 @@
 
     const avatarEl = $('user-avatar-lg');
     if (avatarEl) { avatarEl.textContent = initials; avatarEl.style.background = `linear-gradient(135deg,${color},${color}cc)`; }
-    const nameEl  = $('usr-detail-name');  if (nameEl)  nameEl.textContent  = u.name || u.email || '—';
+    const nameEl  = $('usr-detail-name');  if (nameEl)  nameEl.textContent  = u.name || u.email || '';
     const emailEl = $('usr-detail-email'); if (emailEl) emailEl.textContent = u.email || '';
     const dateEl  = $('usr-detail-since'); if (dateEl)  dateEl.textContent  = u.created_at ? `Registrato il ${UI.date(u.created_at)}` : '';
 

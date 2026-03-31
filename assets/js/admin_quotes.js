@@ -1,4 +1,4 @@
-/* admin_quotes.js — Quotes / Preventivi module (Phase 4) v=24 */
+/* admin_quotes.js Quotes / Preventivi module (Phase 4) v=24 */
 'use strict';
 (function () {
   Auth.guard('admin');
@@ -27,10 +27,12 @@
   const act = $('page-actions');
   if (act) act.innerHTML = `
     <button class="btn btn-secondary" id="btn-refresh"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> <span>Aggiorna</span></button>
-    <button class="btn btn-primary" id="btn-new-quote"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> <span>Nuovo preventivo</span></button>`;
+    <button class="btn-action-icon " id="btn-action-icon-new-quote" title="Nuovo preventivo">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+</button>`;
 
   $('btn-refresh')?.addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
-  $('btn-new-quote')?.addEventListener('click', () => openModal(null));
+  $('btn-action-icon-new-quote')?.addEventListener('click', () => openModal(null));
 
   // ── Status config ─────────────────────────────────────────
   const STATUS_INFO = {
@@ -56,8 +58,11 @@
   window.addEventListener('companyChanged', load);
   window._reloadQuotes = load;
 
+  window.selectedIds = new Set();
+  
   // ── Load ──────────────────────────────────────────────────
   async function load() {
+    window.clearSelection && window.clearSelection();
     if (!list) return;
     list.innerHTML = UI.skeletonCardList(5);
     try {
@@ -129,7 +134,7 @@
     const slice = filtered.slice((pg-1)*PER, pg*PER);
     list.innerHTML = slice.map(q => {
       const si      = STATUS_INFO[q.status] || STATUS_INFO.draft;
-      const dateStr = q.valid_until ? `Valido fino: <strong>${UI.date(q.valid_until)}</strong>` : '—';
+      const dateStr = q.valid_until ? `Valido fino: <strong>${UI.date(q.valid_until)}</strong>` : '';
       const acceptedInfo = q.status === 'accepted' && q.accepted_at
         ? `<div class="cl-data-lbl" style="color:var(--success-text,green);">✓ Accettato il ${UI.date(q.accepted_at)}</div>`
         : '';
@@ -150,39 +155,133 @@
           <button class="btn btn-ghost btn-ghost-danger" style="font-size:12px;padding:5px 12px;line-height:1;" onclick="event.stopPropagation();window.rejectQuote('${q.id}')">✗ Rifiuta</button>`;
       }
 
-      return `<div class="cl-row fade-in" data-id="${q.id}" onclick="window.editQuote('${q.id}')" style="cursor:pointer; display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s;">
+      return `<div class="cl-row fade-in" data-id="${q.id}" onclick="window.editQuote('${q.id}')" style="cursor:pointer; display:grid; grid-template-columns: 2.5fr 1.5fr 1fr 140px; align-items:center; gap:24px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s;">
+        
         <!-- Colonna 1: Titolo e Cliente -->
-        <div class="cl-col" style="flex:2; min-width:0;">
-          <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${q.title}</div>
-          <div class="cl-row-meta" style="display:flex; gap:8px; align-items:center; margin-top:2px;">
-            <span class="cl-row-chip" style="font-size:12px; color:var(--gray-500);">🏢 ${q.client_name || '—'}</span>
-            ${onbStr ? `<span class="cl-row-chip">${onbStr}</span>` : ''}
+        <div class="cl-col cl-col-1">
+          <div class="cl-row-identity">
+            <div class="mac-select-btn" data-id="${q.id}" onclick="window.toggleSelection(event, '${q.id}')" title="Seleziona" style="flex-shrink:0;">
+              <div class="mac-checkbox"></div>
+            </div>
+            <div class="cl-row-identity-body" style="padding-left:0; min-width:0;">
+              <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${q.title}</div>
+              <div class="cl-row-meta" style="display:flex; gap:8px; align-items:center; margin-top:2px;">
+                <span class="cl-row-chip" style="font-size:12px; color:var(--gray-500);">🏢 ${q.client_name || ''}</span>
+                ${onbStr ? `<span class="cl-row-chip">${onbStr}</span>` : ''}
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Colonna 2: Date -->
-        <div class="cl-col" style="flex:1.5; min-width:0;">
+        <div class="cl-col" style="min-width:0;">
           <div class="cl-data-val" style="font-size:13px; color:var(--gray-700);">${dateStr}</div>
           ${acceptedInfo}
         </div>
 
         <!-- Colonna 3: Importo e Stato -->
-        <div class="cl-col" style="flex:1; min-width:0;">
+        <div class="cl-col" style="min-width:0;">
           <div class="cl-data-val" style="font-size:14px; font-weight:700; color:var(--gray-900);">${UI.currency(q.total || 0)}</div>
           <div style="margin-top:2px;">${statusPill}</div>
         </div>
 
         <!-- Colonna 4: Azioni -->
-        <div class="cl-col cl-col-actions" style="flex-shrink:0; display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
+        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
           ${actions}
         </div>
       </div>`;
     }).join('');
 
+    window.updateSelectionUI && window.updateSelectionUI();
+
     const s=(pg-1)*PER+1, e=Math.min(pg*PER,filtered.length);
     if (info) info.textContent = `${s}–${e} di ${filtered.length}`;
     UI.pagination(pag, null, pg, filtered.length, PER, p => { pg=p; render(); });
   }
+
+  // ── Selection Logic ─────────────────────────────────────────
+  window.toggleSelection = (e, id) => {
+    e.stopPropagation();
+    if (window.selectedIds.has(id)) {
+      window.selectedIds.delete(id);
+    } else {
+      window.selectedIds.add(id);
+    }
+    window.updateSelectionUI();
+  };
+
+  window.toggleSelectAll = () => {
+    if (!filtered || filtered.length === 0) return;
+    if (window.selectedIds.size === filtered.length) {
+      window.selectedIds.clear();
+    } else {
+      filtered.forEach(r => window.selectedIds.add(r.id));
+    }
+    window.updateSelectionUI();
+  };
+
+  window.clearSelection = () => {
+    window.selectedIds.clear();
+    window.updateSelectionUI();
+  };
+
+  window.updateSelectionUI = () => {
+    const listEl = document.getElementById('q-list');
+    if (!listEl) return;
+    
+    // Update individual row checkboxes and backgrounds
+    listEl.querySelectorAll('.cl-row').forEach(row => {
+      const id = row.getAttribute('data-id');
+      const btn = row.querySelector('.mac-row-select');
+      if (window.selectedIds.has(id)) {
+        if (btn) btn.classList.add('selected');
+        row.classList.add('selected');
+        row.style.background = 'var(--gray-50)';
+      } else {
+        if (btn) btn.classList.remove('selected');
+        row.classList.remove('selected');
+        row.style.background = 'transparent';
+      }
+    });
+
+    // Update 'Select All' checkbox in header
+    const selectAllBtn = document.getElementById('btn-select-all');
+    if (selectAllBtn) {
+      if (filtered && filtered.length > 0 && window.selectedIds.size === filtered.length) {
+        selectAllBtn.classList.add('selected');
+      } else {
+        selectAllBtn.classList.remove('selected');
+      }
+    }
+
+    // Toggle Mass Action Bar
+    const bar = document.getElementById('mac-mass-action-bar');
+    if (bar) {
+      if (window.selectedIds.size > 0) {
+        document.getElementById('mac-mass-count').textContent = window.selectedIds.size;
+        bar.style.display = 'flex';
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+  };
+
+  window.massDelete = async () => {
+    if (!window.selectedIds.size) return;
+    if (!confirm('Sei sicuro di voler eliminare ' + window.selectedIds.size + ' preventivi? Quest\'azione è irreversibile.')) return;
+    
+    if (window.UI) window.UI.toast('Eliminazione in corso...', 'info');
+    try {
+      for (let id of window.selectedIds) {
+         await API.Quotes.delete(id);
+      }
+      if (window.UI) window.UI.toast('Eliminazione completata', 'success');
+      window.clearSelection();
+      load();
+    } catch(e) {
+      if (window.UI) window.UI.toast('Errore durante l\'eliminazione', 'error');
+    }
+  };
 
   // ── Modal helpers ─────────────────────────────────────────
 
@@ -201,7 +300,7 @@
     row.innerHTML = `
       <div>
         <select class="form-input q-line-service" style="width:100%;font-size:12px;" title="Seleziona dal Catalogo Servizi">
-          <option value="">— Seleziona Servizio dal Catalogo (oppure scrivi a mano) —</option>${serviceOptions}
+          <option value="">Seleziona Servizio dal Catalogo (oppure scrivi a mano)</option>${serviceOptions}
         </select>
         <input class="form-input q-line-desc" type="text" placeholder="Descrizione *" value="${line.description||''}" style="margin-top:4px;font-size:12px;"/>
       </div>
@@ -282,7 +381,7 @@
   }
 
   // ── Open modal ────────────────────────────────────────────
-  // preset: { onboarding_id, client_id } — used when opening from onboarding/client detail
+  // preset: { onboarding_id, client_id } used when opening from onboarding/client detail
   async function openModal(existingId = null, preset = null) {
     if (!modal) return;
 
@@ -313,12 +412,12 @@
       const onbs    = Array.isArray(onbRes)     ? onbRes     : (onbRes?.items    ?? onbRes?.data    ?? []);
 
       if (clientSel) {
-        clientSel.innerHTML = '<option value="">— Seleziona cliente —</option>' +
+        clientSel.innerHTML = '<option value="">Seleziona cliente</option>' +
           _clients.map(c => `<option value="${c.id}">${c.name || c.email}</option>`).join('');
       }
       if (onbSel) {
         // Show company_name (the prospect name) not reference_name/status
-        onbSel.innerHTML = '<option value="">— Nessuno —</option>' +
+        onbSel.innerHTML = '<option value="">Nessuno</option>' +
           onbs
             .filter(o => !['attivo','abbandonato','annullato','cancelled'].includes(o.status))
             .map(o => {
@@ -440,8 +539,8 @@
       const res = await API.Quotes.accept(id);
       ALL = ALL.map(q => q.id===id ? {...q, status:'accepted', accepted_at:new Date().toISOString()} : q);
       const msg = res?.contract_auto_sent
-        ? '✓ Preventivo accettato — Contratto generato e inviato automaticamente via email!'
-        : '✓ Preventivo accettato — Contratto creato in bozza. Vai su Contratti per inviarlo.';
+        ? '✓ Preventivo accettato Contratto generato e inviato automaticamente via email!'
+        : '✓ Preventivo accettato Contratto creato in bozza. Vai su Contratti per inviarlo.';
       updateKpis(); applyFilters(); UI.toast(msg, 'success');
     } catch(e) { UI.toast(e?.message||'Errore','error'); }
   };
@@ -489,7 +588,7 @@
         setTimeout(() => { card.style.outline = ''; }, 4000);
       }
     }
-    // ?new=1[&onboarding=<id>][&client_id=<id>] — opens modal with preset
+    // ?new=1[&onboarding=<id>][&client_id=<id>] opens modal with preset
     if (params.get('new') === '1') {
       const preset = {};
       if (params.get('onboarding')) preset.onboarding_id = params.get('onboarding');

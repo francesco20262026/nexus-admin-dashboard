@@ -1,5 +1,5 @@
 /* ============================================================
-   client_profile.js — Client profile page logic
+   client_profile.js Client profile page logic
    ============================================================ */
 'use strict';
 (function () {
@@ -52,7 +52,7 @@
 
   /* ── Load profile ────────────────────────────────────────────── */
   async function load() {
-    // Keep content hidden until data arrives — show loading state
+    // Keep content hidden until data arrives show loading state
     if (els.content) els.content.style.display = 'none';
 
     try {

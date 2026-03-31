@@ -1,5 +1,5 @@
 /* ============================================================
-   auth.js — Nova CRM auth module
+   auth.js Nova CRM auth module
    ============================================================ */
 
 const Auth = {
@@ -7,7 +7,7 @@ const Auth = {
   // ── Token helpers (delegate to API layer) ──────────────────
   // These delegate to API so there is a single source of truth
   // for the token key. Auth never touches localStorage directly
-  // for the token — only API does.
+  // for the token only API does.
   setToken(t)  { window.API?.setToken(t) || localStorage.setItem('nexus_token', t); },
   clearToken() { window.API?.clearToken() || localStorage.removeItem('nexus_token'); },
   getToken()   { return window.API?.getToken() || localStorage.getItem('nexus_token'); },
@@ -66,9 +66,9 @@ const Auth = {
   // ── Route guard ───────────────────────────────────────────
   //
   //   Usage:
-  //     Auth.guard()          — any authenticated user
-  //     Auth.guard('admin')   — admin only, non-admins → client_dash.html
-  //     Auth.guard('client')  — client only, admins → admin_dash.html
+  //     Auth.guard()          any authenticated user
+  //     Auth.guard('admin')   admin only, non-admins → client_dash.html
+  //     Auth.guard('client')  client only, admins → admin_dash.html
   //
   guard(role = '') {
     // 1. Intercept Supabase Magic Link hashes directly
@@ -180,10 +180,10 @@ const Auth = {
   //   Step 1: populate instantly from JWT payload (no network, no flash).
   //   Step 2: refresh from API.Auth.me() for accurate server data.
   //
-  //   Safe to call even if API is not yet fully ready —
+  //   Safe to call even if API is not yet fully ready
   //   the server refresh is skipped gracefully if API is absent.
   initUI() {
-    // Wire logout buttons — prefer data-action attribute, fall back to class
+    // Wire logout buttons prefer data-action attribute, fall back to class
     // Supports: <button data-action="logout">, .logout-btn, #logout-btn
     const logoutEls = [
       ...document.querySelectorAll('[data-action="logout"]'),
@@ -207,7 +207,7 @@ const Auth = {
     }
 
     // ── Server refresh (async, non-blocking) ─────────────────
-    if (!window.API?.Auth?.me) return; // API not ready — skip server refresh
+    if (!window.API?.Auth?.me) return; // API not ready skip server refresh
 
     API.Auth.me().then(profile => {
       let display = profile.name || profile.user_metadata?.name

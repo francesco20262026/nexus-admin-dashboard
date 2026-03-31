@@ -1,5 +1,5 @@
 /* ============================================================
-   activity_timeline.js — Reusable CRM Activity Timeline Component
+   activity_timeline.js Reusable CRM Activity Timeline Component
    ============================================================ */
 'use strict';
 
@@ -22,7 +22,7 @@ window.ActivityTimeline = (function () {
     system:            { icon: '⚙️',  label: 'Sistema',          color: '#64748b' },
   };
 
-  const MANUAL_EVENT_TYPES = ['note', 'call', 'meeting', 'task'];
+  const MANUAL_EVENT_TYPES = ['note'];
 
   function _relativeTime(dateStr) {
     if (!dateStr) return '';
@@ -63,7 +63,7 @@ window.ActivityTimeline = (function () {
     const dateStr = d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const rawTitle = ev.title || ev.description || '';
     const displayTitle = rawTitle && rawTitle !== meta.label
-      ? `${meta.label} — <span class="al-item-subtitle">${rawTitle}</span>`
+      ? `${meta.label} <span class="al-item-subtitle">${rawTitle}</span>`
       : meta.label;
     const scheduledBadge = ev.scheduled_at
       ? `<div class="al-scheduled-badge">📅 ${_fmtScheduled(ev.scheduled_at)}</div>`
@@ -164,7 +164,7 @@ window.ActivityTimeline = (function () {
     }
 
     function _adminOptions() {
-      if (!adminUsers.length) return '<option value="">— Nessun admin —</option>';
+      if (!adminUsers.length) return '<option value="">Nessun admin</option>';
       return '<option value="">Nessun assegnatario</option>' +
         adminUsers.map(u => `<option value="${u.id}">${u.name || u.email}</option>`).join('');
     }
@@ -316,7 +316,10 @@ window.ActivityTimeline = (function () {
       
       try {
         const res = await _load(cfg, currentPage, currentFilter);
-        const events = res.data || [];
+        let events = res.data || [];
+        
+        // Filter out activities that belong strictly to the "Attività" module (per user request)
+        events = events.filter(ev => !['call', 'meeting', 'task', 'email', 'email_sent'].includes(ev.event_type));
         
         if (!events.length) {
           listEl.innerHTML = `

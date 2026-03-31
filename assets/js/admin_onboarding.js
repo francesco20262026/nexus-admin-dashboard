@@ -1,5 +1,5 @@
 /* ============================================================
-   admin_onboarding.js — Onboarding / Lead pipeline
+   admin_onboarding.js Onboarding / Lead pipeline
    Pipeline ONLY for pre-client leads and activation flows.
    NOT for admin users, tenants, or providers.
    ============================================================ */
@@ -12,12 +12,28 @@
   /* ── Constants ──────────────────────────────────────────────── */
   const PER_PAGE = 20;
 
+  window.selectedIds = new Set();
+  
   /* ── State ─────────────────────────────────────────────────── */
   let ALL         = [];
   let filtered    = [];
   let currentPage = 1;
   let activeTab   = 'all';
   let editingId   = null;   // ID of record being edited
+
+  window.onbInjectRecord = (r) => {
+    const idx = ALL.findIndex(x => x.id === r.id);
+    if (idx > -1) ALL[idx] = r;
+    else ALL.push(r);
+  };
+
+  window.currentSortDir = 'asc';
+  window.toggleSort = () => {
+    window.currentSortDir = window.currentSortDir === 'asc' ? 'desc' : 'asc';
+    const icon = document.getElementById('sort-icon-prospect');
+    if (icon) icon.style.transform = window.currentSortDir === 'asc' ? 'none' : 'rotate(180deg)';
+    applyFilters();
+  };
 
   // ── Select caches (loaded once at startup) ──────────────────────
   let _companies  = null;   // [{id, name, ...}]
@@ -65,11 +81,11 @@ const filterDateTo   = $('onb-filter-date-to');
     contract_draft:        { color: '#0ea5e9', lbl: 'Contratto bozza' },
     contract_sent:         { color: '#0ea5e9', lbl: 'Contratto inv.' },
     contract_signed:       { color: '#0ea5e9', lbl: 'Contr. firmato' },
-    proforma_draft:        { color: '#f59e0b', lbl: 'Proforma bozza' },
+    proforma_draft:        { label: 'Proforma bozza',   color: '#2563eb', bg: '#eff6ff', icon: '📄' },
     proforma_issued:       { color: '#f59e0b', lbl: 'Proforma emessa' },
-    payment_under_review:  { color: '#10b981', lbl: 'In verifica' },
+    payment_under_review:  { color: '#3b82f6', lbl: 'In verifica' },
     cancelled:             { color: '#ef4444', lbl: 'Annullata' },
-    converted:             { color: '#64748b', lbl: 'Convertito' },
+    converted:             { label: 'Convertito',        color: '#1d4ed8', bg: '#dbeafe', icon: '✅' },
   };
 
   function statusPill(status) {
@@ -139,7 +155,8 @@ const filterDateTo   = $('onb-filter-date-to');
 
   /* ── Filter change handlers ─────────────────────────────────── */
   searchEl?.addEventListener('input',   debounce(() => { currentPage = 1; applyFilters(); }, 200));
-    filterPriority?.addEventListener('change', () => { currentPage = 1; applyFilters(); });
+  filterPriority?.addEventListener('change', () => { currentPage = 1; applyFilters(); });
+  document.getElementById('onb-filter-status')?.addEventListener('change', () => { currentPage = 1; applyFilters(); });
 filterDateFrom?.addEventListener('change', () => { currentPage = 1; applyFilters(); });
 filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters(); });
   filterAssignee?.addEventListener('change', () => { currentPage = 1; applyFilters(); });
@@ -179,6 +196,9 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
   }
 
   async function load(force = false) {
+    // Always load form selects for the edit modals
+    await loadFormSelects();
+
     if (!list) return;
     list.innerHTML = UI.skeletonCardList(5);
 
@@ -192,8 +212,6 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       updateKpis();
       return;
     }
-
-    await loadFormSelects();
     populateAssigneeFilter();
     updateKpis();
 
@@ -214,6 +232,102 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
 
     applyFilters();
   }
+
+  /* ── Selection Logic ────────────────────────────────────────── */
+  window.toggleSelection = (e, id) => {
+    e.stopPropagation();
+    if (window.selectedIds.has(id)) {
+      window.selectedIds.delete(id);
+    } else {
+      window.selectedIds.add(id);
+    }
+    updateSelectionUI();
+  };
+
+  window.toggleSelectAll = () => {
+    if (!filtered || filtered.length === 0) return;
+    if (window.selectedIds.size === filtered.length) {
+      window.selectedIds.clear();
+    } else {
+      filtered.forEach(r => window.selectedIds.add(r.id));
+    }
+    updateSelectionUI();
+  };
+
+  window.clearSelection = () => {
+    window.selectedIds.clear();
+    updateSelectionUI();
+  };
+
+  window.updateSelectionUI = () => {
+    const btnAll = document.getElementById('btn-select-all');
+    if (btnAll) {
+      if (filtered && filtered.length > 0 && window.selectedIds.size === filtered.length) {
+        btnAll.classList.add('selected');
+      } else {
+        btnAll.classList.remove('selected');
+      }
+    }
+
+    document.querySelectorAll('.cl-row').forEach(row => {
+      const sel = row.querySelector('.mac-row-select');
+      if (sel) {
+        const id = sel.dataset.id;
+        if (window.selectedIds.has(id)) {
+          sel.classList.add('selected');
+          row.classList.add('selected-row');
+        } else {
+          sel.classList.remove('selected');
+          row.classList.remove('selected-row');
+        }
+      }
+    });
+
+    const bar = document.getElementById('mac-mass-action-bar');
+    if (bar) {
+      if (window.selectedIds.size > 0) {
+        document.getElementById('mac-selected-count').textContent = window.selectedIds.size + ' selezionat' + (window.selectedIds.size === 1 ? 'o' : 'i');
+        bar.classList.add('visible');
+      } else {
+        bar.classList.remove('visible');
+      }
+    }
+  };
+
+  window.massAssign = async () => {
+    if (!window.selectedIds.size) return;
+    const a = prompt("Inserisci il nome dell'assegnatario per i " + window.selectedIds.size + " elementi selezionati:");
+    if (!a && a !== "") return; // cancelled
+    
+    if (window.UI) window.UI.toast('Assegnazione in corso...', 'info');
+    try {
+      for (let id of window.selectedIds) {
+         await API.Onboarding.update(id, { assigned_to: a });
+      }
+      if (window.UI) window.UI.toast('Assegnazione completata', 'success');
+      window.clearSelection();
+      if (window._reloadOnboarding) window._reloadOnboarding();
+    } catch(e) {
+      if (window.UI) window.UI.toast('Errore durante l\'assegnazione', 'error');
+    }
+  };
+
+  window.massDelete = async () => {
+    if (!window.selectedIds.size) return;
+    if (!confirm('Sei sicuro di voler eliminare ' + window.selectedIds.size + ' elementi? Quest\'azione è irreversibile.')) return;
+    
+    if (window.UI) window.UI.toast('Eliminazione in corso...', 'info');
+    try {
+      for (let id of window.selectedIds) {
+         await API.Onboarding.delete(id);
+      }
+      if (window.UI) window.UI.toast('Eliminazione completata', 'success');
+      window.clearSelection();
+      if (window._reloadOnboarding) window._reloadOnboarding();
+    } catch(e) {
+      if (window.UI) window.UI.toast('Errore durante l\'eliminazione', 'error');
+    }
+  };
 
   /* ── KPI cards + Pipeline pill counts ───────────────────────── */
   function updateKpis() {
@@ -335,6 +449,20 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       return true;
     });
 
+    const filterStatus = document.getElementById('onb-filter-status');
+    if (filterStatus && filterStatus.value) {
+      filtered = filtered.filter(r => r.status === filterStatus.value);
+    }
+
+    filtered.sort((a, b) => {
+      const vA = (a.company_name || a.lead_name || '').toLowerCase();
+      const vB = (b.company_name || b.lead_name || '').toLowerCase();
+      if (window.currentSortDir === 'desc') {
+        return vB.localeCompare(vA);
+      }
+      return vA.localeCompare(vB);
+    });
+
     const maxPage = Math.ceil(filtered.length / PER_PAGE) || 1;
     if (currentPage > maxPage) currentPage = maxPage;
     saveState();
@@ -368,6 +496,8 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
     UI.pagination(paginationEl, null, currentPage, filtered.length, PER_PAGE, p => {
       currentPage = p; saveState(); render();
     });
+
+    updateSelectionUI();
   }
 
   /* ── Render single row ──────────────────────────────────────── */
@@ -389,29 +519,29 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       : '';
 
     return `
-    <div class="cl-row" onclick="onbOpenDetail('${r.id}')">
+    <div class="cl-row" onclick="onbOpenDetail('${r.id}')" style="grid-template-columns: 2.5fr 1.5fr 1.5fr 1fr 1fr 80px; gap: 24px; padding: 10px 24px; min-height: 54px;">
       
       <!-- Soggetto -->
-      <div class="cl-col cl-col-1">
+      <div class="cl-col cl-col-1" style="flex-direction: row; align-items: center; gap: 12px;">
+        <div class="mac-row-select mac-select-btn" data-id="${r.id}" onclick="window.toggleSelection(event, '${r.id}')" title="Seleziona" >
+          <div class="mac-checkbox"></div>
+        </div>
         <div class="cl-row-identity">
-          <div class="avatar cl-row-avatar" style="background:${sm.color}">${avatarInitial}</div>
+          <div class="avatar cl-row-avatar cl-row-avatar-blue">${avatarInitial}</div>
           <div class="cl-row-identity-body">
             <div class="cl-row-name truncate" title="${companyLine}">${companyLine}</div>
-            <div class="cl-row-meta truncate" title="ID: ${r.id.split('-')[0]}">
-              <span class="cl-row-chip">ID: ${r.id.split('-')[0]}</span>
-            </div>
           </div>
         </div>
       </div>
 
       <!-- Riferimenti -->
-      <div class="cl-col" style="align-items:flex-start;">
-        ${email !== 'Senza contatti' ? `<div class="cl-data-val truncate" style="color:var(--brand-600);"><a href="mailto:${email}" onclick="event.stopPropagation()">${email}</a></div>` : '<div class="cl-data-lbl">Nessun riferimento</div>'}
+      <div class="cl-col" style="align-items:flex-start; justify-content:center;">
+        ${email !== 'Senza contatti' ? `<div class="cl-data-val truncate"><a href="mailto:${email}" onclick="event.stopPropagation()" style="color:#3b82f6;">${email}</a></div>` : '<div class="cl-data-lbl">Nessun riferimento</div>'}
         ${r.phone ? `<div class="cl-data-lbl truncate">${r.phone}</div>` : ''}
       </div>
 
       <!-- Assegnazione e Dati -->
-      <div class="cl-col">
+      <div class="cl-col" style="justify-content:center;">
         ${assignee}
         ${r.vat_number ? `<div class="cl-data-lbl truncate">P.IVA: ${r.vat_number}</div>` : ''}
       </div>
@@ -429,7 +559,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       </div>
 
       <!-- Azioni -->
-      <div class="cl-col cl-col-actions">
+      <div class="cl-col cl-col-actions" style="display:flex; justify-content:flex-end;">
         <div class="cl-row-actions">
           <button class="btn btn-ghost" style="padding:4px 8px;font-size:12px;height:30px;" onclick="event.stopPropagation(); onbOpenDetail('${r.id}')">
             Apri
@@ -447,80 +577,29 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
   };
 
   window.onbOpenDetail = async (id) => {
-    const body       = $('onb-detail-body');
-    const overlay    = $('onb-detail-overlay');
-    const header     = $('onb-detail-header');
-    if (!body || !overlay) return;
+    window.location.href = `admin_onboarding_detail.html?id=${id}&cb=${Date.now()}`;
+  };
+  window.renderOnbDetailHeader = (r) => {
+    // Backward compat hidden elements
+    const cdTitle = document.getElementById('cd-title');
+    const cdSubtitle = document.getElementById('cd-subtitle');
 
-    let r = ALL.find(x => x.id === id);
-    if (!r) return;
-
-    window.onbSelectedId = id;
-
-    const displayName  = r.company_name || r._client_name || '&mdash;';
+    const displayName  = r.company_name || r._client_name || r.lead_name || '\u2014';
     const displayEmail = r.email || r._client_email || '';
     const displayPhone = r.phone || '';
 
-    const emailSvg = '<svg style="width:13px;height:13px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>';
-    const phoneSvg = '<svg style="width:13px;height:13px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z"/></svg>';
-    const subParts = [];
-    if (displayEmail) subParts.push(`${emailSvg} <a href="mailto:${displayEmail}" style="color:#059669;font-weight:500;">${displayEmail}</a>`);
-    if (displayPhone) subParts.push(`${phoneSvg} <span>${displayPhone}</span>`);
-
-    if (header) header.innerHTML = `
-      <div class="onb-detail-header-info">
-        <div class="onb-detail-company-name" style="font-size: 18px; font-weight: 700; color: var(--gray-900);">${displayName}</div>
-        <div class="onb-detail-company-sub" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap; font-size: 13px; color: var(--gray-600); margin-top:4px;">
-          ${subParts.length ? subParts.join('') : '<span style="color:#d1d5db;font-style:italic;font-size:12px;">Nessun contatto</span>'}
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;">
-        <div id="onb-hdr-btns" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></div>
-      </div>`;
-
-    // Open Modal
-    overlay.classList.add('open');
-
-    body.innerHTML = '<div style="padding:40px 0;text-align:center;color:#9ca3af;font-size:14px;">Caricamento dettagli pratica...</div>';
-
-    try {
-      const detail = await API.Onboarding.get(id);
-      if (detail) {
-        r = { ...r, ...detail };
-        // Keep ALL in sync with fresh API data so list row matches header
-        ALL = ALL.map(x => x.id === id ? { ...x, ...detail } : x);
-      }
-    } catch (_) {}
-
-    body.innerHTML = renderDetailBody(r);
-
-    // ── Init Activity Timeline for onboarding ────────────────────
-    setTimeout(() => {
-      if (window.ActivityTimeline) {
-        ActivityTimeline.init({
-          entityType:  'onboarding',
-          entityId:    id,
-          containerId: 'activity-onb-container',
-        });
-      }
-    }, 0);
+    if (cdTitle)    cdTitle.textContent = displayName;
+    if (cdSubtitle) cdSubtitle.textContent = displayEmail;
 
     function proformaReady(rec) {
-      return !!(
-        (rec.company_name || rec.lead_name)
-        && rec.vat_number
-        && (rec.email || rec._client_email)
-        && (rec.dest_code || rec.codice_destinatario || rec.pec)
-        && (rec.address || rec.indirizzo)
-        && (rec.city || rec.citta)
-      );
+      return !!((rec.company_name || rec.lead_name) && rec.vat_number && (rec.email || rec._client_email) && (rec.dest_code || rec.codice_destinatario || rec.pec) && (rec.address || rec.indirizzo) && (rec.city || rec.citta));
     }
     function proformaMissing(rec) {
       const m = [];
       if (!(rec.company_name || rec.lead_name)) m.push('Ragione Sociale');
       if (!rec.vat_number)                      m.push('Partita IVA');
       if (!(rec.email || rec._client_email))    m.push('Email');
-      if (!(rec.dest_code || rec.codice_destinatario || rec.pec)) m.push('SDI o PEC (almeno uno)');
+      if (!(rec.dest_code || rec.codice_destinatario || rec.pec)) m.push('SDI o PEC');
       if (!(rec.address || rec.indirizzo))      m.push('Indirizzo');
       if (!(rec.city || rec.citta))             m.push('Città');
       return m;
@@ -528,64 +607,113 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
 
     const quoteLink   = `admin_quotes.html?new=1&onboarding=${r.id}${r.client_id ? '&client_id=' + r.client_id : ''}`;
     const invoiceLink = `admin_invoices.html?new=1&type=proforma&onboarding=${r.id}${r.client_id ? '&client_id=' + r.client_id : ''}`;
-
-    const ico16 = path => `<svg style="width:15px;height:15px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">${path}</svg>`;
-    const SVG = {
-      quote:   ico16('<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>'),
-      proforma:ico16('<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>'),
-      next:    ico16('<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>'),
-      convert: ico16('<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>'),
-      edit:    ico16('<path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/>'),
-      user:    ico16('<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>'),
-      cancel:  ico16('<path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>'),
-      trash:   ico16('<path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>'),
-      warn:    ico16('<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>'),
-    };
-
     const canProforma = proformaReady(r);
-    const editBtn     = `<button class="btn btn-secondary btn-sm" onclick="onbEdit('${r.id}')">${SVG.edit} Modifica</button>`;
-    const _missing     = canProforma ? [] : proformaMissing(r);
-    const _missingTip  = canProforma ? '' : 'Dati mancanti: ' + _missing.join(', ');
-    const proformaBtn = canProforma
-      ? `<button class="btn btn-indigo btn-sm" onclick="window.location.href='${invoiceLink}'">${SVG.proforma} Nuova proforma</button>`
-      : `<button class="btn btn-indigo btn-sm" disabled style="opacity:.4;cursor:not-allowed;" title="${_missingTip}">${SVG.warn} Nuova proforma</button>`;
-    const portalBtn   = `<button class="btn btn-teal btn-sm" onclick="onbInviteUser('${r.id}')">${SVG.user} Accesso portale</button>`;
-    const quoteBtn    = `<button class="btn btn-primary btn-sm" onclick="window.location.href='${quoteLink}'">${SVG.quote} Crea preventivo</button>`;
-    const advanceBtn  = `<button class="btn btn-primary btn-sm" onclick="onbAdvanceStep('${r.id}')">${SVG.next} Avanza stato</button>`;
-    const convertBtn  = `<button class="btn btn-success btn-sm" onclick="onbConvert('${r.id}')">${SVG.convert} Converti a cliente</button>`;
-
-    // Status badge — clickable dropdown for non-cancelled records
+    const _missing    = canProforma ? [] : proformaMissing(r);
+    const _missingTip = canProforma ? '' : 'Dati mancanti: ' + _missing.join(', ');
     const _sm = STATUS_MAP[r.status] || { color: '#6b7280', lbl: r.status };
-    const statusBadge = r.status === 'cancelled'
-      ? `<span style="display:inline-flex;align-items:center;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;background:${_sm.color};color:#fff;">${_sm.lbl}</span>`
-      : `<span style="display:inline-flex;align-items:center;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.02em;background:${_sm.color};color:#fff;border:none;">
-        ${_sm.lbl}
-      </span>`;
 
+    // ── Avatar & identity ────────────────────────────────────────
+    const avatarInitials = displayName.replace(/[^A-Za-z\u00C0-\u00FF\s]/g,'').trim().split(/\s+/).map(w=>w[0]||'').slice(0,2).join('').toUpperCase() || '??';
+    const macAvatar = document.getElementById('onb-mac-avatar');
+    const macName   = document.getElementById('onb-mac-name');
+    const macSub    = document.getElementById('onb-mac-sub');
+    const macStatus = document.getElementById('onb-mac-status');
+
+    if (macAvatar) macAvatar.textContent = avatarInitials;
+    if (macName)   macName.textContent   = displayName;
+    if (macSub)    macSub.innerHTML = displayEmail
+      ? `<a href="mailto:${displayEmail}" style="color:#3b82f6;text-decoration:none;">${displayEmail}</a>`
+      : (displayPhone || '');
+    if (macStatus) macStatus.innerHTML = `<span class="mac-sb-status" style="background:${_sm.color}22;color:${_sm.color};">${_sm.lbl}</span>`;
+
+    // ── Topbar ───────────────────────────────────────────────────
+    const topbarTitle = document.getElementById('onb-mac-topbar-title');
+    if (topbarTitle) topbarTitle.textContent = displayName;
+
+    // ── Sidebar body ─────────────────────────────────────────────
+    const sidebarBody = document.getElementById('onb-mac-sidebar-body');
+    const pill = (lbl, val) => val ? `
+      <div style="padding:8px 10px;border-radius:6px;">
+        <div style="font-size:10.5px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">${lbl}</div>
+        <div style="font-size:13px;color:#1d1d1f;font-weight:500;">${String(val).replace(/</g,'&lt;')}</div>
+      </div>` : '';
+
+    if (sidebarBody) sidebarBody.innerHTML = `
+      <div class="mac-nav-section-label">Dati Fiscali</div>
+      ${pill('Partita IVA', r.vat_number)}
+      ${pill('SDI / PEC', r.dest_code || r.codice_destinatario || r.pec)}
+      ${pill('Cod. Fiscale', r.fiscal_code || r.codice_fiscale)}
+      <div class="mac-sb-divider"></div>
+      <div class="mac-nav-section-label">Contatti</div>
+      ${pill('Telefono', r.phone || r.lead_phone)}
+      ${pill('Servizio', r.service_interest || r.service)}
+      <div class="mac-sb-divider"></div>
+      <div class="mac-nav-section-label">Sede</div>
+      ${pill('Indirizzo', r.address || r.indirizzo)}
+      ${pill('Città', (r.city || r.citta || '') + (r.province ? ' (' + r.province + ')' : ''))}
+      <div class="mac-sb-divider"></div>
+      <div class="mac-nav-section-label">Sistema</div>
+      ${pill('Studio', r.companies?.name || r.supplier_name || r.tenant_name)}
+      ${pill('Assegnato a', r.reference_name || r.assigned_to)}
+      ${pill('Creato il', r.created_at ? new Date(r.created_at).toLocaleDateString('it-IT') : null)}
+    `;
+
+    // ── Sidebar actions ──────────────────────────────────────────
+    const sidebarActions = document.getElementById('onb-mac-sidebar-actions');
+    let actionHtml = '';
     if (r.status === 'cancelled') {
-      const _hdrB1 = $('onb-hdr-btns');
-      if (_hdrB1) _hdrB1.innerHTML = editBtn + ` <button class="btn btn-danger btn-sm" onclick="onbDelete('${r.id}')">${SVG.trash} Elimina definitivamente</button>` + ' ' + statusBadge;
+      actionHtml = `
+        <div style="font-size:11px;font-weight:700;color:#dc2626;text-align:center;padding:4px;letter-spacing:.04em;">PRATICA ANNULLATA</div>
+        <button class="mac-sb-btn mac-sb-btn-danger" onclick="onbDelete('${r.id}')">Elimina Definitivamente</button>`;
     } else {
-      const cancelBtn2 = `<button class="btn btn-ghost btn-sm" style="color:#dc2626;border-color:#fecaca;" onclick="onbCancel('${r.id}')">${SVG.cancel} Annulla pratica</button>`;
-      // TOP BAR — workflow document actions (always visible)
-      const _hdrB2 = $('onb-hdr-btns');
-      if (_hdrB2) _hdrB2.innerHTML = [
-        quoteBtn,
-        proformaBtn,
-        `<button class="btn btn-ghost btn-sm" style="color:#dc2626;border-color:#fecaca;" onclick="onbCancel('${r.id}')">${SVG.cancel} Annulla pratica</button>`,
-        statusBadge
-      ].join(' ');
+      actionHtml = `
+        <button class="mac-sb-btn mac-sb-btn-secondary" onclick="onbEdit('${r.id}')">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+          Modifica Pratica
+        </button>
+        ${r.portal_first_login_at
+          ? `<button class="mac-sb-btn mac-sb-btn-secondary" disabled style="color:#059669;border-color:#a7f3d0;">&#10003; Portale Attivo</button>`
+          : `<button class="mac-sb-btn ${r.portal_invited_at ? 'mac-sb-btn-secondary' : 'mac-sb-btn-primary'}" onclick="onbInviteUser('${r.id}')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+              ${r.portal_invited_at ? 'Re-invia Invito' : 'Invia Accesso Portale'}
+             </button>`}
+        ${r.status === 'payment_under_review'
+          ? `<button class="mac-sb-btn mac-sb-btn-green-to-blue" onclick="onbConvert('${r.id}')">Converti a Cliente</button>` : ''}
+        <button class="mac-sb-btn mac-sb-btn-danger" onclick="onbCancel('${r.id}')">Annulla Pratica</button>
+      `;
+    }
+    if (sidebarActions) sidebarActions.innerHTML = actionHtml;
+
+    // ── Topbar quick actions ─────────────────────────────────────
+    const topbarActions = document.getElementById('onb-mac-topbar-actions');
+    if (topbarActions && r.status !== 'cancelled') {
+      topbarActions.innerHTML = `
+        <button class="mac-topbar-btn mac-topbar-btn-secondary" onclick="window.location.href='${quoteLink}'">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+          Crea Preventivo
+        </button>
+        ${canProforma
+          ? `<button class="mac-topbar-btn mac-topbar-btn-primary" onclick="window.location.href='${invoiceLink}'">
+               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+               Nuova Proforma
+             </button>`
+          : `<button class="mac-topbar-btn mac-topbar-btn-primary" disabled style="opacity:0.4;cursor:not-allowed;" title="${_missingTip}">
+               Proforma (dati mancanti)
+             </button>`}
+      `;
     }
   };
 
-  function renderDetailBody(r) {
+
+  window.renderDetailBody = function(r) {
     function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    // Azienda fornitrice — populated by JOIN companies(name) in the API
-    const supplierName = r.companies?.name || r.supplier_name || r.tenant_name || null;
+    const STATES = ['new','quote_draft','quote_sent','quote_accepted','contract_draft','contract_sent','contract_signed','proforma_draft','proforma_issued','payment_under_review'];
+    const SLBL   = { new:'Nuova', quote_draft:'Prev. Bozza', quote_sent:'Prev. Inviato', quote_accepted:'Prev. Acc.', contract_draft:'Contr. Bozza', contract_sent:'Contr. Inv.', contract_signed:'Contr. Firmato', proforma_draft:'Proforma Bozza', proforma_issued:'Proforma Emessa', payment_under_review:'Fatturazione' };
 
-    const displayName  = r.company_name || r._client_name || '&mdash;';
-    const displayEmail = r.email || r._client_email || '';
+    let idx = STATES.indexOf(r.status);
+    if (idx < 0) { if (r.status === 'waiting_payment') idx = STATES.indexOf('proforma_issued'); else idx = 0; }
+    const progressPct = idx * (100 / (STATES.length - 1));
 
     const pFields = [
       { label: 'Ragione Sociale', val: r.company_name || r.lead_name },
@@ -593,173 +721,69 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       { label: 'Email',           val: r.email || r._client_email },
       { label: 'SDI / PEC',       val: r.dest_code || r.codice_destinatario || r.pec },
       { label: 'Indirizzo',       val: r.address || r.indirizzo },
-      { label: 'Citta',           val: r.city || r.citta },
+      { label: 'Città',           val: r.city || r.citta },
     ];
     const allReady = pFields.every(f => !!f.val);
-    const proformaWidget = `<div class="onb-proforma-check ${allReady ? 'ready' : 'incomplete'}">
-      <span style="font-weight:700;flex-shrink:0;">Proforma:</span>
-      ${pFields.map(f => `<span class="onb-check-item ${f.val ? 'ok' : 'missing'}">${f.val ? '&#10003;' : '&#10007;'} ${f.label}</span>`).join('')}
-      <span style="margin-left:auto;font-size:11px;">${allReady ? "Pronta per l'emissione" : 'Dati mancanti &mdash; modifica pratica'}</span>
-    </div>`;
 
-    const STATES = ['new', 'quote_draft', 'quote_sent','quote_accepted', 'contract_draft', 'contract_sent','contract_signed', 'proforma_draft', 'proforma_issued','payment_under_review'];
-    const SLBL   = { new:'Nuovo', quote_draft:'Prev.Bozza', quote_sent:'Prev.Inv.', quote_accepted:'Prev.Acc.', contract_draft:'Contr.Bozza', contract_sent:'Contr.Inv.', contract_signed:'Contr.Firm.', proforma_draft:'Proforma Bozza', proforma_issued:'Proforma Inv.', payment_under_review:'Verifica' };
-    const NEXT_STATE = { new:'quote_draft', quote_draft:'quote_sent', quote_sent:'quote_accepted', quote_accepted:'contract_draft', contract_draft:'contract_sent', contract_sent:'contract_signed', contract_signed:'proforma_draft', proforma_draft:'proforma_issued', proforma_issued:'payment_under_review' };
-    let idx = STATES.indexOf(r.status);
-    if (idx < 0) {
-      if (r.status === 'waiting_payment') idx = STATES.indexOf('proforma_issued');
-      else idx = 0;
-    }
-    const chk = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="#fff" style="width:11px;height:11px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
-    const stepperHtml = r.status === 'cancelled'
-      ? `<div style="display:inline-flex;gap:6px;align-items:center;padding:6px 12px;background:#fef2f2;border-radius:8px;font-size:12px;color:#dc2626;font-weight:600;">&#10007; Pratica annullata</div>`
-      : `<div class="onb-workflow-steps">${STATES.map((s,i) => {
-          const isFuture = i > idx;
-          const clickAttr = isFuture ? `onclick="onbGoToStep('${r.id}','${s}')" title="Vai a: ${SLBL[s]}"` : '';
-          return `<div class="onb-step ${i < idx ? 'done' : i === idx ? 'active' : ''}" ${isFuture ? 'style="cursor:pointer;opacity:.7;" ' + clickAttr : ''}>
-            <div class="onb-step-dot">${i < idx ? chk : ''}</div>
-            <div class="onb-step-label">${SLBL[s]||s}</div>
-          </div>`;
-        }).join('')}</div>`;
+    const pipelineHtml = r.status === 'cancelled'
+      ? `<div style="display:flex;align-items:center;gap:10px;padding:16px;background:#fff5f5;border:1px solid #fecaca;border-radius:10px;color:#dc2626;font-weight:600;font-size:14px;">
+           <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+           Pratica annullata
+         </div>`
+      : `<div class="mac-pipeline-wrap">
+           <div class="mac-pipeline-track">
+             <div class="mac-pipeline-track-bg"></div>
+             <div class="mac-pipeline-progress" style="width:${progressPct}%;"></div>
+             ${STATES.map((s,i) => {
+               const cls = i < idx ? 'done' : i === idx ? 'active' : '';
+               return `<div class="mac-pipeline-step ${cls}">
+                 <div class="mac-pipeline-dot"></div>
+                 <div class="mac-pipeline-label">${SLBL[s]||s}</div>
+               </div>`;
+             }).join('')}
+           </div>
+         </div>`;
 
-    // Workflow action buttons
-    const isLast = r.status === 'payment_under_review';
-    let actionsHtml = '';
-    if (r.status !== 'cancelled') {
-      actionsHtml += `
-        <button class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;" onclick="onbEdit('${r.id}')">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
-          Modifica Pratica
-        </button>
-      `;
-      if (r.portal_first_login_at) {
-        actionsHtml += `<button class="btn btn-success btn-sm" disabled title="Primo accesso: ${new Date(r.portal_first_login_at).toLocaleDateString('it-IT')}" style="width:100%;justify-content:center;">✓ Invito accettato</button>`;
-      } else if (r.portal_invited_at) {
-        actionsHtml += `<button class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;" onclick="onbInviteUser('${r.id}')" title="Clicca per reinviare">Invito inviato</button>`;
-      } else {
-        actionsHtml += `<button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;" onclick="onbInviteUser('${r.id}')">Invia Invito Portale</button>`;
-      }
-      if (isLast) {
-        actionsHtml += `<button class="btn btn-success btn-sm" style="width:100%;justify-content:center;margin-top:8px;" onclick="onbConvert('${r.id}')">Converti a cliente</button>`;
-      }
-    }
+    const macContent = document.getElementById('onb-mac-content');
+    if (!macContent) return '';
 
-    const field = (lbl, val, full=false) => `
-      <div class="profile-info-row" style="${full?'grid-column:1/-1;':''}margin-bottom:8px;">
-        <span class="profile-info-lbl">${lbl}</span>
-        <span class="profile-info-val">${val ? esc(String(val)) : '<span style="color:#d1d5db;">&mdash;</span>'}</span>
-      </div>`;
-    const fieldHtml = (lbl, html, full=false) => `
-      <div class="profile-info-row" style="${full?'grid-column:1/-1;':''}margin-bottom:8px;">
-        <span class="profile-info-lbl">${lbl}</span>
-        <span class="profile-info-val">${html}</span>
-      </div>`;
-
-    const vatHtml = r.vat_number ? esc(r.vat_number) : '<span style="color:#ef4444;font-size:11px;">&#9888; Mancante</span>';
-    const emailHtml = displayEmail ? `<a href="mailto:${esc(displayEmail)}" style="color:var(--brand-600);">${esc(displayEmail)}</a>` : '&mdash;';
-    const createdAt = r.created_at ? new Date(r.created_at).toLocaleDateString('it-IT') : null;
-
-
-    const dangerZoneHtml = r.status === 'cancelled' ? `
-      <div style="margin-top:24px;padding:16px;border:1px solid #fecaca;border-radius:var(--radius-lg);background:#fff5f5;text-align:left;">
-        <div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:6px;">Pratica Annullata</div>
-        <p style="font-size:12px;color:#9ca3af;margin:0 0 12px;line-height:1.4;">L'eliminazione definitiva rimuoverà tutti i dati.</p>
-        <button class="btn btn-ghost-danger btn-sm" style="width:100%;justify-content:center;" onclick="onbDelete('${r.id}')">Elimina definitivamente</button>
+    macContent.innerHTML = `
+      <div class="mac-section">
+        <div class="mac-section-title">Flusso di Lavoro</div>
+        ${pipelineHtml}
       </div>
-    ` : '';
 
+      <div class="mac-divider"></div>
 
-
-    const cName = esc(r.company_name || r.lead_name || 'Senza Nome');
-    const initials = cName.substring(0,2).toUpperCase();
-
-    // The status pill colors
-    let stBg = '#f3f4f6', stCol = '#374151';
-    if(r.status === 'new') { stBg='#dbeafe'; stCol='#1e40af'; }
-    else if(r.status.includes('quote')) { stBg='#ede9fe'; stCol='#5b21b6'; }
-    else if(r.status.includes('contract')) { stBg='#e0f2fe'; stCol='#0369a1'; }
-    else if(r.status.includes('proforma')) { stBg='#ffedd5'; stCol='#9a3412'; }
-    else if(r.status === 'payment_under_review') { stBg='#fef08a'; stCol='#854d0e'; }
-    else if(r.status === 'cancelled') { stBg='#fee2e2'; stCol='#991b1b'; }
-
-    return `
-      <style>
-        .onb-proforma-widget { padding:16px; border-radius:var(--radius-lg); font-size:13px; display:flex; align-items:center; gap:12px; border: 1px solid var(--border); background: var(--surface); color: var(--gray-800); font-weight: 500;}
-        .onb-proforma-widget.incomplete { border-left: 4px solid #ef4444; }
-        .onb-proforma-widget.ready { border-left: 4px solid #10b981; }
-        .onb-check-item { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:4px; font-weight:600; font-size:11px; }
-        .onb-check-item.ok { color:#10b981; background:#f0fdf4; }
-        .onb-check-item.missing { color:#ef4444; background:#fef2f2; }
-      </style>
-
-      <div class="detail-layout" style="margin-top:0;">
-        <!-- LEFT PROFILE COLUMN -->
-        <div class="profile-col">
-          <div class="profile-card">
-            <div class="profile-avatar-large">${initials}</div>
-            <h1 class="profile-name">${cName}</h1>
-            <div class="profile-subtitle">${emailHtml}</div>
-            <span class="profile-status" style="background:${stBg};color:${stCol};">${SLBL[r.status]||r.status}</span>
-            
-            <div class="profile-actions">
-              ${actionsHtml}
-            </div>
-
-            <div class="profile-info-list" style="margin-top:16px;">
-              ${field('Servizio Richiesto', r.service_interest || r.service, true)}
-              ${field('Partita IVA', vatHtml)}
-              ${field('Codice Fiscale', r.fiscal_code || r.codice_fiscale)}
-              ${field('Telefono', r.phone || r.lead_phone)}
-              ${field('Assegnato a', r.reference_name || r.assigned_to)}
-              ${field('Data Creazione', createdAt)}
-              ${field('Codice SDI', r.dest_code || r.codice_destinatario)}
-              ${field('PEC', r.pec)}
-              ${field('Indirizzo', r.address || r.indirizzo, true)}
-              ${field('Città', r.city || r.citta)}
-              ${field('Provincia', r.province || r.provincia)}
-            </div>
-            
-            ${r.admin_notes || r.notes ? `
-            <div class="profile-info-list" style="border-top:1px dashed var(--border);">
-              <div class="profile-info-row">
-                <span class="profile-info-lbl">Note Interne</span>
-                <span class="profile-info-val" style="color:var(--gray-600);font-size:12px;line-height:1.5;">${esc(r.admin_notes || r.notes)}</span>
-              </div>
-            </div>` : ''}
-
-            ${dangerZoneHtml}
-          </div>
+      <div class="mac-section">
+        <div class="mac-section-title">
+          <span>Requisiti Anagrafica (Proforma)</span>
+          ${allReady
+            ? `<span class="mac-status-pill-complete" style="font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:12px;text-transform:none;letter-spacing:0;">Completa</span>`
+            : `<span style="font-size:11.5px;font-weight:600;color:#d97706;background:#fef3c7;padding:3px 10px;border-radius:12px;text-transform:none;letter-spacing:0;">Dati mancanti</span>`}
         </div>
+        <div class="mac-chk-grid">
+          ${pFields.map(f => `
+            <div class="mac-chk-item ${f.val ? 'ok' : 'miss'}">
+              ${f.val
+                ? '<svg style="color:#3b82f6;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
+                : '<svg style="color:#d1d5db;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>'}
+              ${f.label}
+            </div>`).join('')}
+        </div>
+      </div>
 
-        <!-- RIGHT DATA COLUMN -->
-        <div class="data-col">
-          <!-- Stepper Box -->
-          <div class="card" style="padding:24px;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 1px 3px rgba(0,0,0,0.02);margin-bottom:16px;">
-            <div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:16px;">Stato Pratica</div>
-            ${stepperHtml}
-          </div>
-          
-          <!-- Proforma readiness -->
-          <div class="onb-proforma-widget ${allReady ? 'ready' : 'incomplete'}" style="margin-bottom:16px;">
-            <span style="font-weight:700;flex-shrink:0;">Info Proforma:</span>
-            <div style="display:flex; gap:6px; flex-wrap:wrap; flex:1;">
-              ${pFields.map(f => `<span class="onb-check-item ${f.val ? 'ok' : 'missing'}">${f.val ? '✓' : '✗'} ${f.label}</span>`).join('')}
-            </div>
-          </div>
+      <div class="mac-divider"></div>
 
-          <!-- Timeline -->
-          <div class="card" style="border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 1px 3px rgba(0,0,0,0.02);overflow:hidden;">
-            <div class="card-header" style="background:#fdfdfd;border-bottom:1px solid var(--border);">
-              <h2 class="card-title">🕓 Storico Attività</h2>
-            </div>
-            <div style="padding:24px;" id="activity-onb-container">
-              Caricamento...
-            </div>
-          </div>
-
+      <div class="mac-section" style="padding-bottom:0;">
+        <div class="mac-section-title">Storico Attività</div>
+        <div class="mac-activity-wrap" id="activity-onb-container">
+          <div class="mac-empty">Caricamento storico\u2026</div>
         </div>
       </div>
     `;
+
+    return ''; // DOM injected directly
   }
 
   function renderDocsList(docs) {
@@ -800,7 +824,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
     UI.toast('Avanzamento manuale disabilitato. Gestisci lo stato creando i documenti relativi (Preventivo, Contratto, ecc).', 'info');
   };
 
-  // Status badge dropdown — DEPRECATED (Moved to automated flows)
+  // Status badge dropdown DEPRECATED (Moved to automated flows)
   window.onbShowStatusMenu = (id, triggerEl) => {
     UI.toast('Modifica manuale disabilitata. Gestisci lo stato creando i documenti (Preventivo, Contratto, ecc).', 'info');
   };
@@ -930,27 +954,27 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       }
       if (statWrp) statWrp.style.display = 'block';
     } else {
-      // NUOVO (Verde)
+      // NUOVO (Blue/Gray like Clients)
       if (titleEl) titleEl.textContent = 'Nuova pratica';
       if (subEl) {
         subEl.textContent   = 'Inserisci i dati del potenziale cliente';
         subEl.style.textTransform = 'none';
       }
       if (iconEl) {
-        iconEl.style.background = '#d1fae5'; // verde chiaro
-        iconEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#059669" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>`;
+        iconEl.style.background = '#eff6ff'; // blue chiaro
+        iconEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#3b82f6" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>`;
       }
       if (statWrp) statWrp.style.display = 'none';
     }
 
     // Fill form
     const set = (elId, val) => { const el = $(elId); if (el) el.value = val || ''; };
-    // Section 1 — Soggetto
+    // Section 1 Soggetto
     set('onb-f-company',     r?.company_name);
     set('onb-f-lead-name',   r?.lead_name || r?._contact_name);
     set('onb-f-email',       r?.email);
     set('onb-f-phone',       r?.phone || r?.lead_phone);
-    // Section 2 — Dati fiscali
+    // Section 2 Dati fiscali
     set('onb-f-vat',         r?.vat_number);
     set('onb-f-fiscal-code', r?.fiscal_code || r?.codice_fiscale);
     set('onb-f-sdi',         r?.dest_code || r?.sdi_code || r?.codice_sdi || r?.codice_destinatario);
@@ -959,7 +983,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
     set('onb-f-cap',         r?.cap || r?.postal_code);
     set('onb-f-city',        r?.city || r?.citta);
     set('onb-f-province',    r?.province || r?.provincia);
-    // Section 3 — Pipeline
+    // Section 3 Pipeline
     set('onb-f-priority',    r?.priority || 'medium');
     set('onb-f-status',      r?.status || 'new');
     set('onb-f-notes',       r?.admin_notes || r?.notes);

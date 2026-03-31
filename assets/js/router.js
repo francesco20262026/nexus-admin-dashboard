@@ -1,8 +1,8 @@
 /* =============================================================
-   router.js — Nexus Admin SPA Shell Router
+   router.js Nexus Admin SPA Shell Router
    Intercepts nav-item clicks, loads page content via fetch,
    swaps only <main>, keeping sidebar/header/logo persistent.
-   No framework — vanilla JS only.
+   No framework vanilla JS only.
    ============================================================= */
 (function () {
   'use strict';
@@ -83,7 +83,9 @@
         _injected.push(styleEl);
       }
 
-      // Swap main content
+      // Swap main content and attributes
+      main.className = newMain.className;
+      main.setAttribute('style', newMain.getAttribute('style') || '');
       main.innerHTML = newMain.innerHTML;
       window.scrollTo(0, 0);
 
@@ -120,7 +122,7 @@
       }
 
     } catch (err) {
-      console.error('[Router] navigate error — falling back to full load:', err);
+      console.error('[Router] navigate error falling back to full load:', err);
       main.style.opacity = '1';
       location.href = url; // graceful degradation
     }
@@ -142,7 +144,7 @@
 
     e.preventDefault();
     navigate(href);
-  }, true); // useCapture = true — catches before other handlers
+  }, true); // useCapture = true catches before other handlers
 
   /* ── browser back / forward ──────────────────────────────── */
   window.addEventListener('popstate', e => {

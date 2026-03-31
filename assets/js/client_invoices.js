@@ -1,5 +1,5 @@
 /* ============================================================
-   client_invoices.js — Client invoices + proforma + payment proof (Phase 3)
+   client_invoices.js Client invoices + proforma + payment proof (Phase 3)
    ============================================================ */
 'use strict';
 (function () {
@@ -136,7 +136,7 @@
       let actionHtml;
       if (ps === 'proof_uploaded' || ps === 'under_review') {
         actionHtml = `<div style="display:flex;gap:8px;justify-content:flex-end;">
-          <span style="font-size:12px;color:var(--gray-500);align-self:center;">Prova inviata — in verifica</span>
+          <span style="font-size:12px;color:var(--gray-500);align-self:center;">Prova inviata in verifica</span>
           <button class="btn btn-secondary btn-sm btn-icon" title="Scarica" onclick="downloadInvoice('${i.id}')">${iconPdf}</button>
         </div>`;
       } else if (!isPaid) {

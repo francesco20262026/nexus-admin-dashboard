@@ -1,0 +1,369 @@
+INFO:__main__:All API routers mounted successfully
+INFO:server:All API routers mounted successfully
+[32mINFO[0m:     Started server process [[36m27692[0m]
+[32mINFO[0m:     Waiting for application startup.
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "run_payment_reminders" to job store "default"
+INFO:apscheduler.scheduler:Added job "run_renewal_alerts" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:server:Scheduler started
+
+-----
+
+WeasyPrint could not import some external libraries. Please carefully follow the installation steps before reporting an issue:
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#troubleshooting 
+
+-----
+
+ERROR:core_services.pdf_service:WeasyPrint OS dependency missing. OSError: cannot load library 'libpango-1.0-0': libpango-1.0-0: cannot open shared object file: No such file or directory.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libpango-1.0-0' — missing OS libraries. Install: pango, cairo, libffi, gdk-pixbuf (e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0)
+WARNING:server:PDF subsystem unavailable: OSError: cannot load library 'libpango-1.0-0': libpango-1.0-0: cannot open shared object file: No such file or directory.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libpango-1.0-0' — missing OS libraries. Install: pango, cairo, libffi, gdk-pixbuf (e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0)
+[32mINFO[0m:     Application startup complete.
+[32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:5000[0m (Press CTRL+C to quit)
+[32mINFO[0m:     10.83.1.38:0 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: POST https://nbobzshjajgbmprhgxio.supabase.co/auth/v1/token?grant_type=password "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/user_company_permissions?select=%2A&user_id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/companies?select=id%2Cname&id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+INFO:auth.router:login: loaded company names: {'15a52e6b-36a1-4b00-9496-6a277e9492ea': 'DELOCA NOVA SYSTEMS SRL', '7cef5536-ced1-41ab-857c-f469c78247f1': 'IT SERVICES & HUMAN JOB TALENT SRL'}
+[32mINFO[0m:     10.83.0.137:0 - "[1mPOST /api/auth/login HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /admin_dash.html HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /assets/css/dash.css?v=92 HTTP/1.1[0m" [33m304 Not Modified[0m
+INFO:modules.companies.router:list_companies called: user_id=3a1a822b-6e4f-4053-911c-4b048622d47f role=admin
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/user_company_permissions?select=company_id%2Crole%2Cis_default&user_id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:modules.companies.router:list_companies perms query result: 2 rows — [{'company_id': '15a52e6b-36a1-4b00-9496-6a277e9492ea', 'role': 'admin', 'is_default': False}, {'company_id': '7cef5536-ced1-41ab-857c-f469c78247f1', 'role': 'admin', 'is_default': True}]
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/companies?select=id%2Cname%2Cslug%2Cdefault_lang%2Clogo_url%2Ccreated_at&id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/integrations?select=company_id%2Ctype%2Cis_active&company_id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/companies HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.1.38:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/contracts?select=%2A%2Cclients%28name%2Cemail%29%2Cdocument_templates%28name%2Ctype%29%2Conboarding%21contracts_onboarding_id_fkey%28company_name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.sent&order=created_at.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/contracts/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=sent&limit=3 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.overdue&order=due_date.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=overdue&limit=3 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/clients?select=status&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=status%2Ctotal&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_services?select=id&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/renewals?select=id%2Crenewal_date%2Cstatus&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&renewal_date=gte.2026-03-28&renewal_date=lte.2026-04-27&status=neq.renewed "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=total&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.paid&paid_at=gte.2026-03-01 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/dashboard/kpi?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/audit_logs?select=entity_type%2Centity_id%2Caction%2Cnew_values%2Ccreated_at%2Cusers%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=created_at.desc&limit=8 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.5.98:0 - "[1mGET /api/dashboard/recent-activity?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=8 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=paid_at%2Ctotal&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.paid&paid_at=gte.2025-09-23 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/dashboard/revenue-chart?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&months=6 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=name.asc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=5 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.unpaid&order=due_date.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=unpaid&limit=5 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /admin_clients.html?v=88 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/renewals?select=%2A%2Cclients%28name%2Cemail%29%2Cclient_services%28%2A%2Cservices_catalog%28name%29%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=renewal_date.asc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.1.38:0 - "[1mGET /api/renewals/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&expiring_days=15&limit=3 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=name.asc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /admin_client_detail.html?id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.1.38:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_contacts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=is_primary.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.1.38:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contacts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_notes?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/notes HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_services?select=%2A%2Cservices_catalog%28name%2Cbilling_cycle%29&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/services HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/contracts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contracts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/quotes?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/quotes/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&client_id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=due_date.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.5.98:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/invoices HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/documents?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.1.38:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/documents HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_communications?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=sent_at.desc&limit=100 "HTTP/2 404 Not Found"
+WARNING:modules.communications.router:client_communications table not found — migration pending
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/communications HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=scheduled_at.asc "HTTP/2 404 Not Found"
+WARNING:modules.calls.router:client_calls table not found — migration pending
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&status=eq.scheduled&scheduled_at=lt.2026-03-28T12%3A57%3A53.135943%2B00%3A00&order=scheduled_at.asc "HTTP/2 404 Not Found"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls/overdue HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: POST https://nbobzshjajgbmprhgxio.supabase.co/auth/v1/token?grant_type=password "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/user_company_permissions?select=%2A&user_id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/companies?select=id%2Cname&id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+INFO:auth.router:login: loaded company names: {'15a52e6b-36a1-4b00-9496-6a277e9492ea': 'DELOCA NOVA SYSTEMS SRL', '7cef5536-ced1-41ab-857c-f469c78247f1': 'IT SERVICES & HUMAN JOB TALENT SRL'}
+[32mINFO[0m:     10.83.6.29:0 - "[1mPOST /api/auth/login HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.overdue&order=due_date.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=overdue&limit=3 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/clients?select=status&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=status%2Ctotal&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_services?select=id&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/renewals?select=id%2Crenewal_date%2Cstatus&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&renewal_date=gte.2026-03-28&renewal_date=lte.2026-04-27&status=neq.renewed "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=total&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.paid&paid_at=gte.2026-03-01 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/dashboard/kpi?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/contracts?select=%2A%2Cclients%28name%2Cemail%29%2Cdocument_templates%28name%2Ctype%29%2Conboarding%21contracts_onboarding_id_fkey%28company_name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.sent&order=created_at.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/contracts/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=sent&limit=3 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=paid_at%2Ctotal&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.paid&paid_at=gte.2025-09-23 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.1.38:0 - "[1mGET /api/dashboard/revenue-chart?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&months=6 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/audit_logs?select=entity_type%2Centity_id%2Caction%2Cnew_values%2Ccreated_at%2Cusers%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=created_at.desc&limit=8 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.5.98:0 - "[1mGET /api/dashboard/recent-activity?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=8 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&status=eq.unpaid&order=due_date.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=unpaid&limit=5 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /admin_clients.html?v=88 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/renewals?select=%2A%2Cclients%28name%2Cemail%29%2Cclient_services%28%2A%2Cservices_catalog%28name%29%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=renewal_date.asc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/renewals/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&expiring_days=15&limit=3 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=name.asc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=5 HTTP/1.1[0m" [32m200 OK[0m
+INFO:modules.companies.router:list_companies called: user_id=3a1a822b-6e4f-4053-911c-4b048622d47f role=admin
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/user_company_permissions?select=company_id%2Crole%2Cis_default&user_id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:modules.companies.router:list_companies perms query result: 2 rows — [{'company_id': '15a52e6b-36a1-4b00-9496-6a277e9492ea', 'role': 'admin', 'is_default': False}, {'company_id': '7cef5536-ced1-41ab-857c-f469c78247f1', 'role': 'admin', 'is_default': True}]
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/companies?select=id%2Cname%2Cslug%2Cdefault_lang%2Clogo_url%2Ccreated_at&id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/integrations?select=company_id%2Ctype%2Cis_active&company_id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/companies HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=name.asc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /admin_client_detail.html?id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_contacts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=is_primary.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contacts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_notes?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/notes HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_services?select=%2A%2Cservices_catalog%28name%2Cbilling_cycle%29&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/services HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/contracts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contracts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/quotes?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.5.98:0 - "[1mGET /api/quotes/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&client_id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=due_date.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.1.38:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/invoices HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/documents?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/documents HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_communications?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=sent_at.desc&limit=100 "HTTP/2 404 Not Found"
+WARNING:modules.communications.router:client_communications table not found — migration pending
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/communications HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=scheduled_at.asc "HTTP/2 404 Not Found"
+WARNING:modules.calls.router:client_calls table not found — migration pending
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&status=eq.scheduled&scheduled_at=lt.2026-03-28T12%3A58%3A42.247340%2B00%3A00&order=scheduled_at.asc "HTTP/2 404 Not Found"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls/overdue HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.8.56:0 - "[1mGET /admin_client_detail.html?id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /assets/img/nova-crm-logo-sidebar.svg HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /assets/css/dash.css?v=100 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.13.66:0 - "[1mGET /components/header.js?v=88 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.8.56:0 - "[1mGET /assets/js/auth.js?v=96 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.13.66:0 - "[1mGET /assets/js/api.js?v=96 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /assets/js/i18n.js?v=96 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.15.240:0 - "[1mGET /assets/js/dash.js?v=96 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.3.69:0 - "[1mGET /assets/js/ui.js?v=96 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /assets/js/router.js?v=96 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.8.56:0 - "[1mGET /assets/js/activity_timeline.js?v=96 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.13.66:0 - "[1mGET /assets/js/admin_client_calls.js?v=97 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /assets/js/admin_client_comms.js?v=97 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.15.240:0 - "[1mGET /assets/js/admin_client_detail.js?v=97 HTTP/1.1[0m" [32m200 OK[0m
+INFO:modules.companies.router:list_companies called: user_id=3a1a822b-6e4f-4053-911c-4b048622d47f role=admin
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/user_company_permissions?select=company_id%2Crole%2Cis_default&user_id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:modules.companies.router:list_companies perms query result: 2 rows — [{'company_id': '15a52e6b-36a1-4b00-9496-6a277e9492ea', 'role': 'admin', 'is_default': False}, {'company_id': '7cef5536-ced1-41ab-857c-f469c78247f1', 'role': 'admin', 'is_default': True}]
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/companies?select=id%2Cname%2Cslug%2Cdefault_lang%2Clogo_url%2Ccreated_at&id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/integrations?select=company_id%2Ctype%2Cis_active&company_id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/companies HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.15.240:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.13.66:0 - "[1mGET /favicon.ico HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_contacts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=is_primary.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contacts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/contracts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.15.240:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contracts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_services?select=%2A%2Cservices_catalog%28name%2Cbilling_cycle%29&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.8.56:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/services HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_notes?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/notes HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/quotes?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.3.69:0 - "[1mGET /api/quotes/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&client_id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=due_date.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.13.66:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/invoices HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_communications?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=sent_at.desc&limit=100 "HTTP/2 404 Not Found"
+WARNING:modules.communications.router:client_communications table not found — migration pending
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/communications HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=scheduled_at.asc "HTTP/2 404 Not Found"
+WARNING:modules.calls.router:client_calls table not found — migration pending
+[32mINFO[0m:     10.83.15.240:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/documents?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/documents HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&status=eq.scheduled&scheduled_at=lt.2026-03-28T12%3A58%3A50.800394%2B00%3A00&order=scheduled_at.asc "HTTP/2 404 Not Found"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls/overdue HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/user_company_permissions?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=in.%283a1a822b-6e4f-4053-911c-4b048622d47f%2C91661678-3acd-442d-baff-36f97ffb4ddc%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/companies?select=id%2Cname&id=in.%287cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/users HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/activity_log?select=%2A%2Cusers%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=created_at.desc&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&offset=0&limit=30 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/activity?page=1&page_size=30 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /admin_quotes.html?v=88 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /assets/js/admin_quotes.js?v=88 HTTP/1.1[0m" [33m304 Not Modified[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/quotes?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=created_at.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/quotes/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /admin_clients.html?v=88 HTTP/1.1[0m" [32m200 OK[0m
+INFO:modules.companies.router:list_companies called: user_id=3a1a822b-6e4f-4053-911c-4b048622d47f role=admin
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/user_company_permissions?select=company_id%2Crole%2Cis_default&user_id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:modules.companies.router:list_companies perms query result: 2 rows — [{'company_id': '15a52e6b-36a1-4b00-9496-6a277e9492ea', 'role': 'admin', 'is_default': False}, {'company_id': '7cef5536-ced1-41ab-857c-f469c78247f1', 'role': 'admin', 'is_default': True}]
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/companies?select=id%2Cname%2Cslug%2Cdefault_lang%2Clogo_url%2Ccreated_at&id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/integrations?select=company_id%2Ctype%2Cis_active&company_id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/companies HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=name.asc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /admin_client_detail.html?id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_contacts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=is_primary.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contacts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_notes?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/notes HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_services?select=%2A%2Cservices_catalog%28name%2Cbilling_cycle%29&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/services HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/contracts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contracts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/quotes?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.1.38:0 - "[1mGET /api/quotes/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&client_id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=due_date.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.5.98:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/invoices HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/documents?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/documents HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=scheduled_at.asc "HTTP/2 404 Not Found"
+WARNING:modules.calls.router:client_calls table not found — migration pending
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_communications?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=sent_at.desc&limit=100 "HTTP/2 404 Not Found"
+WARNING:modules.communications.router:client_communications table not found — migration pending
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/communications HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&status=eq.scheduled&scheduled_at=lt.2026-03-28T13%3A01%3A48.062427%2B00%3A00&order=scheduled_at.asc "HTTP/2 404 Not Found"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls/overdue HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /admin_clients.html HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+INFO:modules.companies.router:list_companies called: user_id=3a1a822b-6e4f-4053-911c-4b048622d47f role=admin
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/user_company_permissions?select=company_id%2Crole%2Cis_default&user_id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:modules.companies.router:list_companies perms query result: 2 rows — [{'company_id': '15a52e6b-36a1-4b00-9496-6a277e9492ea', 'role': 'admin', 'is_default': False}, {'company_id': '7cef5536-ced1-41ab-857c-f469c78247f1', 'role': 'admin', 'is_default': True}]
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/companies?select=id%2Cname%2Cslug%2Cdefault_lang%2Clogo_url%2Ccreated_at&id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/integrations?select=company_id%2Ctype%2Cis_active&company_id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/companies HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=name.asc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /admin_client_detail.html?id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:modules.companies.router:list_companies called: user_id=3a1a822b-6e4f-4053-911c-4b048622d47f role=admin
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/user_company_permissions?select=company_id%2Crole%2Cis_default&user_id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:modules.companies.router:list_companies perms query result: 2 rows — [{'company_id': '15a52e6b-36a1-4b00-9496-6a277e9492ea', 'role': 'admin', 'is_default': False}, {'company_id': '7cef5536-ced1-41ab-857c-f469c78247f1', 'role': 'admin', 'is_default': True}]
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/companies?select=id%2Cname%2Cslug%2Cdefault_lang%2Clogo_url%2Ccreated_at&id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/integrations?select=company_id%2Ctype%2Cis_active&company_id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/companies HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_contacts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=is_primary.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contacts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_notes?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/notes HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_services?select=%2A%2Cservices_catalog%28name%2Cbilling_cycle%29&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/services HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/contracts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contracts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/quotes?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.5.98:0 - "[1mGET /api/quotes/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&client_id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=due_date.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.1.38:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/invoices HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/documents?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/documents HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&status=eq.scheduled&scheduled_at=lt.2026-03-28T13%3A03%3A14.558120%2B00%3A00&order=scheduled_at.asc "HTTP/2 404 Not Found"
+[32mINFO[0m:     10.83.4.32:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls/overdue HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=scheduled_at.asc "HTTP/2 404 Not Found"
+WARNING:modules.calls.router:client_calls table not found — migration pending
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_communications?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=sent_at.desc&limit=100 "HTTP/2 404 Not Found"
+WARNING:modules.communications.router:client_communications table not found — migration pending
+[32mINFO[0m:     10.83.6.29:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/communications HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.2.97:0 - "[1mGET /admin_client_detail.html?id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:modules.companies.router:list_companies called: user_id=3a1a822b-6e4f-4053-911c-4b048622d47f role=admin
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/user_company_permissions?select=company_id%2Crole%2Cis_default&user_id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+INFO:modules.companies.router:list_companies perms query result: 2 rows — [{'company_id': '15a52e6b-36a1-4b00-9496-6a277e9492ea', 'role': 'admin', 'is_default': False}, {'company_id': '7cef5536-ced1-41ab-857c-f469c78247f1', 'role': 'admin', 'is_default': True}]
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/companies?select=id%2Cname%2Cslug%2Cdefault_lang%2Clogo_url%2Ccreated_at&id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/integrations?select=company_id%2Ctype%2Cis_active&company_id=in.%2815a52e6b-36a1-4b00-9496-6a277e9492ea%2C7cef5536-ced1-41ab-857c-f469c78247f1%29 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.2.97:0 - "[1mGET /api/companies HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.83.15.240:0 - "[1mGET /assets/js/admin_client_calls.js?v=97 HTTP/1.1[0m" [33m304 Not Modified[0m
+[32mINFO[0m:     10.83.10.74:0 - "[1mGET /assets/js/admin_client_comms.js?v=97 HTTP/1.1[0m" [33m304 Not Modified[0m
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /assets/js/admin_client_detail.js?v=97 HTTP/1.1[0m" [33m304 Not Modified[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/users?select=%2A&id=eq.3a1a822b-6e4f-4053-911c-4b048622d47f "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.2.97:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_contacts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=is_primary.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contacts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/contracts?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.10.74:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/contracts HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_notes?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.2.97:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/notes HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_services?select=%2A%2Cservices_catalog%28name%2Cbilling_cycle%29&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.15.240:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/services HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/invoices?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&order=due_date.desc "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.8.56:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/invoices HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/quotes?select=%2A%2Cclients%28name%2Cemail%29&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=created_at.desc&offset=0&limit=200 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.0.137:0 - "[1mGET /api/quotes/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&client_id=272fc221-d8df-48fe-8519-3b6b002e51c0 HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/v_clients?select=%2A&id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/documents?select=%2A&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1 "HTTP/2 200 OK"
+[32mINFO[0m:     10.83.10.74:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/documents HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_communications?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=sent_at.desc&limit=100 "HTTP/2 404 Not Found"
+WARNING:modules.communications.router:client_communications table not found — migration pending
+[32mINFO[0m:     10.83.15.240:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/communications HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&status=eq.scheduled&scheduled_at=lt.2026-03-28T13%3A06%3A21.861556%2B00%3A00&order=scheduled_at.asc "HTTP/2 404 Not Found"
+[32mINFO[0m:     10.83.2.97:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls/overdue HTTP/1.1[0m" [32m200 OK[0m
+INFO:httpx:HTTP Request: GET https://nbobzshjajgbmprhgxio.supabase.co/rest/v1/client_calls?select=%2A&company_id=eq.7cef5536-ced1-41ab-857c-f469c78247f1&client_id=eq.272fc221-d8df-48fe-8519-3b6b002e51c0&order=scheduled_at.asc "HTTP/2 404 Not Found"
+WARNING:modules.calls.router:client_calls table not found — migration pending
+[32mINFO[0m:     10.83.10.74:0 - "[1mGET /api/clients/272fc221-d8df-48fe-8519-3b6b002e51c0/calls HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     Shutting down
+[32mINFO[0m:     Waiting for application shutdown.
+INFO:server:Scheduler stopped
+INFO:apscheduler.scheduler:Scheduler has been shut down
+[32mINFO[0m:     Application shutdown complete.
+[32mINFO[0m:     Finished server process [[36m27692[0m]

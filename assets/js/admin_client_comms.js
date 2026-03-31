@@ -1,6 +1,6 @@
 /**
- * admin_client_comms.js — Comunicazioni cliente: timeline, crea, filtra
- * v1 — 2026-03-28
+ * admin_client_comms.js Comunicazioni cliente: timeline, crea, filtra
+ * v1 2026-03-28
  */
 
 /* ──────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ function initCommsModule(clientId) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   loadComms() — GET /api/clients/{id}/communications
+   loadComms() GET /api/clients/{id}/communications
    ────────────────────────────────────────────────────────── */
 async function loadComms() {
   if (!_commsClientId) return;
@@ -93,7 +93,7 @@ function renderComms() {
 }
 
 /* ──────────────────────────────────────────────────────────
-   _buildCommsItem(comm) — HTML per singola riga timeline
+   _buildCommsItem(comm) HTML per singola riga timeline
    ────────────────────────────────────────────────────────── */
 function _buildCommsItem(c) {
   const icon       = CHANNEL_ICONS[c.channel] || '📌';
@@ -176,7 +176,7 @@ function closeCommsModal() {
 }
 
 /* ──────────────────────────────────────────────────────────
-   saveComm() — POST /api/clients/{id}/communications
+   saveComm() POST /api/clients/{id}/communications
    ────────────────────────────────────────────────────────── */
 async function saveComm() {
   const channel   = document.getElementById('comm-channel').value;

@@ -1,5 +1,5 @@
 /* ============================================================
-   ui.js — Shared UI helpers for Nova CRM
+   ui.js Shared UI helpers for Nova CRM
    ============================================================ */
 
 const UI = {
@@ -19,7 +19,7 @@ const UI = {
       non_active: { cls: 'pill-inactive', lbl: 'Non attivo' },
       suspended:  { cls: 'pill-warning',  lbl: 'Sospeso' },
       insolvent:  { cls: 'pill-danger',   lbl: 'Insolvente' },
-      ceased:     { cls: 'pill-gray',     lbl: 'Cessato' },
+      ceased:     { cls: 'pill-red',     lbl: 'Cessato' },
       draft:    { cls: 'pill-gray',     lbl: 'Bozza' },
       sent:     { cls: 'pill-warning',  lbl: 'Inviato' },
       signed:   { cls: 'pill-success',  lbl: 'Firmato' },
@@ -66,13 +66,13 @@ const UI = {
 
   // ── Format currency ───────────────────────────────────────
   currency(amount, currency = 'EUR') {
-    if (amount == null) return '—';
+    if (amount == null) return '';
     return new Intl.NumberFormat('it-IT', { style: 'currency', currency }).format(amount);
   },
 
   // ── Format date ───────────────────────────────────────────
   date(val) {
-    if (!val) return '—';
+    if (!val) return '';
     try { return new Date(val).toLocaleDateString('it-IT'); } catch { return String(val); }
   },
 
@@ -154,7 +154,7 @@ const UI = {
   // Updates each [data-tab] button in tabBar to show "(n)" counts.
   // tabBar   : HTMLElement with child [data-tab] buttons
   // items    : the full data array (before any filtering)
-  // keyFn    : (item) => string — returns the tab key for an item
+  // keyFn    : (item) => string returns the tab key for an item
   //            defaults to: r => r.status
   updateTabCounts(tabBar, items, keyFn) {
     if (!tabBar || !Array.isArray(items)) return;

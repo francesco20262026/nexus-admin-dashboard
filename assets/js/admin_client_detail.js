@@ -1,5 +1,5 @@
 /* ============================================================
-   admin_client_detail.js — 360° client hub
+   admin_client_detail.js 360° client hub
    ============================================================ */
 'use strict';
 
@@ -21,55 +21,34 @@
   const $ = id => document.getElementById(id);
 
   let CLIENT = null;
+  let _companies = [];
 
-  /* ── View Toggles (Panoramica vs Timeline) ──────────────────── */
+  /* ── Tab Routing (SPA) ────────────────────────────────────────── */
   window.switchMainView = function (viewId) {
-    $('view-panoramica')?.classList.toggle('active', viewId === 'panoramica');
-    $('view-timeline')?.classList.toggle('active', viewId === 'timeline');
-
-    // Sync tab nav active state
-    const sidebarList = $('elenco-correlato');
-    if (sidebarList) {
-      sidebarList.querySelectorAll('.z-nav-item').forEach(el => el.classList.remove('active'));
-      if (viewId === 'panoramica') {
-        $('tab-panoramica')?.classList.add('active');
-      } else if (viewId === 'timeline') {
-        $('tab-timeline')?.classList.add('active');
-      }
+    // Hide all tabs
+    document.querySelectorAll('.mac-tab-section').forEach(el => {
+      el.style.display = 'none';
+      el.classList.remove('active');
+    });
+    
+    // Show target tab
+    const target = document.getElementById('view-' + viewId);
+    if (target) {
+      target.style.display = '';
+      target.classList.add('active');
     }
+
+    // Update Sidebar Navigation state
+    document.querySelectorAll('.mac-sidebar .mac-nav-item').forEach(el => el.classList.remove('active'));
+    const activeNav = document.getElementById('tab-' + viewId);
+    if (activeNav) activeNav.classList.add('active');
 
     // Lazy load the timeline only when requested
     if (viewId === 'timeline' && !loaded['storico']) {
-      loadStorico();
+      if (typeof loadStorico === 'function') loadStorico();
       loaded['storico'] = true;
     }
   };
-
-  /* ── ScrollSpy for Elenco Correlato ─────────────────────────── */
-  function initScrollSpy() {
-    const sections = document.querySelectorAll('.z-card[id^="card-"]');
-    const navItems = document.querySelectorAll('.z-nav-item[href^="#card-"]');
-    
-    if (!sections.length || !navItems.length) return;
-
-    const observer = new IntersectionObserver((entries) => {
-      let activeSection = null;
-      entries.forEach(entry => {
-        if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
-          activeSection = entry.target.id;
-        }
-      });
-
-      if (activeSection) {
-        navItems.forEach(item => {
-          if (item.getAttribute('href') === '#' + activeSection) item.classList.add('active');
-          else item.classList.remove('active');
-        });
-      }
-    }, { root: null, rootMargin: '-10% 0px -70% 0px', threshold: [0.1, 0.5, 1.0] });
-
-    sections.forEach(sec => observer.observe(sec));
-  }
 
   /* ── Deep-link quick links from list page ────────────────────── */
   function updateDeepLinks() {
@@ -88,7 +67,13 @@
   /* ── Load main client ────────────────────────────────────────── */
   async function loadClient() {
     try {
-      CLIENT = await API.Clients.get(clientId);
+      const [client, companies] = await Promise.all([
+        API.Clients.get(clientId),
+        API.Companies.list()
+      ]);
+      CLIENT = client;
+      _companies = Array.isArray(companies) ? companies : (companies?.items ?? companies?.data ?? []);
+      
       if (!CLIENT) throw new Error('not found');
       renderHeader();
       renderAnagrafica();
@@ -109,14 +94,23 @@
 
   function renderHeader() {
     const c = CLIENT;
-    // Name, title, breadcrumb
-    const displayName = c.company_name || c.name || '—';
+    const displayName = c.company_name || c.name || '';
+
+    // Fornitrice lookup
+    const fornitriceLine = _companies.find(comp => comp.id == c.company_id);
+    const fornitriceName = fornitriceLine ? fornitriceLine.name : '';
+
+    // ── Backward compat IDs ──────────────────────────────────────
     if ($('cd-title'))        $('cd-title').textContent = displayName;
     if ($('breadcrumb-name')) $('breadcrumb-name').textContent = displayName;
     if ($('cd-status-pill'))  $('cd-status-pill').innerHTML = statusBadge(c.status);
-    document.title = `${displayName} — Nexus Admin`;
+    document.title = `${displayName} Nexus Admin`;
 
-    // subtitle: show "Nome contatto" if company is set, else nothing
+    // Inject yellow badge for Fornitrice if present
+    if ($('cd-title') && fornitriceName) {
+      $('cd-title').innerHTML = `${displayName} <span style="font-size:12px;font-weight:700;background:#fffbeb;color:#92400e;border:1px solid #f59e0b;padding:2px 10px;border-radius:20px;margin-left:10px;vertical-align:middle;">${fornitriceName}</span>`;
+    }
+
     if ($('cd-subtitle')) {
       if (c.company_name && c.name && c.company_name !== c.name) {
         $('cd-subtitle').textContent = `Referente: ${c.name}`;
@@ -125,11 +119,26 @@
       }
     }
 
-    // Initials avatar (color based on first letter)
+    // ── Mac sidebar identity ─────────────────────────────────────
     const av = $('pc-avatar');
     if (av) {
       av.textContent = _initials(c.company_name || c.name);
-      av.style.background = 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
+      av.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+      av.style.color = '#fff';
+    }
+
+    // Mac topbar title
+    const topbarLabel = $('mac-topbar-label');
+    if (topbarLabel) topbarLabel.textContent = displayName;
+
+    // Status pill in sidebar (visible)
+    const statusPillVisible = $('cd-status-pill-visible');
+    if (statusPillVisible) statusPillVisible.innerHTML = statusBadge(c.status);
+
+    // Sidebar subtitle
+    const subEl = $('cd-subtitle');
+    if (subEl && c.email) {
+      subEl.innerHTML = `<a href="mailto:${c.email}" style="color:#3b82f6;text-decoration:none;">${c.email}</a>`;
     }
 
     // Info strip: email, phone, city, VAT, created
@@ -164,209 +173,140 @@
   const STATUS_LABELS = {
     prospect:   { label: 'Prospect',   color: '#7c3aed', bg: '#f3e8ff' },
     pre_active: { label: 'Pre-attivo', color: '#d97706', bg: '#fef3c7' },
-    active:     { label: 'Attivo',     color: '#059669', bg: '#d1fae5' },
+    active:     { label: 'Attivo',     color: '#3b82f6', bg: '#eff6ff' },
     suspended:  { label: 'Sospeso',    color: '#dc2626', bg: '#fee2e2' },
-    ceased:     { label: 'Cessato',    color: '#6b7280', bg: '#f3f4f6' },
+    ceased:     { label: 'Cessato',    color: '#dc2626', bg: '#fee2e2' },
   };
 
   function statusBadge(s) {
-    const cfg = STATUS_LABELS[s] || { label: s || '—', color: '#6b7280', bg: '#f3f4f6' };
+    const cfg = STATUS_LABELS[s] || { label: s || '', color: '#6b7280', bg: '#f3f4f6' };
     return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;
       color:${cfg.color};background:${cfg.bg};padding:3px 10px;border-radius:20px;">
       <span style="width:6px;height:6px;border-radius:50%;background:${cfg.color};flex-shrink:0;"></span>
       ${cfg.label}</span>`;
   }
 
-  let _editingAnag = false;
-
   function renderAnagrafica() {
     const c = CLIENT;
-    if (_editingAnag) { renderAnagForm(); return; }
 
     const grid = $('cd-anag-grid') || $('cd-anag-list');
     if (!grid) return;
 
     const f = (label, val, cls = '') => `
-      <div class="zf-row">
-        <div class="zf-lbl">${label}</div>
-        <div class="zf-val ${cls}">${val || '—'}</div>
+      <div class="mac-form-row">
+        <div class="mac-form-label">${label}</div>
+        <div class="mac-form-value ${cls}">${val || ''}</div>
       </div>`;
 
-    const editPencil = `<button class="zf-edit-link" onclick="document.getElementById('cd-btn-edit').click()">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:11px;height:11px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
-      Modifica</button>`;
+    const editPencil = `<button class="btn-action-icon" id="cd-btn-edit-anag" title="Modifica" style="width:28px;height:28px;background:white;border:1px solid #e5e7eb;border-radius:6px;color:#3b82f6;"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"></path></svg></button>`;
 
     grid.innerHTML = `
-      <div class="zf-section">
-        <div class="zf-section-hd">
-          <div class="zf-section-title">Informazioni Principali</div>
-          ${editPencil}
-        </div>
-        <div class="zf-cols">
-          <div>
-            ${f('Stato', statusBadge(c.status))}
-            ${f('Ragione sociale', c.company_name ? `<strong>${c.company_name}</strong>` : null)}
-            ${f('Nome contatto', c.name)}
-            ${f('Email', c.email ? `<a href="mailto:${c.email}">${c.email}</a>` : null)}
-            ${f('Telefono', c.phone ? `<a href="tel:${c.phone}">${c.phone}</a>` : null)}
-            ${f('Lingua', (c.lang || 'it').toUpperCase())}
-          </div>
-          <div>
-            ${f('Partita IVA', c.vat_number, 'mono')}
-            ${f('Codice SDI', c.dest_code, 'mono')}
-            ${f('PEC', c.pec)}
-            ${f('IBAN', c.iban, 'mono')}
-            ${f('Cliente dal', c.created_at ? UI.date(c.created_at) : null)}
-          </div>
-        </div>
+      <div class="mac-section-title" style="margin-top:0;">
+        <span>Informazioni Principali</span>
+        ${editPencil}
+      </div>
+      <div class="mac-form-list">
+        ${f('Stato', statusBadge(c.status))}
+        ${f('Ragione sociale', c.company_name ? `<strong>${c.company_name}</strong>` : null)}
+        ${f('Nome contatto', c.name)}
+        ${f('Email', c.email ? `<a href="mailto:${c.email}">${c.email}</a>` : null)}
+        ${f('Telefono', c.phone ? `<a href="tel:${c.phone}">${c.phone}</a>` : null)}
+        ${f('Lingua', (c.lang || 'it').toUpperCase())}
+        ${f('Partita IVA', c.vat_number, 'mono')}
+        ${f('Codice SDI', c.dest_code, 'mono')}
+        ${f('PEC', c.pec)}
+        ${f('IBAN', c.iban, 'mono')}
+        ${f('Cliente dal', c.created_at ? UI.date(c.created_at) : null)}
       </div>
 
-      <div class="zf-section">
-        <div class="zf-section-hd">
-          <div class="zf-section-title">Indirizzo</div>
-        </div>
-        <div class="zf-cols">
-          <div>
-            ${f('Via / Indirizzo', c.address)}
-            ${f('Città', c.city)}
-          </div>
-          <div></div>
-        </div>
+      <div class="mac-section-title" style="margin-top:24px;"><span>Indirizzo</span></div>
+      <div class="mac-form-list">
+        ${f('Via / Indirizzo', c.address)}
+        ${f('Città', c.city)}
       </div>
 
-      ${c.notes ? `<div class="zf-section">
-        <div class="zf-section-hd">
-          <div class="zf-section-title">Note interne</div>
-        </div>
-        <div style="font-size:13.5px;line-height:1.6;color:var(--gray-700);white-space:pre-wrap;padding:2px 0;">${c.notes}</div>
+      ${c.notes ? `<div class="mac-section-title" style="margin-top:24px;"><span>Note interne</span></div>
+      <div class="mac-form-list">
+        <div style="font-size:14.5px;line-height:1.6;color:#86868b;white-space:pre-wrap;padding:12px 16px;">${c.notes}</div>
       </div>` : ''}`;
+
+    const pencilBtn = $('cd-btn-edit-anag');
+    if (pencilBtn) pencilBtn.onclick = openClientModal;
   }
 
-  function renderAnagForm() {
+  function openClientModal() {
     const c = CLIENT;
-    const statusOpts = Object.entries(STATUS_LABELS).map(([v, cfg]) =>
-      `<option value="${v}" ${c.status===v?'selected':''}>${cfg.label}</option>`).join('');
+    const m = $('modal-edit-client');
+    if (!m) return;
+    
+    // Popup logic per Form
+    const populateSel = (sel, val) => { if ($(sel)) $(sel).value = val || ''; }
+    populateSel('f-edit-company-id', c.company_id);
+    populateSel('f-edit-name', c.company_name);
+    populateSel('f-edit-vat', c.vat_number);
+    populateSel('f-edit-sdi', c.dest_code);
+    populateSel('f-edit-sector', c.sector);
+    populateSel('f-edit-referente', c.name);
+    populateSel('f-edit-email', c.email);
+    populateSel('f-edit-pec', c.pec);
+    populateSel('f-edit-phone', c.phone);
+    populateSel('f-edit-city', c.city);
+    populateSel('f-edit-address', c.address);
+    populateSel('f-edit-notes', c.notes);
+    if ($('f-edit-status')) $('f-edit-status').value = c.status || 'prospect';
+    
+    // Fill companies drop-down inside the modal
+    const selCompany = $('f-edit-company-id');
+    if (selCompany) {
+        selCompany.innerHTML = `<option value="">Seleziona fornitrice...</option>` +
+          _companies.map(co => `<option value="${co.id}">${co.name}</option>`).join('');
+        selCompany.value = c.company_id || '';
+    }
 
-    const grid = $('cd-anag-grid') || $('cd-anag-list');
-    if (!grid) return;
-    const sec = (title) => `<div class="zf-section-hd" style="margin-top:20px;margin-bottom:8px;padding-top:16px;border-top:1px solid #f1f5f9;"><div class="zf-section-title">${title}</div></div>`;
+    m.classList.add('open');
+  }
 
-    grid.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
-        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-400);">Modifica dati</span>
-        <button class="btn btn-ghost btn-sm" id="anag-cancel-btn-top" type="button">Annulla</button>
-      </div>
-      <div class="form-grid" style="gap:14px;">
-        <div class="form-group form-grid--full">
-          <label class="form-label">Stato lifecycle</label>
-          <select class="form-input" id="anag-status">${statusOpts}</select>
-        </div>
-      </div>
-
-      ${sec('Dati Azienda')}
-      <div class="form-grid" style="gap:14px;">
-        <div class="form-group">
-          <label class="form-label">Ragione sociale</label>
-          <input class="form-input" id="anag-company-name" type="text" value="${c.company_name||''}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Nome contatto *</label>
-          <input class="form-input" id="anag-name" type="text" value="${c.name||''}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input class="form-input" id="anag-email" type="email" value="${c.email||''}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Telefono</label>
-          <input class="form-input" id="anag-phone" type="tel" value="${c.phone||''}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Lingua</label>
-          <select class="form-input" id="anag-lang">
-            <option value="it" ${c.lang==='it'?'selected':''}>Italiano</option>
-            <option value="en" ${c.lang==='en'?'selected':''}>English</option>
-          </select>
-        </div>
-      </div>
-
-      ${sec('Dati Fiscali')}
-      <div class="form-grid" style="gap:14px;">
-        <div class="form-group">
-          <label class="form-label">Partita IVA</label>
-          <input class="form-input" id="anag-vat" type="text" value="${c.vat_number||''}" style="font-family:monospace;"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">PEC</label>
-          <input class="form-input" id="anag-pec" type="email" value="${c.pec||''}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Codice SDI</label>
-          <input class="form-input" id="anag-sdi" type="text" value="${c.dest_code||''}" maxlength="7" style="font-family:monospace;"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">IBAN</label>
-          <input class="form-input" id="anag-iban" type="text" value="${c.iban||''}" placeholder="IT60X0542811101000000123456" style="font-family:monospace;"/>
-        </div>
-      </div>
-
-      ${sec('Indirizzo')}
-      <div class="form-grid" style="gap:14px;">
-        <div class="form-group">
-          <label class="form-label">Indirizzo</label>
-          <input class="form-input" id="anag-address" type="text" value="${c.address||''}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Città</label>
-          <input class="form-input" id="anag-city" type="text" value="${c.city||''}"/>
-        </div>
-      </div>
-
-      ${sec('Note interne')}
-      <div class="form-group" style="margin-top:4px;">
-        <textarea class="form-input" id="anag-notes" rows="3" placeholder="Note visibili solo agli admin...">${c.notes||''}</textarea>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;">
-        <button class="btn btn-primary" id="anag-save-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-          Salva modifiche
-        </button>
-        <button class="btn btn-ghost" id="anag-cancel-btn">Annulla</button>
-      </div>`;
-
-    const _cancelAnag = () => { _editingAnag = false; renderAnagrafica(); };
-    $('anag-cancel-btn').onclick     = _cancelAnag;
-    $('anag-cancel-btn-top').onclick = _cancelAnag;
-    $('anag-save-btn').onclick   = async () => {
-      const name = $('anag-name')?.value?.trim();
-      if (!name) { UI.toast('Nome obbligatorio', 'warning'); return; }
-      const payload = {
-        name,
-        company_name: $('anag-company-name')?.value?.trim() || null,
-        email:   $('anag-email')?.value?.trim() || null,
-        phone:   $('anag-phone')?.value?.trim() || null,
-        vat_number: $('anag-vat')?.value?.trim() || null,
-        pec:     $('anag-pec')?.value?.trim() || null,
-        dest_code: $('anag-sdi')?.value?.trim() || null,
-        iban:    $('anag-iban')?.value?.trim() || null,
-        address: $('anag-address')?.value?.trim() || null,
-        city:    $('anag-city')?.value?.trim() || null,
-        lang:    $('anag-lang')?.value || 'it',
-        status:  $('anag-status')?.value || 'prospect',
-        notes:   $('anag-notes')?.value?.trim() || null,
-      };
-      // Remove null values
-      Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
+  // Bind modal save globally
+  document.addEventListener('DOMContentLoaded', () => {
+    $('btn-edit-client-save')?.addEventListener('click', async () => {
       try {
+        const payload = {
+          company_name: $('f-edit-name')?.value?.trim() || null,
+          name: $('f-edit-referente')?.value?.trim() || null,
+          company_id: $('f-edit-company-id')?.value || null,
+          email: $('f-edit-email')?.value?.trim() || null,
+          phone: $('f-edit-phone')?.value?.trim() || null,
+          vat_number: $('f-edit-vat')?.value?.trim() || null,
+          pec: $('f-edit-pec')?.value?.trim() || null,
+          dest_code: $('f-edit-sdi')?.value?.trim() || null,
+          sector: $('f-edit-sector')?.value?.trim() || null,
+          address: $('f-edit-address')?.value?.trim() || null,
+          city: $('f-edit-city')?.value?.trim() || null,
+          notes: $('f-edit-notes')?.value?.trim() || null,
+          status: $('f-edit-status')?.value || 'prospect'
+        };
+        // Remove nulls
+        Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
+
+        const btn = $('btn-edit-client-save');
+        const oldText = btn.textContent;
+        btn.textContent = 'Salvataggio...'; btn.disabled = true;
+
         CLIENT = await API.Clients.update(clientId, payload);
-        _editingAnag = false;
+        
+        $('modal-edit-client').classList.remove('open');
+        UI.toast('Cliente aggiornato con successo', 'success');
         renderHeader();
         renderAnagrafica();
-        UI.toast('Anagrafica aggiornata', 'success');
-      } catch (e) { UI.toast(e?.message || 'Errore', 'error'); }
-    };
-  }
+        
+        btn.textContent = oldText; btn.disabled = false;
+      } catch (e) {
+        UI.toast(e.message || 'Errore salvataggio', 'error');
+        $('btn-edit-client-save').disabled = false;
+        $('btn-edit-client-save').textContent = 'Salva Modifiche';
+      }
+    });
+  });
 
   /* ── ② Contacts ─────────────────────────────────────────────── */
   async function loadContacts() {
@@ -388,7 +328,7 @@
         return `<div class="z-contact-row">
           <div class="z-contact-avatar">${initials}</div>
           <div class="z-contact-info">
-            <div class="z-contact-name">${ct.name || '—'}${ct.is_primary ? '<span style="font-size:10px;font-weight:700;color:#059669;background:#d1fae5;padding:1px 7px;border-radius:20px;margin-left:8px;">Principale</span>' : ''}</div>
+            <div class="z-contact-name">${ct.name || ''}${ct.is_primary ? '<span style="font-size:10px;font-weight:700;color:#3b82f6;background:#eff6ff;padding:1px 7px;border-radius:20px;margin-left:8px;">Principale</span>' : ''}</div>
             ${ct.role ? `<div class="z-contact-role">${ct.role}</div>` : ''}
             <div class="z-contact-links">
               ${ct.email ? `<a href="mailto:${ct.email}" class="z-contact-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>${ct.email}</a>` : ''}
@@ -413,7 +353,7 @@
         <div class="z-sidebar-quick-title">Contatti</div>
         ${shown.map(ct => `
           <div class="z-qc-card">
-            <div class="z-qc-name">${ct.name || '—'}</div>
+            <div class="z-qc-name">${ct.name || ''}</div>
             ${ct.role ? `<div class="z-qc-role">${ct.role}</div>` : ''}
             <div class="z-qc-links">
               ${ct.email ? `<a href="mailto:${ct.email}" class="z-qc-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>${ct.email}</a>` : ''}
@@ -539,7 +479,7 @@
         </tr></thead>
         <tbody>${data.map(q => `<tr>
           <td class="z-rt-name">${q.title || q.quote_number || q.number || 'Preventivo'}</td>
-          <td class="z-rt-date">${q.created_at ? UI.date(q.created_at) : '—'}</td>
+          <td class="z-rt-date">${q.created_at ? UI.date(q.created_at) : ''}</td>
           <td class="z-rt-amt">${UI.currency(q.total_amount || q.total || 0, q.currency)}</td>
           <td>${UI.pill(q.status)}</td>
           <td><a href="admin_quotes.html?id=${q.id}" class="z-rt-link">Apri →</a></td>
@@ -572,9 +512,9 @@
           <th>N° Fattura</th><th>Data</th><th>Scadenza</th><th>Importo</th><th>Stato</th>
         </tr></thead>
         <tbody>${data.map(i => `<tr>
-          <td class="z-rt-name">${i.invoice_number || i.number || '—'}</td>
-          <td class="z-rt-date">${i.issue_date ? UI.date(i.issue_date) : '—'}</td>
-          <td class="z-rt-date">${i.due_date ? UI.date(i.due_date) : '—'}</td>
+          <td class="z-rt-name">${i.invoice_number || i.number || ''}</td>
+          <td class="z-rt-date">${i.issue_date ? UI.date(i.issue_date) : ''}</td>
+          <td class="z-rt-date">${i.due_date ? UI.date(i.due_date) : ''}</td>
           <td class="z-rt-amt">${UI.currency(i.total_amount || i.total, i.currency)}</td>
           <td>${UI.pill(i.status)}</td>
         </tr>`).join('')}</tbody>
@@ -653,7 +593,7 @@
         <div class="info-grid" style="gap:16px;margin-bottom:20px;">
           <div class="info-field">
             <div class="info-label">${I18n.t('cl.windoc_id') || 'Windoc ID'}</div>
-            <div class="info-val" style="font-family:monospace;font-size:13px;">${windocId || '—'}</div>
+            <div class="info-val" style="font-family:monospace;font-size:13px;">${windocId || ''}</div>
           </div>
           <div class="info-field">
             <div class="info-label">${I18n.t('cl.windoc_status_label') || 'Stato sync'}</div>
@@ -661,7 +601,7 @@
           </div>
           <div class="info-field">
             <div class="info-label">${I18n.t('cl.windoc_last_sent') || 'Ultimo invio'}</div>
-            <div class="info-val">${lastSent ? UI.date(lastSent) : '—'}</div>
+            <div class="info-val">${lastSent ? UI.date(lastSent) : ''}</div>
           </div>
           <div class="info-field">
             <div class="info-label">${I18n.t('cl.windoc_anag') || 'Sync anagrafica'}</div>
@@ -745,7 +685,7 @@
   });
 
   $('cd-btn-windoc-verify')?.addEventListener('click', async () => {
-    // /verify-windoc non è implementato nel backend — usa sync-windoc per aggiornare
+    // /verify-windoc non è implementato nel backend usa sync-windoc per aggiornare
     UI.toast(I18n.t('cl.windoc_use_sync') || 'Usa il pulsante Sincronizza per aggiornare i dati Windoc.', 'info');
   });
 
@@ -758,7 +698,7 @@
     try {
       const res  = await API.Services.catalog(true);
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
-      sel.innerHTML = `<option value="">${I18n.t('cl.select_service') || '— Seleziona servizio —'}</option>` +
+      sel.innerHTML = `<option value="">${I18n.t('cl.select_service') || 'Seleziona servizio'}</option>` +
         data.map(s => `<option value="${s.id}">${s.name} (${UI.currency(s.price_monthly, s.currency)}/mo)</option>`).join('');
       $('f-service-start').value = new Date().toISOString().split('T')[0];
     } catch { sel.innerHTML = `<option value="">${I18n.t('error.generic') || 'Errore'}</option>`; }
@@ -795,18 +735,106 @@
     } catch (e) { UI.toast(e.message || I18n.t('error.generic'), 'error'); }
   });
 
-  /* ── Edit button (top header) ───────────────────────────────── */
-  $('cd-btn-edit')?.addEventListener('click', () => {
-    _editingAnag = true;
-    switchMainView('panoramica');
-    renderAnagForm();
-  });
-  $('cd-btn-edit-anag')?.addEventListener('click', () => {
-    _editingAnag = true;
-    renderAnagForm();
+
+
+  /* ── Add Quote Modal ────────────────────────────────────────── */
+  $('cd-btn-new-quote')?.addEventListener('click', () => {
+    $('modal-add-quote')?.classList.add('open');
   });
 
-  /* ── Notes ──────────────────────────────────────────────────── */
+  $('modal-quote-save')?.addEventListener('click', async () => {
+    const title = $('fq-title')?.value?.trim();
+    if (!title) { UI.toast(I18n.t('cl.form_required') || 'Titolo obbligatorio', 'warning'); return; }
+    
+    const amount = parseFloat($('fq-amount')?.value) || 0;
+    
+    const body = {
+      client_id: clientId,
+      title: title,
+      lines: [
+        { description: 'Prestazione', quantity: 1, unit_price: amount, vat_rate: 22 }
+      ]
+    };
+    
+    try {
+      const btn = $('modal-quote-save'); if(btn) btn.disabled = true;
+      await API.post('/quotes/', body);
+      $('modal-add-quote').classList.remove('open');
+      UI.toast('Preventivo creato', 'success');
+      loadQuotes();
+    } catch (e) {
+      UI.toast(e.message || 'Errore durante la creazione del preventivo', 'error');
+    } finally {
+      const btn = $('modal-quote-save'); if(btn) btn.disabled = false;
+    }
+  });
+
+  /* ── Add Activity Modal ─────────────────────────────────────── */
+  $('cd-btn-add-activity')?.addEventListener('click', () => {
+    $('modal-add-activity')?.classList.add('open');
+  });
+
+  $('modal-activity-save')?.addEventListener('click', async () => {
+    const type = $('fa-type')?.value;
+    const desc = $('fa-desc')?.value?.trim();
+    if (!desc) { UI.toast('Descrizione obbligatoria', 'warning'); return; }
+
+    const body = {
+      client_id: clientId,
+      type: type,
+      description: desc,
+      activity_date: new Date().toISOString()
+    };
+
+    try {
+      const btn = $('modal-activity-save'); if(btn) btn.disabled = true;
+      await API.post(`/clients/${clientId}/activity`, body);
+      $('modal-add-activity').classList.remove('open');
+      UI.toast('Attività aggiunta', 'success');
+      if (typeof loadActivities === 'function') loadActivities();
+      else if (typeof window.ActivityTimeline === 'object') window.ActivityTimeline.load(clientId);
+    } catch (e) {
+      UI.toast(e.message || 'Errore', 'error');
+    } finally {
+      const btn = $('modal-activity-save'); if(btn) btn.disabled = false;
+    }
+  });
+
+  /* ── Contract Modal (Upload Signed) ─────────────────────────── */
+  $('cd-btn-add-contract')?.addEventListener('click', () => {
+    $('modal-upload-contract')?.classList.add('open');
+  });
+
+  $('modal-contract-upload-save')?.addEventListener('click', async () => {
+    const title = $('fuc-title')?.value?.trim();
+    const fileInput = $('fuc-file');
+    const file = fileInput?.files?.[0];
+
+    if (!title) { UI.toast('Titolo contratto obbligatorio', 'warning'); return; }
+    if (!file) { UI.toast('Seleziona un file PDF', 'warning'); return; }
+
+    const fd = new FormData();
+    fd.append('title', title);
+    fd.append('client_id', clientId);
+    fd.append('file', file);
+
+    try {
+      const btn = $('modal-contract-upload-save'); if(btn) btn.disabled = true;
+      UI.toast('Caricamento in corso...', 'info');
+      await API.Contracts.uploadSigned(fd);
+      $('modal-upload-contract').classList.remove('open');
+      UI.toast('Contratto caricato con successo', 'success');
+      $('fuc-title').value = '';
+      if(fileInput) fileInput.value = '';
+      if (typeof loadContracts === 'function') loadContracts();
+    } catch (e) {
+      UI.toast(e.message || 'Errore durante il caricamento del contratto', 'error');
+    } finally {
+      const btn = $('modal-contract-upload-save'); if(btn) btn.disabled = false;
+    }
+  });
+
+  /* ── Legacy Notes/Calls Handlers ──────────────────────────────────────────────────────── */
   async function loadNotes() {
     const list = $('notes-list-container');
     if (!list) return;
@@ -894,44 +922,35 @@
     await I18n.init('lang-switcher-slot');
     await loadClient();
     
-    // Smooth scrolling bindings per sidebar sidebar anchor clicks
-    document.querySelectorAll('.z-nav-item').forEach(anchor => {
-      anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href').substring(1);
-        const targetSection = document.getElementById(targetId);
-        if (targetSection) {
-          // Add a slight offset below the fixed header
-          const offset = 80;
-          const rect = targetSection.getBoundingClientRect();
-          const top = rect.top + window.scrollY - offset;
-          window.scrollTo({ top: top, behavior: 'smooth' });
-        }
-      });
+        // Load EVERYTHING in parallel immediately no artificial delays
+    Promise.allSettled([
+      loadContacts(),
+      loadNotes(),
+      loadServices(),
+      loadContracts(),
+      loadQuotes(),
+      loadInvoices(),
+      loadDocuments(),
+    ]).then(() => {
+      loaded['contacts'] = loaded['notes'] = loaded['services'] =
+      loaded['contracts'] = loaded['quotes'] = loaded['invoices'] =
+      loaded['documents'] = true;
+      
+      // Reveal UI after data is loaded to prevent FOUC skeleton flash
+      setTimeout(() => {
+        const shell = document.getElementById('shell');
+        if (shell) shell.style.opacity = '1';
+      }, 50);
     });
 
-    // Run scrolling spy
-    initScrollSpy();
-
-    // Load EVERYTHING immediately in the background since they are stacked sequentially
-    setTimeout(() => { loadContacts();  loaded['contacts']  = true; }, 50);
-    setTimeout(() => { loadNotes();     loaded['notes']     = true; }, 100);
-    setTimeout(() => { loadServices();  loaded['services']  = true; }, 150);
-    setTimeout(() => { loadContracts(); loaded['contracts'] = true; }, 200);
-    setTimeout(() => { loadQuotes();    loaded['quotes']    = true; }, 250);
-    setTimeout(() => { loadInvoices();  loaded['invoices']  = true; }, 300);
-    setTimeout(() => { loadDocuments(); loaded['documents'] = true; }, 350);
-
-    // Chiamate — load calls and then check for overdue ones
-    setTimeout(() => {
-      initCallsModule(clientId);
-      setTimeout(checkOverdueCalls, 1200);
-    }, 400);
-
-    // Comunicazioni — load full communications history
-    setTimeout(() => { initCommsModule(clientId); }, 450);
+    // Calls and Comms modules disabled: replaced by unified Activity menu
+    // initCallsModule(clientId);
+    // setTimeout(checkOverdueCalls, 1200);
+    // initCommsModule(clientId);
 
     // Timeline will lazy load when view is switched via switchMainView()
+
+
   });
 
 })();

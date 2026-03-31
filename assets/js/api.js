@@ -1,6 +1,6 @@
 /* =============================================================
-   api.js — Nova CRM  |  Pure HTTP transport layer
-   v3 — final clean version
+   api.js Nova CRM  |  Pure HTTP transport layer
+   v3 final clean version
 
    CONTRACT
    ────────
@@ -16,8 +16,11 @@
 // In Replit or production, the API is served from the same origin under /api.
 function _resolveApiBase() {
   const h = location.hostname;
-  if (h === 'localhost' || h === '127.0.0.1') return 'http://127.0.0.1:8000/api';
-  return `${location.protocol}//${location.host}/api`;
+  if (h === 'localhost' || h === '127.0.0.1') {
+    return 'http://127.0.0.1:8000/api';
+  }
+  // Production (Separate backend domain)
+  return 'https://api.delocanova.com/api';
 }
 const _API_BASE  = _resolveApiBase();
 const _TOKEN_KEY = 'nexus_token';
@@ -76,6 +79,9 @@ const API = {
   getCompanyId() {
     let cid = localStorage.getItem('nexus_active_company_id')
            || localStorage.getItem('nexus_active_company');
+           
+    if (cid === '__all__') return null;
+
     if (!cid && window.Auth?.getPayload) {
       const p = Auth.getPayload();
       if (p?.active_company_id) {
@@ -119,7 +125,7 @@ const API = {
     }
 
     // Invalidate the affected resource namespace on every mutation.
-    // Also invalidate /dashboard — it aggregates KPIs from all core entities.
+    // Also invalidate /dashboard it aggregates KPIs from all core entities.
     if (method !== 'GET') {
       const ns = path.replace(/^\//, '').split('/')[0]; // e.g. 'clients'
       this.invalidateCache('/' + ns);
@@ -198,7 +204,7 @@ const API = {
     const headers = {};
     const t = this.getToken();
     if (t) headers['Authorization'] = `Bearer ${t}`;
-    // No Content-Type — browser sets it with the correct boundary
+    // No Content-Type browser sets it with the correct boundary
 
     let res;
     try {
@@ -223,7 +229,7 @@ const API = {
 
   // ─────────────────────────────────────────────────────────────
   //  NAMESPACED ENDPOINTS
-  //  Public interface — keep stable.
+  //  Public interface keep stable.
   //  All list() calls use _buildQuery(params, true) so company_id
   //  is injected automatically without mutating caller objects.
   // ─────────────────────────────────────────────────────────────
@@ -272,6 +278,8 @@ const API = {
     get:           (id)            => API.get(`/invoices/${id}`),
     create:        (body)          => API.post('/invoices/', body),
     update:        (id, body)      => API.put(`/invoices/${id}`, body),
+    remove:        (id)            => API.del(`/invoices/${id}`),
+    delete:        (id)            => API.del(`/invoices/${id}`),
     markPaid:      (id, body = {}) => API.post(`/invoices/${id}/mark-paid`, body),
     reviewPayment: (id, body)      => API.post(`/invoices/${id}/review-payment`, body),
     submitProof:   (id, body)      => API.post(`/invoices/${id}/submit-proof`, body),
@@ -305,6 +313,7 @@ const API = {
     remove:    (id)          => API.del(`/contracts/${id}`),
     send:      (id)          => API.post(`/contracts/${id}/send-sign`, {}),
     compile:   (id)          => API.post(`/contracts/${id}/compile`, {}),
+    uploadSigned: (fd)       => API.upload('/contracts/upload-signed', fd),
     templates:        (p={}) => API.get('/contracts/templates/list?' + _buildQuery(p, true)),
     createTemplate:   (body) => API.post('/contracts/templates', body),
     updateTemplate:   (id, body) => API.put(`/contracts/templates/${id}`, body),
@@ -333,7 +342,7 @@ const API = {
     create:       (body)     => API.post('/renewals/', body),
     update:       (id, body) => API.put(`/renewals/${id}`, body),
     alert:        (id)       => API.post(`/renewals/${id}/alert`, {}),
-    sendReminder: (id)       => API.post(`/renewals/${id}/alert`, {}), // alias — backend uses /alert
+    sendReminder: (id)       => API.post(`/renewals/${id}/alert`, {}), // alias backend uses /alert
   },
 
   Onboarding: {

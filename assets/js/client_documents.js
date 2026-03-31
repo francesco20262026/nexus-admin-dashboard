@@ -1,5 +1,5 @@
 /* ============================================================
-   client_documents.js — Client documents page
+   client_documents.js Client documents page
    ============================================================ */
 'use strict';
 (function () {
@@ -180,7 +180,7 @@
       }
     } catch (e) {
       console.error('[client_documents] signDoc error:', e);
-      // If endpoint doesn't exist yet, show graceful fallback — do not crash
+      // If endpoint doesn't exist yet, show graceful fallback do not crash
       UI.toast('Il portale di firma non è ancora disponibile. Contatta il tuo account manager.', 'info');
     }
   };

@@ -1,4 +1,4 @@
-/* admin_users.js — Internal users & permissions management */
+/* admin_users.js Internal users & permissions management */
 'use strict';
 (function () {
   Auth.guard('admin');
@@ -26,10 +26,9 @@
       <svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
       <span>Aggiorna</span>
     </button>
-    <button class="btn btn-primary" id="btn-invite">
-      <svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-      <span>Invita utente</span>
-    </button>`;
+    <button class="btn-action-icon " id="btn-action-icon-invite" title="Invita utente">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+</button>`;
   $('btn-refresh')?.addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
   $('btn-invite')?.addEventListener('click',  openModal);
 
@@ -91,7 +90,6 @@
     const q  = (search?.value || '').toLowerCase().trim();
     const ro = ''   || '';
     const st = '';
-    const co = fComp?.value   || '';
 
     filtered = ALL.filter(u => {
       if (activeTab === 'admin'    && u.role   !== 'admin'    && u.role   !== 'super_admin') return false;
@@ -100,7 +98,6 @@
       if (activeTab === 'inactive' && u.status !== 'inactive') return false;
       if (ro && u.role   !== ro) return false;
       if (st && u.status !== st) return false;
-      if (co && (u.company_name || u.tenant_name) !== co) return false;
       if (q) {
         const hay = [u.name, u.email, u.company_name, u.tenant_name].filter(Boolean).join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
@@ -110,8 +107,112 @@
     const max = Math.ceil(filtered.length / PER) || 1;
     if (pg > max) pg = max;
     window.SessionState?.save('users', { pg, tab: activeTab });
+    window.clearSelection && window.clearSelection();
     render();
   }
+
+  /* ── Selection & Mass Actions (Mac Style) ─────────────────── */
+  window.selectedIds = new Set();
+  
+  window.toggleSelection = function(e, id) {
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    btn.classList.toggle('selected');
+    if (btn.classList.contains('selected')) window.selectedIds.add(id);
+    else window.selectedIds.delete(id);
+    updateSelectionUI();
+  };
+  
+  window.toggleSelectAll = function(el) {
+    const isSelected = el.classList.toggle('selected');
+    filtered.slice((pg-1)*PER, pg*PER).forEach(i => {
+      if (isSelected) window.selectedIds.add(i.id);
+      else window.selectedIds.delete(i.id);
+    });
+    
+    document.querySelectorAll('.mac-select-btn').forEach(cb => {
+      if (isSelected) cb.classList.add('selected'); else cb.classList.remove('selected');
+      const row = cb.closest('.cl-row');
+      if (row) {
+        if (isSelected) row.classList.add('selected');
+        else row.classList.remove('selected');
+      }
+    });
+    updateSelectionUI();
+  };
+  
+  window.clearSelection = function() {
+    window.selectedIds.clear();
+    const selectAllBtn = document.getElementById('mass-select-all');
+    if (selectAllBtn) selectAllBtn.classList.remove('selected');
+    document.querySelectorAll('.mac-select-btn').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.cl-row.selected').forEach(r => r.classList.remove('selected'));
+    updateSelectionUI();
+  };
+  
+  window.updateSelectionUI = function() {
+    const bar = document.getElementById('mac-mass-action-bar');
+    const countEl = document.getElementById('mac-mass-action-count');
+    const selectAllBtn = document.getElementById('mass-select-all');
+    
+    if (!bar || !countEl) return;
+    
+    const count = window.selectedIds.size;
+    countEl.textContent = count;
+    
+    if (count > 0) bar.classList.add('visible');
+    else {
+      bar.classList.remove('visible');
+      if (selectAllBtn) selectAllBtn.classList.remove('selected');
+    }
+    
+    document.querySelectorAll('.cl-row').forEach(row => {
+      const id = row.dataset.id;
+      const cb = row.querySelector('.mac-select-btn');
+      if (window.selectedIds.has(id)) {
+        row.classList.add('selected');
+        if (cb) cb.classList.add('selected');
+      } else {
+        row.classList.remove('selected');
+        if (cb) cb.classList.remove('selected');
+      }
+    });
+
+    if (selectAllBtn) {
+      const currentPageIds = filtered.slice((pg-1)*PER, pg*PER).map(i => i.id);
+      const allSelected = currentPageIds.length > 0 && currentPageIds.every(id => window.selectedIds.has(id));
+      if (allSelected) selectAllBtn.classList.add('selected');
+      else selectAllBtn.classList.remove('selected');
+    }
+  };
+  
+  window.massDelete = async function() {
+    if (window.selectedIds.size === 0) return;
+    if (!confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} utenti selezionati?`)) return;
+    
+    let success = 0;
+    try {
+      UI.toast(`Eliminazione in corso...`, 'info');
+      for (const id of window.selectedIds) {
+        try {
+          await API.del(`/users/${id}`);
+          success++;
+          ALL = ALL.filter(u => u.id !== id);
+        } catch (err) {
+          console.error(`Error deleting user ${id}:`, err);
+        }
+      }
+      if (success > 0) {
+        UI.toast(`${success} utenti eliminati.`, 'success');
+        updateKpis();
+        applyFilters();
+      } else {
+        UI.toast("Errore durante l\'eliminazione. Riprova.", 'error');
+      }
+    } catch (e) {
+      UI.toast("Errore durante l\'eliminazione multipla.", 'error');
+    }
+  };
 
   const ROLE_LABELS  = { admin:'Admin', super_admin:'Super Admin', operator:'Operatore', member:'Membro', viewer:'Viewer' };
   const STATUS_COLORS = { active:'var(--color-success)', invited:'var(--color-warning)', inactive:'var(--gray-400)' };
@@ -134,6 +235,7 @@
     }
     const slice = filtered.slice((pg-1)*PER, pg*PER);
     list.innerHTML = slice.map((u,i) => {
+      const isSelected = window.selectedIds.has(u.id);
       const ini  = (u.name||u.email||'?').split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
       const col  = avtColor(u.name||u.email);
       const role = ROLE_LABELS[u.role] || u.role || 'Utente';
@@ -146,13 +248,17 @@
       };
       const st = STATUS[u.status] || STATUS.active;
 
-      return `<div class="cl-row fade-in" data-id="${u.id}" onclick="location.href='admin_user_detail.html?id=${u.id}'" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s; cursor:pointer;">
+      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${u.id}" style="display:grid; grid-template-columns: 2.5fr 1.5fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;" onclick="document.querySelector('.mac-select-btn', this)?.click()">
         <!-- Colonna 1: Avatar e Nome -->
-        <div class="cl-col" style="flex:2; min-width:0; display:flex; flex-direction:row; align-items:center; gap:12px;">
+        <div class="cl-col cl-col-1">
+          <div class="cl-row-identity">
+            <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${u.id}" onclick="window.toggleSelection(event, '${u.id}')" style="flex-shrink:0;">
+              <div class="mac-checkbox"></div>
+            </div>
           <div class="avatar" style="background:linear-gradient(135deg,${col},${col}bb);width:40px;height:40px;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-weight:800;">${ini}</div>
-          <div style="min-width:0;">
+          <div class="cl-row-identity-body" style="min-width:0;">
             <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              ${u.name || u.email || '—'}
+              ${u.name || u.email || ''}
               ${isMe ? '<span class="tag-pill" style="margin-left:8px;font-size:10px;padding:2px 6px;">Tu</span>' : ''}
             </div>
             <div class="cl-row-meta" style="font-size:12px; color:var(--gray-500); margin-top:2px;">
@@ -161,23 +267,27 @@
           </div>
         </div>
 
+        </div>
         <!-- Colonna 2: Ruolo -->
-        <div class="cl-col" style="flex:1; min-width:0;">
+        <div class="cl-col" style="min-width:0;">
           <div style="font-size:13px; color:var(--gray-700);">${role}</div>
         </div>
 
         <!-- Colonna 3: Stato -->
-        <div class="cl-col cl-col-actions" style="flex-shrink:0; display:flex; flex-direction:row; align-items:center; gap:12px; justify-content:flex-end;">
+        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:12px; justify-content:flex-end;">
           <span class="tag-pill" style="color:${st.dot}; border-color:${st.dot}50; background:${st.bg};">
             ${st.label}
           </span>
-          <svg style="width:16px;height:16px;color:var(--gray-400);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); location.href='admin_user_detail.html?id=${u.id}'" title="Visualizza" style="padding:4px;">
+            <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+          </button>
         </div>
       </div>`;
     }).join('');
     const s=(pg-1)*PER+1, e=Math.min(pg*PER,filtered.length);
     if (info) info.textContent = `${s}–${e} di ${filtered.length} utenti`;
-    UI.pagination(pag, null, pg, filtered.length, PER, p => { pg=p; render(); });
+    UI.pagination(pag, null, pg, filtered.length, PER, p => { pg=p; render(); window.updateSelectionUI(); });
+    setTimeout(() => { if(window.updateSelectionUI) window.updateSelectionUI(); }, 10);
   }
 
   // Modal

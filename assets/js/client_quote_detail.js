@@ -1,5 +1,5 @@
 /* ============================================================
-   client_quote_detail.js — Client Quote view/accept logic
+   client_quote_detail.js Client Quote view/accept logic
    ============================================================ */
 'use strict';
 (function () {

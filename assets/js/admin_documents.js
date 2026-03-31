@@ -1,4 +1,4 @@
-/* admin_documents.js — Document archive + visibility management */
+/* admin_documents.js Document archive + visibility management */
 'use strict';
 (function () {
   Auth.guard('admin');
@@ -24,7 +24,9 @@
   const act = $('page-actions');
   if (act) act.innerHTML = `
     <button class="btn btn-secondary" id="btn-refresh"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> <span>Aggiorna</span></button>
-    <button class="btn btn-primary" id="btn-upload-doc"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> <span>Carica documento</span></button>`;
+    <button class="btn-action-icon " id="btn-action-icon-upload-doc" title="Carica documento">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+</button>`;
   $('btn-refresh')?.addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
   $('btn-upload-doc')?.addEventListener('click', () => modal?.classList.add('open'));
 
@@ -101,6 +103,121 @@
   const TYPE_LABELS = { contract:'Contratto', invoice:'Fattura', report:'Report', identity:'Identità', other:'Altro' };
   const VIS_LABELS  = { shared:'Condiviso', internal:'Interno' };
 
+  // ── Selection & Mass Actions (Mac Style) ───────────────────
+  window.selectedIds = new Set();
+  
+  window.toggleSelection = function(e, id) {
+    e.stopPropagation(); // Evita di far scattare l'onclick della riga
+    if (e.target.checked) {
+      window.selectedIds.add(id);
+    } else {
+      window.selectedIds.delete(id);
+    }
+    updateSelectionUI();
+  };
+  
+  window.toggleSelectAll = function(el) {
+    const isSelected = el.classList.toggle('selected');
+    filtered.slice((pg-1)*PER, pg*PER).forEach(i => {
+      if (isSelected) window.selectedIds.add(i.id);
+      else window.selectedIds.delete(i.id);
+    });
+    
+    // Aggiorna le checkbox individuali
+    document.querySelectorAll('.mac-select-btn').forEach(cb => {
+      if (isSelected) cb.classList.add('selected'); else cb.classList.remove('selected');
+      const row = cb.closest('.cl-row');
+      if (row) {
+        if (isSelected) row.classList.add('selected');
+        else row.classList.remove('selected');
+      }
+    });
+    updateSelectionUI();
+  };
+  
+  window.clearSelection = function() {
+    window.selectedIds.clear();
+    const selectAllBtn = document.getElementById('mass-select-all');
+    if (selectAllBtn) selectAllBtn.classList.remove('selected');
+    document.querySelectorAll('.mac-select-btn').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.cl-row.selected').forEach(r => r.classList.remove('selected'));
+    updateSelectionUI();
+  };
+  
+  window.updateSelectionUI = function() {
+    const bar = document.getElementById('mac-mass-action-bar');
+    const countEl = document.getElementById('mac-mass-action-count');
+    const selectAllBtn = document.getElementById('mass-select-all');
+    
+    if (!bar || !countEl) return;
+    
+    const count = window.selectedIds.size;
+    countEl.textContent = count;
+    
+    if (count > 0) {
+      bar.classList.add('visible');
+    } else {
+      bar.classList.remove('visible');
+      if (selectAllBtn) selectAllBtn.classList.remove('selected');
+    }
+    
+    // Sincronizza lo stato visivo delle righe
+    document.querySelectorAll('.cl-row').forEach(row => {
+      const id = row.dataset.id;
+      const cb = row.querySelector('.mac-select-btn');
+      if (window.selectedIds.has(id)) {
+        row.classList.add('selected');
+        if (cb) cb.classList.add('selected');
+      } else {
+        row.classList.remove('selected');
+        if (cb) cb.classList.remove('selected');
+      }
+    });
+
+    // Aggiorna lo stato del select all
+    if (selectAllBtn) {
+      const currentPageIds = filtered.slice((pg-1)*PER, pg*PER).map(i => i.id);
+      // Ensure all items on current page are selected
+      const allSelected = currentPageIds.length > 0 && currentPageIds.every(id => window.selectedIds.has(id));
+      if (allSelected) selectAllBtn.classList.add('selected');
+      else selectAllBtn.classList.remove('selected');
+    }
+  };
+  
+  window.massDelete = async function() {
+    if (window.selectedIds.size === 0) return;
+    
+    if (!confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} documenti selezionati?`)) return;
+    
+    let success = 0;
+    try {
+      UI.toast(`Eliminazione in corso...`, 'info');
+      // Execute deletions sequentially to avoid overloading the API
+      for (const id of window.selectedIds) {
+        try {
+          if (API.Documents && API.Documents.remove) {
+             await API.Documents.remove(id);
+          } else {
+             await API.del(`/documents/${id}`);
+          }
+          success++;
+        } catch (err) {
+          console.error(`Error deleting document ${id}:`, err);
+        }
+      }
+      
+      if (success > 0) {
+        UI.toast(`${success} documenti eliminati.`, 'success');
+        window.clearSelection();
+        load();
+      } else {
+        UI.toast("Errore durante l\'eliminazione. Riprova.", 'error');
+      }
+    } catch (e) {
+      UI.toast("Errore durante l\'eliminazione multipla.", 'error');
+    }
+  };
+
   function render() {
     if (!list) return;
     if (!filtered.length) {
@@ -108,43 +225,55 @@
       if (info) info.textContent=''; if (pag) pag.innerHTML=''; return;
     }
     const slice = filtered.slice((pg-1)*PER, pg*PER);
+
     list.innerHTML = slice.map(d => {
+      const isSelected = window.selectedIds.has(d.id);
       const visLabel  = VIS_LABELS[d.visibility] || d.visibility || 'Interno';
       const typeLabel = TYPE_LABELS[d.type]      || d.type        || 'Documento';
       const visColor  = d.visibility === 'shared' ? 'var(--color-success)' : 'var(--gray-500)';
-      return `<div class="cl-row fade-in" data-id="${d.id}" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s;">
-        <!-- Colonna 1: Nome, Tipo e Dati File -->
-        <div class="cl-col" style="flex:2; min-width:0;">
-          <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${d.name || 'Documento senza nome'}">${d.name || 'Documento senza nome'}</div>
-          <div class="cl-row-meta" style="display:flex; gap:8px; align-items:center; margin-top:4px;">
-            <span class="cl-row-chip" style="font-size:12px; color:var(--gray-500); background:var(--gray-100); padding:2px 6px; border-radius:4px;">📄 ${typeLabel}</span>
-            ${d.uploaded_at ? `<span style="font-size:12px; color:var(--gray-500);">📅 Upload: ${UI.date(d.uploaded_at)}</span>` : ''}
-            ${d.file_size ? `<span style="font-size:12px; color:var(--gray-500);">💾 ${Math.round(d.file_size/1024)} KB</span>` : ''}
+
+      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${d.id}" style="display:grid; grid-template-columns: 2.5fr 1.5fr 1fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;" onclick="document.querySelector('.mac-select-btn', this)?.click()">
+        <!-- Colonna 1: File -->
+        <div class="cl-col cl-col-1">
+          <div class="cl-row-identity">
+            <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${d.id}" onclick="window.toggleSelection(event, '${d.id}')" style="flex-shrink:0;">
+              <div class="mac-checkbox"></div>
+            </div>
+          <div style="flex:1; min-width:0;">
+            <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${d.name || 'Documento senza nome'}">${d.name || 'Documento senza nome'}</div>
+            <div class="cl-row-meta" style="display:flex; gap:8px; align-items:center; margin-top:4px;">
+              <span class="cl-row-chip" style="font-size:12px; color:var(--gray-500); background:var(--gray-100); padding:2px 6px; border-radius:4px;">📄 ${typeLabel}</span>
+              ${d.uploaded_at ? `<span style="font-size:12px; color:var(--gray-500);">📅 Upload: ${UI.date(d.uploaded_at)}</span>` : ''}
+              ${d.file_size ? `<span style="font-size:12px; color:var(--gray-500);">💾 ${Math.round(d.file_size/1024)} KB</span>` : ''}
+            </div>
           </div>
         </div>
 
+        </div>
         <!-- Colonna 2: Cliente -->
-        <div class="cl-col" style="flex:1.5; min-width:0;">
-          ${d.client_name ? `<a href="admin_client_detail.html?id=${d.client_id}" style="font-size:13px; font-weight:600; color:var(--brand-600); text-decoration:none;">🏢 ${d.client_name}</a>` : '<span style="font-size:13px; color:var(--gray-400);">—</span>'}
+        <div class="cl-col" style="min-width:0;">
+          ${d.client_name ? `<a href="admin_client_detail.html?id=${d.client_id}" onclick="event.stopPropagation();" style="font-size:13px; font-weight:600; color:var(--brand-600); text-decoration:none;">🏢 ${d.client_name}</a>` : '<span style="font-size:13px; color:var(--gray-400);"></span>'}
         </div>
 
-        <!-- Colonna 3: Visibilità e Stato -->
-        <div class="cl-col" style="flex:1; min-width:0;">
+        <!-- Colonna 3: Visibilità / Stato -->
+        <div class="cl-col" style="min-width:0;">
           <div style="font-size:12px; font-weight:600; color:${visColor}; margin-bottom:4px;">👁 ${visLabel}</div>
           <div>${UI.pill(d.status || 'available')}</div>
         </div>
 
         <!-- Colonna 4: Azioni -->
-        <div class="cl-col cl-col-actions" style="flex-shrink:0; display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
-          ${d.preview_url || d.url ? `<a href="${d.preview_url||d.url}" target="_blank" class="btn btn-secondary btn-sm" title="Anteprima"><svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></a>` : ''}
-          ${d.url ? `<a href="${d.url}" target="_blank" class="btn btn-ghost btn-sm" download title="Download"><svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></a>` : ''}
-          ${d.visibility !== 'shared' ? `<button class="btn btn-secondary btn-sm" onclick="shareDoc('${d.id}')">Condividi</button>` : `<button class="btn btn-ghost btn-sm" onclick="unshareDoc('${d.id}')">Rendi interno</button>`}
+        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
+          ${d.preview_url || d.url ? `<a href="${d.preview_url||d.url}" target="_blank" onclick="event.stopPropagation();" class="btn btn-secondary btn-sm" title="Anteprima"><svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></a>` : ''}
+          ${d.url ? `<a href="${d.url}" target="_blank" onclick="event.stopPropagation();" class="btn btn-ghost btn-sm" download title="Download"><svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></a>` : ''}
+          ${d.visibility !== 'shared' ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); shareDoc('${d.id}')">Condividi</button>` : `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); unshareDoc('${d.id}')">Rendi interno</button>`}
         </div>
       </div>`;
     }).join('');
+    
     const s=(pg-1)*PER+1, e=Math.min(pg*PER,filtered.length);
     if (info) info.textContent = `${s}–${e} di ${filtered.length}`;
-    UI.pagination(pag, null, pg, filtered.length, PER, p => { pg=p; render(); });
+    UI.pagination(pag, null, pg, filtered.length, PER, p => { pg=p; render(); window.updateSelectionUI(); });
+    setTimeout(() => { if(window.updateSelectionUI) window.updateSelectionUI(); }, 10);
   }
 
   // Upload
@@ -174,7 +303,7 @@
     try {
       const res = await API.Clients.list().catch(()=>[]);
       const cl  = Array.isArray(res) ? res : (res?.items??res?.data??[]);
-      dc.innerHTML = '<option value="">— Nessun cliente —</option>' + cl.map(c=>`<option value="${c.id}">${c.name||c.email}</option>`).join('');
+      dc.innerHTML = '<option value="">Nessun cliente</option>' + cl.map(c=>`<option value="${c.id}">${c.name||c.email}</option>`).join('');
     } catch {}
   });
 

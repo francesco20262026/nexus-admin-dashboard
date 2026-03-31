@@ -1,4 +1,4 @@
-/* admin_reports.js — Analytics and export */
+/* admin_reports.js Analytics and export */
 'use strict';
 (function () {
   Auth.guard('admin');

@@ -829,3 +829,31 @@ async def get_invoice_windoc_status(invoice_id: UUID, user: CurrentUser = Depend
         return {"success": True, "windoc_data": data}
     except Exception as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc))
+
+# ── Delete ────────────────────────────────────────────────────
+
+@router.delete("/{invoice_id}")
+async def delete_invoice(
+    invoice_id: UUID,
+    user: CurrentUser = Depends(require_admin),
+):
+    """
+    Elimina una fattura o proforma e opzionalmente le righe collegate se on-delete-cascade non è impostato.
+    """
+    old = _require_invoice(invoice_id, str(user.active_company_id), select="id,number,status")
+    
+    # Try deleting invoice lines first just in case
+    supabase.table("invoice_lines").delete().eq("invoice_id", str(invoice_id)).execute()
+    
+    res = (
+        supabase.table("invoices")
+        .delete()
+        .eq("id", str(invoice_id))
+        .eq("company_id", str(user.active_company_id))
+        .execute()
+    )
+    if not res.data:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Errore eliminazione")
+        
+    _audit(user, str(invoice_id), "delete", old=old)
+    return {"message": "Fattura eliminata con successo"}

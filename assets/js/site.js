@@ -1,4 +1,4 @@
-﻿/* site.js — Nexus landing page: animations, navbar, lang switcher
+﻿/* site.js Nexus landing page: animations, navbar, lang switcher
    All original logic preserved from git. */
 
 if (window.I18n) I18n.init('lang-switcher-slot');

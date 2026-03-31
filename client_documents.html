@@ -1,130 +1,262 @@
 <!DOCTYPE html>
+
 <html lang="it">
+
 <head>
+
   <meta charset="UTF-8"/>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
   <title>Documenti  Nova CRM</title>
+
   <meta name="description" content="Visualizza e firma i tuoi documenti."/>
+
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preload" as="image" href="/assets/img/nova-crm-logo-sidebar.svg">
+
+  <link rel="preload" as="image" href="/assets/img/crm.png">
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
   <link rel="stylesheet" href="assets/css/dash.css"/>
+
   <link rel="stylesheet" href="assets/css/client_portal.css"/>
-</head>
+
+
+  </head>
+
 <body>
+
 <div class="shell" id="shell">
 
+
+
 <aside class="sidebar">
+
   <div class="sidebar-brand">
-    <img src="/assets/img/nova-crm-logo-sidebar.svg" alt="Nova CRM" class="sidebar-brand-logo" loading="eager" fetchpriority="high" width="140" height="46">
+
+    <img src="/assets/img/crm.png" alt="Nova CRM" class="sidebar-brand-logo" loading="eager" fetchpriority="high" style="max-width: 220px; height: auto; max-height: 90px; object-fit: contain;">
+
   </div>
+
   <nav class="sidebar-nav">
+
     <div class="nav-section-label" data-i18n="nav.portal">Portale</div>
+
     <a class="nav-item active" href="client_dash.html">
+
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+
       <span class="nav-label" data-i18n="nav.overview">Panoramica</span>
+
     </a>
+
     <a class="nav-item" href="client_quotes.html">
+
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+
       <span class="nav-label" data-i18n="nav.quotes">Preventivi</span>
+
     </a>
+
     <a class="nav-item" href="client_invoices.html">
+
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
+
       <span class="nav-label" data-i18n="nav.my_invoices">Le mie fatture</span>
+
     </a>
+
     <a class="nav-item" href="client_contracts.html">
+
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+
       <span class="nav-label" data-i18n="nav.contracts">Contratti</span>
+
     </a>
+
     <a class="nav-item" href="client_documents.html">
+
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+
       <span class="nav-label" data-i18n="nav.documents">Documenti</span>
+
     </a>
+
     <div class="nav-section-label" data-i18n="nav.account">Account</div>
+
     <a class="nav-item" href="client_profile.html">
+
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+
       <span class="nav-label" data-i18n="nav.my_profile">Il mio profilo</span>
+
     </a>
+
   </nav>
+
   <div class="sidebar-footer">
+
     <div class="nav-item" style="gap:10px;">
+
       <div class="avatar" style="width:30px;height:30px;font-size:11px;" id="sidebar-avatar">â”</div>
+
       <div style="overflow:hidden;">
+
         <div class="nav-label" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="sidebar-name">Caricamento</div>
+
         <div class="nav-label" style="color:var(--gray-500);font-size:11px;" data-i18n="role.client">Client Portal</div>
+
       </div>
+
     </div>
+
   </div>
+
 </aside>
 
+
+
 <header class="header">
+
     <button class="header-toggle" id="sidebar-toggle"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg></button>
+
     <div class="header-actions" style="margin-left:auto;"><div class="dropdown-wrap"><button class="profile-btn" data-dropdown-trigger><div class="avatar" id="header-avatar"></div><div class="profile-info"><div class="profile-name" id="header-name">Caricamento</div><div class="profile-role" data-i18n="role.client">Cliente</div></div></button><div class="dropdown-menu"><button class="dropdown-item danger" id="logout-btn" data-i18n="auth.sign_out">Esci</button></div></div></div>
+
   </header>
+
+
 
 <main class="main">
 
+
+
   <!-- Action card: pending docs alert (shown by JS if needed) -->
+
   <div class="alert-card alert-card--warning" id="docs-alert" style="display:none;">
+
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+
     <div>
+
       <strong data-i18n="client.action_required">Azione richiesta</strong>
+
       <span id="docs-alert-text" data-i18n="client.docs_pending_alert">Hai documenti in attesa di firma</span>
+
     </div>
+
   </div>
+
+
 
   <!-- Page header -->
+
   <div class="page-header">
+
     <div>
+
       <h1 class="page-title" data-i18n="client.docs_title">I miei Documenti</h1>
-      <p class="page-subtitle" data-i18n="client.docs_sub">Visualizza e firma i tuoi documenti</p>
+
     </div>
+
   </div>
+
+
 
   <!-- Stat chips -->
+
   <div class="stat-chips">
+
     <div class="stat-chip"><div class="stat-chip-val" id="chip-docs-total"></div><div class="stat-chip-lbl" data-i18n="client.docs_title">Documenti</div></div>
+
     <div class="stat-chip"><div class="stat-chip-val stat-chip-val--warning" id="chip-docs-pending"></div><div class="stat-chip-lbl" data-i18n="client.pending_sign">Da firmare</div></div>
+
     <div class="stat-chip"><div class="stat-chip-val stat-chip-val--success" id="chip-docs-signed"></div><div class="stat-chip-lbl" data-i18n="client.signed">Firmati</div></div>
+
   </div>
+
+
 
   <!-- Documents table -->
+
   <div class="card">
+
     <div class="controls-bar">
+
       <div class="filter-search">
+
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+
         <input type="text" id="docs-search" placeholder="Cerca documenti..." data-i18n="common.search"/>
+
       </div>
+
       <select class="filter-select" id="docs-filter-status">
+
         <option value="all" data-i18n="common.all_status">Tutti gli stati</option>
+
         <option value="pending" data-i18n="client.pending_sign">Da firmare</option>
+
         <option value="signed" data-i18n="client.signed">Firmati</option>
+
         <option value="expired" data-i18n="client.expired">Scaduti</option>
+
       </select>
+
     </div>
+
     <div class="table-wrap">
+
       <table id="docs-table">
+
         <thead><tr>
+
           <th data-i18n="nav.documents">Documento</th>
+
           <th data-i18n="tbl.type">Tipo</th>
+
           <th data-i18n="tbl.upload_date">Data caricamento</th>
+
           <th data-i18n="tbl.signing_deadline">Scadenza firma</th>
+
           <th data-i18n="tbl.status">Stato</th>
+
           <th></th>
+
         </tr></thead>
+
         <tbody id="docs-tbody"></tbody>
+
       </table>
+
     </div>
+
     <div class="table-footer">
+
       <span id="docs-info"></span>
+
     </div>
+
   </div>
 
+
+
 </main>
+
 </div>
+
 <div id="toast-container" class="toast-container"></div>
-<script src="assets/js/api.js"></script><script src="assets/js/auth.js"></script><script src="assets/js/ui.js"></script><script src="assets/js/i18n.js"></script>
-<script src="assets/js/dash.js"></script>
+
+<script src="assets/js/api.js?v=147"></script><script src="assets/js/auth.js"></script><script src="assets/js/ui.js"></script><script src="assets/js/i18n.js"></script>
+
+<script src="assets/js/dash.js?v=147"></script>
+
 <script src="assets/js/client_documents.js"></script>
+
 </body>
+
 </html>
+
+
+
+

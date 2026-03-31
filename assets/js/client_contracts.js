@@ -1,5 +1,5 @@
 /* ============================================================
-   client_contracts.js — Client contracts page
+   client_contracts.js Client contracts page
    ============================================================ */
 'use strict';
 (function () {
@@ -184,7 +184,7 @@
       }
     } catch (e) {
       console.error('[client_contracts] signContract error:', e);
-      // Graceful fallback — do not crash or hang the page
+      // Graceful fallback do not crash or hang the page
       UI.toast('Il portale di firma non è ancora disponibile. Contatta il tuo account manager.', 'info');
     }
   };

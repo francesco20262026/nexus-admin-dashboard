@@ -4,152 +4,188 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Nova CRM — Preventivi</title>
+<title>Nova CRM Preventivi</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link as="image" href="/assets/img/nova-crm-logo-sidebar.svg" rel="preload"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-<link href="assets/css/dash.css?v=92" rel="stylesheet"/>
+<link as="image" href="/assets/img/crm.png" rel="preload"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="assets/css/dash.css?v=147" rel="stylesheet">
 <link href="assets/css/global_search.css" rel="stylesheet"/>
-</link></head>
+</link>
+  <!-- Shared Components: canonical single-source-of-truth CSS -->
+  <link rel="stylesheet" href="assets/css/header_bar.css">
+  <link rel="stylesheet" href="assets/css/filter_bar.css">
+  <link rel="stylesheet" href="assets/css/search_bar.css">
+</head>
 <body>
 <div class="shell" id="shell">
 <aside class="sidebar">
 <div class="sidebar-brand">
-<img alt="Nova CRM" class="sidebar-brand-logo" fetchpriority="high" height="46" loading="eager" src="/assets/img/nova-crm-logo-sidebar.svg" width="140"/>
+<img alt="Nova CRM" class="sidebar-brand-logo" fetchpriority="high" loading="eager" src="/assets/img/crm.png" style="max-width: 220px; height: auto; max-height: 90px; object-fit: contain;"/>
 </div>
 <nav class="sidebar-nav avatar-colors">
 <div class="nav-section-label" data-i18n="nav.main">Principale</div>
-<a class="nav-item" href="admin_dash.html?v=88">
+<a class="nav-item" href="admin_dash.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect></svg>
 <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
 </a>
-<a class="nav-item" href="admin_onboarding.html?v=88">
+<a class="nav-item" href="admin_onboarding.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.onboarding">Onboarding</span>
 </a>
 <div class="nav-section-label" data-i18n="nav.management">Gestione</div>
-<a class="nav-item" href="admin_clients.html?v=88">
+<a class="nav-item" href="admin_clients.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.clients">Clienti</span>
 </a>
-<a class="nav-item" href="admin_quotes.html?v=88">
+<a class="nav-item" href="admin_quotes.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.quotes">Preventivi</span>
 </a>
-<a class="nav-item" href="admin_services.html?v=88">
+<a class="nav-item" href="admin_services.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.services">Servizi</span>
 </a>
-<a class="nav-item" href="admin_contracts.html?v=88">
+<a class="nav-item" href="admin_contracts.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.contracts">Contratti</span>
 </a>
-<a class="nav-item" href="admin_documents.html?v=88">
+<a class="nav-item" href="admin_documents.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.documents">Documenti</span>
 </a>
 <div class="nav-section-label" data-i18n="nav.finance">Finanza</div>
-<a class="nav-item" href="admin_invoices.html?v=88">
+<a class="nav-item" href="admin_invoices.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.invoices">Fatture</span>
 <span class="nav-badge" id="nav-badge-invoices" style="display:none"></span>
 </a>
-<a class="nav-item" href="admin_renewals.html?v=88">
+<a class="nav-item" href="admin_renewals.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.renewals">Rinnovi</span>
 </a>
 <div class="nav-section-label" data-i18n="nav.tools">Strumenti</div>
-<a class="nav-item" href="admin_calendar.html?v=88">
+<a class="nav-item" href="admin_calendar.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.calendar">Calendario</span>
 </a>
-<a class="nav-item" href="admin_activities.html?v=88">
+<a class="nav-item" href="admin_activities.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375M9 15l2.25 2.25L15 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.activities">Attività</span>
 </a>
 <div class="nav-section-label" data-i18n="nav.analytics">Analisi</div>
-<a class="nav-item" href="admin_reports.html?v=88">
+<a class="nav-item" href="admin_reports.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.reports">Report</span>
 </a>
 <div class="nav-section-label" data-i18n="nav.system">Sistema</div>
-<a class="nav-item" href="admin_companies.html?v=88">
+<a class="nav-item" href="admin_companies.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.companies">Aziende</span>
-</a><a class="nav-item" href="admin_users.html?v=88">
+</a><a class="nav-item" href="admin_users.html?v=147">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 <span class="nav-label" data-i18n="nav.users">Utenti</span>
 </a>
 </nav>
-<div class="sidebar-footer">
-<div class="nav-item" style="gap:10px;">
-<div class="avatar" id="sidebar-avatar" style="width:30px;height:30px;font-size:11px;">–</div>
-<div style="overflow:hidden;">
-<div class="nav-label" id="sidebar-name" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
-<div class="nav-label" style="color:var(--gray-500);font-size:11px;">Admin</div>
-</div>
-</div>
-</div>
 </aside>
-<script src="components/header.js?v=88"></script>
+<script src="components/header.js?v=147"></script>
 <main class="main">
 <div class="page-header">
 <div>
 <h1 class="page-title">Preventivi</h1>
-<p class="page-subtitle">Crea e gestisci preventivi collegati a clienti e onboarding</p>
 </div>
 <div class="page-header-actions" id="page-actions"></div>
 </div>
 <!-- ① Compact Status Tabs + Quick Filters -->
 <div class="cl-tab-filter-bar" id="q-pipeline-bar">
-  <!-- Status pills -->
-  <div class="cl-status-pills">
-    <button class="cl-status-pill active" data-tab="all">
-      Tutti <span class="badge" id="kpi-q-all">0</span>
-    </button>
-    <button class="cl-status-pill" data-tab="draft">
-      Bozza <span class="badge" id="kpi-q-draft">0</span>
-    </button>
-    <button class="cl-status-pill" data-tab="sent">
-      Inviati <span class="badge" id="kpi-q-sent">0</span>
-    </button>
-    <button class="cl-status-pill" data-tab="accepted">
-      Accettati <span class="badge" id="kpi-q-accepted">0</span>
-    </button>
-    <button class="cl-status-pill" data-tab="rejected">
-      Rifiutati <span class="badge" id="kpi-q-rejected">0</span>
-    </button>
-    <button class="cl-status-pill" data-tab="expired">
-      Scaduti <span class="badge" id="kpi-q-expired">0</span>
-    </button>
-  </div>
-  <!-- Quick-filter badges -->
-  <div class="cl-quick-badges">
-    <button class="cl-quick-badge" disabled style="cursor:default;opacity:1;background:var(--gray-100);color:var(--gray-900);">
-      Valore Accettato <span id="kpi-q-value" style="font-weight:700;">€ 0</span>
-    </button>
-  </div>
-</div>
+<!-- Status pills -->
+<div class="cl-status-pills">
+<button class="cl-status-pill active" data-tab="all">
 
+      Tutti <span class="badge" id="kpi-q-all">0</span>
+</button>
+<button class="cl-status-pill" data-tab="draft">
+
+      Bozza <span class="badge" id="kpi-q-draft">0</span>
+</button>
+<button class="cl-status-pill" data-tab="sent">
+
+      Inviati <span class="badge" id="kpi-q-sent">0</span>
+</button>
+<button class="cl-status-pill" data-tab="accepted">
+
+      Accettati <span class="badge" id="kpi-q-accepted">0</span>
+</button>
+<button class="cl-status-pill" data-tab="rejected">
+
+      Rifiutati <span class="badge" id="kpi-q-rejected">0</span>
+</button>
+<button class="cl-status-pill" data-tab="expired">
+
+      Scaduti <span class="badge" id="kpi-q-expired">0</span>
+</button>
+</div>
+<!-- Quick-filter badges -->
+<div class="cl-quick-badges">
+<button class="cl-quick-badge" disabled="" style="cursor:default;opacity:1;background:var(--gray-100);color:var(--gray-900);">
+
+      Valore Accettato <span id="kpi-q-value" style="font-weight:700;">€ 0</span>
+</button>
+</div>
+</div>
 <!-- ② Filter bar + list -->
 <div class="card" style="margin-top:0;">
-  <div class="cl-filter-row">
-    <div class="cl-filter-search-wrap">
-      <svg class="cl-filter-search-icon" fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-      <input class="form-input cl-filter-search-input" id="q-search" placeholder="Cerca preventivi, clienti…" type="text"/>
-    </div>
-    <select class="form-input cl-filter-select" id="q-filter-client">
-      <option value="">Tutti i clienti</option>
-    </select>
-  </div>
-  
-  <div id="q-list" class="cl-list"></div>
+<div class="cl-filter-row">
+<div class="cl-filter-search-wrap">
+<span class="cl-filter-search-icon"><svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+<input class="cl-search-input" id="q-search" placeholder="Cerca preventivi, clienti…" type="text"/>
+</div>
+      <div class="cl-filter-right">
+        <button class="cl-filter-reset-btn" id="btn-reset-filters" title="Reimposta filtri">
+          <svg fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" xmlns="http://www.w3.org/2000/svg"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          Reset
+        </button>
+      </div>
+</div>
 
-  <div class="table-footer" style="padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-    <span id="q-info" style="font-size:13px;color:var(--gray-500);">—</span>
-    <div id="q-pagination" style="display:flex;gap:4px;"></div>
+<!-- MAC HEADER ROW -->
+<div class="mac-header-row" style="display: grid; grid-template-columns: 2.5fr 1.5fr 1fr 140px; align-items:center; gap:24px; padding: 12px 24px; border-bottom: 1px solid var(--border); background: #f9fafb; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-top-left-radius: 12px; border-top-right-radius: 12px; user-select: none;">
+  <div class="cl-col-identity">
+    <div class="mac-select-btn" id="btn-select-all" onclick="window.toggleSelectAll()" title="Seleziona tutti" style="flex-shrink:0;">
+      <div class="mac-checkbox"></div>
+    </div>
+    <span class="cl-col-header">Preventivo e Cliente</span>
+  </div>
+  <div style="display:flex; align-items:center;">
+    <span class="cl-col-header">Date</span>
+  </div>
+  <div style="display:flex; align-items:center;">
+    <span class="cl-col-header">Importo e Stato</span>
+  </div>
+  <div style="display:flex; align-items:center; justify-content:flex-end;">
+    <span class="cl-col-header">Azioni</span>
   </div>
 </div>
+<div class="cl-list" id="q-list"></div>
+<div class="table-footer" style="padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+<span id="q-info" style="font-size:13px;color:var(--gray-500);"></span>
+<div id="q-pagination" style="display:flex;gap:4px;"></div>
+</div>
+</div>
+  
+<!-- ③ Bar Action Massiva (Nascosta di default) -->
+<div id="mac-mass-action-bar" class="mac-mass-action-bar" style="display:none; position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 100px; padding: 8px 16px; align-items: center; gap: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); z-index: 9999; color: #fff;">
+  <div style="font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+    <div style="width: 20px; height: 20px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;" id="mac-mass-count">1</div>
+    <span>selezionati</span>
+  </div>
+  <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.2);"></div>
+  <button class="btn btn-ghost" style="color:#ef4444; border:none; background:transparent; font-size:13px; padding: 4px 8px;" onclick="window.massDelete()">Elimina</button>
+  <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.2);"></div>
+  <button class="btn btn-ghost" style="color:#a1a1aa; border:none; background:transparent; padding: 4px; border-radius: 50%;" onclick="window.clearSelection()" title="Annulla selezione">
+    <svg fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+  </button>
+</div>
+
 </main>
 </div>
 <!-- ── Modal Nuovo / Modifica Preventivo ────────────────────────── -->
@@ -174,13 +210,15 @@
 <!-- Sezione 1 -->
 <div class="modal-section-label">
 <svg fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+
         Dati Generali
+
       </div>
 <div style="margin-bottom:24px;">
 <div class="form-grid">
 <div class="form-group form-grid--full">
 <label class="form-label">Cliente</label>
-<select class="form-input" id="q-client"><option value="">— Seleziona cliente —</option></select>
+<select class="form-input" id="q-client"><option value="">Seleziona cliente</option></select>
 </div>
 <div class="form-group form-grid--full">
 <label class="form-label">Titolo preventivo *</label>
@@ -193,7 +231,7 @@
 <div class="form-group">
 <label class="form-label">Onboarding collegato</label>
 <select class="form-input" id="q-onboarding-id">
-<option value="">— Nessuno —</option>
+<option value="">Nessuno</option>
 </select>
 </div>
 <div class="form-group form-grid--full">
@@ -205,7 +243,9 @@
 <!-- Sezione 2 -->
 <div class="modal-section-label">
 <svg fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.412 15.655 9.75 21.75l3.745-4.012M9.257 13.5H3.75l2.659-2.849m2.048-2.194L14.25 2.25 12 8.25h6.75l-2.584 2.769" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+
         Voci del preventivo
+
       </div>
 <div>
 <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
@@ -229,13 +269,13 @@
 </div>
 </div>
 <div class="toast-container" id="toast-container"></div>
-<script src="assets/js/api.js?v=88"></script>
-<script src="assets/js/auth.js?v=88"></script>
-<script src="assets/js/ui.js?v=88"></script>
-<script src="assets/js/i18n.js?v=88"></script>
-<script src="assets/js/dash.js?v=88"></script>
-<script src="assets/js/router.js?v=88"></script>
-<script src="assets/js/admin_quotes.js?v=88"></script>
+<script src="assets/js/api.js?v=147"></script>
+<script src="assets/js/auth.js?v=147"></script>
+<script src="assets/js/ui.js?v=147"></script>
+<script src="assets/js/i18n.js?v=147"></script>
+<script src="assets/js/dash.js?v=147"></script>
+<script src="assets/js/router.js?v=147"></script>
+<script src="assets/js/admin_quotes.js?v=147"></script>
 <script src="assets/js/global_search.js"></script>
 </body>
 </html>

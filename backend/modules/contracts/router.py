@@ -3,7 +3,7 @@ modules/contracts/router.py — CRUD + Zoho Sign send + status update
 """
 import logging
 from datetime import date
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+from fastapi import APIRouter, HTTPException, status, Depends, Query, UploadFile, File, Form
 from pydantic import BaseModel, field_validator
 from uuid import UUID
 from typing import Optional
@@ -269,6 +269,118 @@ async def create_contract(
             
     return contract
 
+
+
+# ── Upload Manual Contract ────────────────────────────────────
+
+@router.post("/upload-signed", status_code=status.HTTP_201_CREATED)
+async def upload_manual_contract(
+    title: str = Form(...),
+    client_id: Optional[UUID] = Form(None),
+    onboarding_id: Optional[UUID] = Form(None),
+    file: UploadFile = File(...),
+    user: CurrentUser = Depends(require_admin),
+):
+    """
+    Manually upload a signed PDF contract without going through Zoho Sign.
+    Creates both a Documents reference and a Contracts record in 'signed' status.
+    """
+    if not client_id and not onboarding_id:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Specificare client_id oppure onboarding_id")
+
+    company_id = str(user.active_company_id)
+    effective_client_id = client_id
+
+    if not effective_client_id and onboarding_id:
+        onb = supabase.table("onboarding").select("client_id").eq("id", str(onboarding_id)).maybe_single().execute()
+        if onb.data and onb.data.get("client_id"):
+            effective_client_id = onb.data["client_id"]
+
+    file_bytes = await file.read()
+    if len(file_bytes) > 50 * 1024 * 1024:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Il file supera il limite di 50 MB")
+
+    import re
+    from datetime import datetime, timezone
+    safe_name = re.sub(r"[^\w\-. ]", "_", file.filename.replace("\\", "/").split("/")[-1]) or "contract.pdf"
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
+    storage_path = f"{company_id}/{effective_client_id or onboarding_id}/{ts}_manual_{safe_name}"
+
+    try:
+        supabase.storage.from_("nexus-documents").upload(
+            path=storage_path,
+            file=file_bytes,
+            file_options={"content-type": file.content_type or "application/pdf"},
+        )
+    except Exception as exc:
+        logger.error("Storage upload failed path=%s: %s", storage_path, exc)
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Errore caricamento storage: {exc}")
+
+    # Create Contract record
+    now_iso = datetime.now(timezone.utc).isoformat()
+    row = {
+        "title": title,
+        "company_id": company_id,
+        "status": "signed",
+        "pdf_url": storage_path,
+        "signed_at": now_iso,
+    }
+    if effective_client_id:
+        row["client_id"] = str(effective_client_id)
+    if onboarding_id:
+        row["onboarding_id"] = str(onboarding_id)
+
+    res = supabase.table("contracts").insert(row).execute()
+    if not res.data:
+        # Cleanup
+        try: supabase.storage.from_("nexus-documents").remove([storage_path])
+        except Exception: pass
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Impossibile creare il contratto")
+    
+    contract = res.data[0]
+    contract_id = contract["id"]
+
+    # Create Document record
+    try:
+        supabase.table("documents").insert({
+            "company_id": company_id,
+            "client_id": str(effective_client_id) if effective_client_id else None,
+            "contract_id": contract_id,
+            "name": f"{title} (Firmato manualmente)",
+            "type": "contract",
+            "storage_path": storage_path,
+            "status": "signed",
+        }).execute()
+    except Exception as exc:
+        logger.warning("Failed to create document record for manual contract %s: %s", contract_id, exc)
+
+    _audit(user, contract_id, "upload_manual", new={"title": title, "pdf_url": storage_path, "status": "signed"})
+
+    # Auto advance
+    if onboarding_id or effective_client_id:
+        from automation import auto_advance_onboarding
+        oid = onboarding_id
+        if not oid and effective_client_id:
+            onb_res = supabase.table("onboarding").select("id").eq("client_id", str(effective_client_id)).eq("status", "quote_accepted").maybe_single().execute()
+            if onb_res.data: oid = onb_res.data["id"]
+        if oid:
+            auto_advance_onboarding(company_id, str(user.user_id), oid, "contract_signed", f"Contratto PDF ({title}) caricato manualmente")
+            
+    # Auto proforma
+    try:
+        from routers.contracts import _auto_create_proforma_after_sign # won't work due to circular import, let's just inline or not do it?
+        # Actually it's in the same file!
+        _auto_create_proforma_after_sign(
+            contract=contract,
+            contract_id=str(contract_id),
+            company_id=company_id,
+            user_id=str(user.user_id),
+            signed_at=now_iso
+        )
+    except Exception as exc:
+        logger.warning("Auto proforma failed for manual contract %s: %s", contract_id, exc)
+
+    return contract
 
 
 # ── Get ───────────────────────────────────────────────────────

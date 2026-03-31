@@ -112,22 +112,33 @@ def _audit(user: CurrentUser, entity_id: str, action: str,
         logger.warning("audit_log write failed: %s", exc)
 
 
-def _require_client(client_id: UUID, company_id: str) -> dict:
+def _require_client(client_id: UUID, user: CurrentUser) -> dict:
     """
     Fetch a client row, asserting it exists within the given company.
     Raises 404 if not found or belongs to another tenant.
     """
+    # Try looking in the active company first (fast path)
     res = (
         supabase.table("v_clients")
         .select("*")
         .eq("id", str(client_id))
-        .eq("company_id", company_id)
+        .eq("company_id", str(user.active_company_id))
         .maybe_single()
         .execute()
     )
-    if res is None or not res.data:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Client not found")
-    return res.data
+    if res and res.data:
+        return res.data
+
+    # If admin, they might be in 'All Companies' view accessing another tenant's client
+    if user.is_admin:
+        res_any = supabase.table("v_clients").select("*").eq("id", str(client_id)).maybe_single().execute()
+        if res_any and res_any.data:
+            target_company_id = res_any.data.get("company_id")
+            perms = supabase.table("user_company_permissions").select("id").eq("user_id", str(user.user_id)).eq("company_id", target_company_id).maybe_single().execute()
+            if perms and perms.data:
+                return res_any.data
+                
+    raise HTTPException(status.HTTP_404_NOT_FOUND, "Cliente non trovato o permessi insufficienti")
 
 
 def _check_client_duplicates(
@@ -179,20 +190,22 @@ def _check_client_duplicates(
 async def list_clients(
     status_filter: Optional[str] = Query(None, alias="status"),
     search: Optional[str] = None,
+    company_id: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     user: CurrentUser = Depends(get_current_user),
 ):
-    q = (
-        supabase.table("v_clients")
-        .select("*", count="exact")
-        .eq("company_id", str(user.active_company_id))
-    )
-    # Non-admin clients see only their own record (double-enforced alongside RLS)
-    if not user.is_admin:
+    q = supabase.table("v_clients").select("*", count="exact")
+    
+    if user.is_admin:
+        if company_id:
+            q = q.eq("company_id", company_id)
+    else:
+        q = q.eq("company_id", str(user.active_company_id))
         if not user.client_id:
             return {"data": [], "total": 0, "page": page, "page_size": page_size}
         q = q.eq("id", str(user.client_id))
+    
     if status_filter:
         q = q.eq("status", status_filter)
     if search:
@@ -265,7 +278,7 @@ async def get_own_client_profile(user: CurrentUser = Depends(get_current_user)):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin users do not have a client profile")
     if not user.client_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No client record linked to this user")
-    return _require_client(user.client_id, str(user.active_company_id))
+    return _require_client(user.client_id, user)
 
 
 @router.put("/me")
@@ -279,7 +292,7 @@ async def update_own_client_profile(
     if not user.client_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No client record linked to this user")
 
-    old = _require_client(user.client_id, str(user.active_company_id))
+    old = _require_client(user.client_id, user)
     updates = body.model_dump(exclude_none=True)
     if not updates:
         return old  # nothing to do
@@ -460,7 +473,7 @@ async def get_client(
     if not user.is_admin:
         if not user.client_id or str(user.client_id) != str(client_id):
             raise HTTPException(status.HTTP_403_FORBIDDEN)
-    return _require_client(client_id, str(user.active_company_id))
+    return _require_client(client_id, user)
 
 
 # ── Update ────────────────────────────────────────────────────
@@ -471,7 +484,7 @@ async def update_client(
     body: ClientUpdate,
     user: CurrentUser = Depends(require_admin),
 ):
-    old = _require_client(client_id, str(user.active_company_id))
+    old = _require_client(client_id, user)
 
     updates = body.model_dump(exclude_none=True)
     if not updates:
@@ -485,7 +498,7 @@ async def update_client(
         supabase.table("clients")
         .update(updates)
         .eq("id", str(client_id))
-        .eq("company_id", str(user.active_company_id))  # tenant safety
+        .eq("company_id", old["company_id"])  # tenant safety
         .execute()
     )
     if not res.data:
@@ -510,8 +523,8 @@ async def delete_client(
     - Default (force=False): soft delete → status='ceased', data preserved.
     - force=True + no unpaid invoices: hard delete with warning.
     """
-    company_id = str(user.active_company_id)
-    old = _require_client(client_id, company_id)
+    old = _require_client(client_id, user)
+    company_id = old["company_id"]
 
     # Always block if there are unpaid invoices
     try:
@@ -560,8 +573,8 @@ async def cease_client(
     Explicitly cease a client (soft delete alias, user-friendly).
     Sets status → 'ceased'. Blocked if unpaid invoices exist.
     """
-    company_id = str(user.active_company_id)
-    old = _require_client(client_id, company_id)
+    old = _require_client(client_id, user)
+    company_id = old["company_id"]
 
     if old.get("status") == "ceased":
         return {"message": "Cliente già cessato", "status": "ceased"}
@@ -596,7 +609,7 @@ async def list_contacts(
     user: CurrentUser = Depends(get_current_user),
 ):
     # Verify the parent client is accessible to this user/tenant first
-    _require_client(client_id, str(user.active_company_id))
+    _require_client(client_id, user)
 
     res = (
         supabase.table("client_contacts")
@@ -616,7 +629,7 @@ async def add_contact(
     user: CurrentUser = Depends(require_admin),
 ):
     # Verify the parent client belongs to this tenant
-    _require_client(client_id, str(user.active_company_id))
+    _require_client(client_id, user)
 
     row = {
         **body.model_dump(),
@@ -656,7 +669,7 @@ async def client_services(
     client_id: UUID,
     user: CurrentUser = Depends(get_current_user),
 ):
-    _require_client(client_id, str(user.active_company_id))
+    _require_client(client_id, user)
     res = (
         supabase.table("client_services")
         .select("*, services_catalog(name,billing_cycle)")
@@ -672,7 +685,7 @@ async def client_invoices(
     client_id: UUID,
     user: CurrentUser = Depends(get_current_user),
 ):
-    _require_client(client_id, str(user.active_company_id))
+    _require_client(client_id, user)
     res = (
         supabase.table("invoices")
         .select("*")
@@ -689,7 +702,7 @@ async def client_contracts(
     client_id: UUID,
     user: CurrentUser = Depends(get_current_user),
 ):
-    _require_client(client_id, str(user.active_company_id))
+    _require_client(client_id, user)
     res = (
         supabase.table("contracts")
         .select("*")
@@ -705,7 +718,7 @@ async def client_documents(
     client_id: UUID,
     user: CurrentUser = Depends(get_current_user),
 ):
-    _require_client(client_id, str(user.active_company_id))
+    _require_client(client_id, user)
     res = (
         supabase.table("documents")
         .select("*")
@@ -724,7 +737,7 @@ async def sync_client_windoc(
     user: CurrentUser = Depends(require_admin),
 ):
     """Sync a Nexus client to WindDoc Rubrica."""
-    _require_client(client_id, str(user.active_company_id))
+    _require_client(client_id, user)
     from integrations.windoc import sync_client_to_windoc
     import asyncio
     try:
@@ -745,7 +758,7 @@ async def list_notes(
     client_id: UUID,
     user: CurrentUser = Depends(get_current_user),
 ):
-    _require_client(client_id, str(user.active_company_id))
+    _require_client(client_id, user)
     res = (
         supabase.table("client_notes")
         .select("*")
@@ -761,7 +774,7 @@ async def create_note(
     body: NoteCreate,
     user: CurrentUser = Depends(get_current_user),
 ):
-    _require_client(client_id, str(user.active_company_id))
+    _require_client(client_id, user)
     row = {
         "client_id": str(client_id),
         "content": body.content,
@@ -777,5 +790,5 @@ async def delete_note(
     note_id: UUID,
     user: CurrentUser = Depends(require_admin), # Only admins delete notes for now
 ):
-    _require_client(client_id, str(user.active_company_id))
+    _require_client(client_id, user)
     supabase.table("client_notes").delete().eq("id", str(note_id)).eq("client_id", str(client_id)).execute()

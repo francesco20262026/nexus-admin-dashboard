@@ -1,4 +1,4 @@
-/* admin_invoices.js — Invoices + Proforma + Payment tracking (Phase 3) v=24 */
+/* admin_invoices.js Invoices + Proforma + Payment tracking (Phase 3) v=24 */
 'use strict';
 (function () {
   Auth.guard('admin');
@@ -26,7 +26,9 @@
   if (act) act.innerHTML = `
     <button class="btn btn-secondary" id="btn-refresh"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> <span>Aggiorna</span></button>
     <button class="btn btn-secondary" id="btn-new-proforma"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12"/></svg> <span>Nuova proforma</span></button>
-    <button class="btn btn-primary" id="btn-new-invoice"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> <span>Nuova fattura</span></button>`;
+    <button class="btn-action-icon " id="btn-action-icon-new-invoice" title="Nuova fattura">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+</button>`;
 
   $('btn-refresh')?.addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
   $('btn-new-invoice')?.addEventListener('click',  () => openModal(false));
@@ -180,14 +182,140 @@
     render();
   }
 
+  // ── Selection & Mass Actions (Mac Style) ───────────────────
+  window.selectedIds = new Set();
+  
+  window.toggleSelection = function(e, id) {
+    e.stopPropagation(); // Evita di far scattare l'onclick della riga
+    if (e.target.checked) {
+      window.selectedIds.add(id);
+    } else {
+      window.selectedIds.delete(id);
+    }
+    updateSelectionUI();
+  };
+  
+  window.toggleSelectAll = function(el) {
+    const isSelected = el.classList.toggle('selected');
+    filtered.slice((pg-1)*PER, pg*PER).forEach(i => {
+      if (isSelected) window.selectedIds.add(i.id);
+      else window.selectedIds.delete(i.id);
+    });
+    
+    // Aggiorna le checkbox individuali
+    document.querySelectorAll('.mac-select-btn').forEach(cb => {
+      if (isSelected) cb.classList.add('selected'); else cb.classList.remove('selected');
+      const row = cb.closest('.cl-row');
+      if (row) {
+        if (isSelected) row.classList.add('selected');
+        else row.classList.remove('selected');
+      }
+    });
+    updateSelectionUI();
+  };
+  
+  window.clearSelection = function() {
+    window.selectedIds.clear();
+    const selectAllBtn = document.getElementById('mass-select-all');
+    if (selectAllBtn) selectAllBtn.classList.remove('selected');
+    document.querySelectorAll('.mac-select-btn').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.cl-row.selected').forEach(r => r.classList.remove('selected'));
+    updateSelectionUI();
+  };
+  
+  window.updateSelectionUI = function() {
+    const bar = document.getElementById('mac-mass-action-bar');
+    const countEl = document.getElementById('mac-mass-action-count');
+    const selectAllBtn = document.getElementById('mass-select-all');
+    
+    if (!bar || !countEl) return;
+    
+    const count = window.selectedIds.size;
+    countEl.textContent = count;
+    
+    if (count > 0) {
+      bar.classList.add('visible');
+    } else {
+      bar.classList.remove('visible');
+      if (selectAllBtn) selectAllBtn.classList.remove('selected');
+    }
+    
+    // Sincronizza lo stato visivo delle righe
+    document.querySelectorAll('.cl-row').forEach(row => {
+      const id = row.dataset.id;
+      const cb = row.querySelector('.mac-select-btn');
+      if (window.selectedIds.has(id)) {
+        row.classList.add('selected');
+        if (cb) cb.classList.add('selected');
+      } else {
+        row.classList.remove('selected');
+        if (cb) cb.classList.remove('selected');
+      }
+    });
+
+    // Aggiorna lo stato del select all
+    if (selectAllBtn) {
+      const currentPageIds = filtered.slice((pg-1)*PER, pg*PER).map(i => i.id);
+      const allSelected = currentPageIds.length > 0 && currentPageIds.every(id => window.selectedIds.has(id));
+      if (allSelected) selectAllBtn.classList.add('selected');
+      else selectAllBtn.classList.remove('selected');
+    }
+  };
+  
+  window.massDelete = async function() {
+    if (window.selectedIds.size === 0) return;
+    if (!confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} record? Questa operazione non può essere annullata.`)) {
+      return;
+    }
+    
+    const count = window.selectedIds.size;
+    let success = 0;
+    
+    try {
+      UI.toast(`Eliminazione di ${count} record in corso...`, 'info');
+      // Execute deletions sequentially to avoid overloading the API
+      for (const id of window.selectedIds) {
+        try {
+          // Assume the backend supports API.Invoices.delete
+          if (API.Invoices.delete) {
+            await API.Invoices.delete(id);
+          } else if (API.Invoices.remove) {
+            await API.Invoices.remove(id);
+          } else {
+             await API.del(`/invoices/${id}`);
+          }
+          success++;
+        } catch (err) {
+          console.error(`Error deleting invoice ${id}:`, err);
+        }
+      }
+      
+      if (success > 0) {
+        UI.toast(`${success} record eliminati con successo.`, 'success');
+        window.clearSelection();
+        load(); // Ricarica la lista per riflettere le cancellazioni
+      } else {
+        UI.toast("Errore durante l\'eliminazione. Riprova.", 'error');
+      }
+    } catch (e) {
+      UI.toast("Errore durante l\'eliminazione multipla.", 'error');
+    }
+  };
+
+
   function render() {
     if (!list) return;
+    
+    // Prima di un nuovo render, preserviamo lo stato della selezione se navighiamo
+    // Ma solitamente il clearSelection viene gestito via UI o tenuto memorizzato.
+    
     if (!filtered.length) {
       list.innerHTML = `<div class="list-card">${UI.createEmptyState(null, ALL.length ? 'Nessun record corrisponde ai filtri.' : 'Nessuna fattura presente.')}</div>`;
       if (info) info.textContent = ''; if (pag) pag.innerHTML = ''; return;
     }
     const slice = filtered.slice((pg-1)*PER, pg*PER);
     list.innerHTML = slice.map(i => {
+      const isSelected = window.selectedIds.has(i.id);
       const ps      = i.payment_status || 'not_paid';
       const psInfo  = PAYMENT_STATUS[ps] || PAYMENT_STATUS.not_paid;
       const pfLabel = i.is_proforma ? `<span style="font-size:10px;background:var(--brand-100,#ede9fe);color:var(--brand-700,#6d28d9);padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:.3px;">PROFORMA</span>` : '';
@@ -197,45 +325,55 @@
 
       const statusPill = `<span class="pill ${psInfo.cls}">${psInfo.label}</span>`;
 
-      return `<div class="cl-row fade-in" data-id="${i.id}" onclick="window.location.href='admin_invoice_detail.html?id=${i.id}';" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s; cursor:pointer;">
+      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${i.id}" onclick="window.location.href='admin_invoice_detail.html?id=${i.id}';" style="display:grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;">
         <!-- Colonna 1: Info e Cliente -->
-        <div class="cl-col" style="flex:2; min-width:0;">
-          <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-            ${i.number ? `#${i.number}` : (i.is_proforma ? 'Proforma' : 'Fattura')} — ${i.client_name || '—'}
-          </div>
-          <div class="cl-row-meta" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:4px;">
-            ${pfLabel}
-            ${windocBadge}
-            ${proofBadge}
-            ${i.payment_proof_url ? `<span style="font-size:11px;color:var(--brand-600); font-weight:600;">📎 Prova allegata</span>` : ''}
+        <div class="cl-col cl-col-1">
+          <div class="cl-row-identity">
+            <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${i.id}" onclick="window.toggleSelection(event, '${i.id}')" style="flex-shrink:0;">
+              <div class="mac-checkbox"></div>
+            </div>
+          <div style="flex:1; min-width:0;">
+            <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${i.number ? `#${i.number}` : (i.is_proforma ? 'Proforma' : 'Fattura')} ${i.client_name || ''}
+            </div>
+            <div class="cl-row-meta" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:4px;">
+              ${pfLabel}
+              ${windocBadge}
+              ${proofBadge}
+              ${i.payment_proof_url ? `<span style="font-size:11px;color:var(--brand-600); font-weight:600;">📎 Prova allegata</span>` : ''}
+            </div>
           </div>
         </div>
 
+        </div>
         <!-- Colonna 2: Date Scadenza e Pagamento -->
-        <div class="cl-col" style="flex:1.5; min-width:0;">
-          <div style="font-size:12px; color:var(--gray-600);">Scadenza: <span style="font-weight:600;">${i.due_date ? UI.date(i.due_date) : '—'}</span></div>
+        <div class="cl-col" style="min-width:0;">
+          <div style="font-size:12px; color:var(--gray-600);">Scadenza: <span style="font-weight:600;">${i.due_date ? UI.date(i.due_date) : ''}</span></div>
           ${i.paid_at ? `<div style="font-size:12px; color:var(--gray-600); margin-top:2px;">Pagata: <span style="font-weight:600;">${UI.date(i.paid_at)}</span></div>` : ''}
         </div>
 
         <!-- Colonna 3: Stato e Metodo Pagamento -->
-        <div class="cl-col" style="flex:1.5; min-width:0;">
+        <div class="cl-col" style="min-width:0;">
           <div style="margin-bottom:4px;">${statusPill}</div>
           ${pmLabel ? `<div style="font-size:12px; color:var(--gray-500);">${pmLabel}</div>` : ''}
         </div>
 
         <!-- Colonna 4: Importo Totale -->
-        <div class="cl-col cl-col-actions" style="flex-shrink:0; display:flex; flex-direction:row; align-items:center; justify-content:flex-end;">
+        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; justify-content:flex-end;">
           <span class="tag-pill" style="font-size:14px; font-weight:700;">${UI.currency(i.total || i.amount || 0)}</span>
         </div>
       </div>`;
     }).join('');
     const s=(pg-1)*PER+1, e=Math.min(pg*PER,filtered.length);
     if (info) info.textContent = `${s}–${e} di ${filtered.length}`;
-    UI.pagination(pag, null, pg, filtered.length, PER, p => { pg=p; render(); });
+    UI.pagination(pag, null, pg, filtered.length, PER, p => { pg=p; render(); window.updateSelectionUI(); });
+    // Aggiorna la UI della selezione ad ogni render (es. se navighiamo pagina)
+    // ritardato di poco per permettere al DOM di aggiornarsi
+    setTimeout(() => { if(window.updateSelectionUI) window.updateSelectionUI(); }, 10);
   }
 
   // ── Modal ──────────────────────────────────────────────────
-  // preset: { client_id, onboarding_id } — used when opening from other modules
+  // preset: { client_id, onboarding_id } used when opening from other modules
   async function openModal(isProforma = false, preset = null) {
     if (!modal) return;
     const titleEl = $('inv-modal-title');
@@ -266,7 +404,7 @@
     if(servList) servList.innerHTML = '<div style="font-size:13px;color:#6b7280;text-align:center;">Seleziona un cliente per caricare i servizi.</div>';
 
     if (cl)  cl.innerHTML  = '<option value="">Caricamento…</option>';
-    if (onb) onb.innerHTML = '<option value="">— Nessuno —</option>';
+    if (onb) onb.innerHTML = '<option value="">Nessuno</option>';
     modal.classList.add('open');
     try {
       const [clientsRes, onbRes] = await Promise.all([
@@ -276,12 +414,12 @@
       const clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes?.items ?? clientsRes?.data ?? []);
       const onbs    = Array.isArray(onbRes)     ? onbRes     : (onbRes?.items    ?? onbRes?.data    ?? []);
 
-      if (cl) cl.innerHTML = '<option value="">— Seleziona cliente —</option>' +
+      if (cl) cl.innerHTML = '<option value="">Seleziona cliente</option>' +
         clients.map(c => `<option value="${c.id}">${c.name || c.email}</option>`).join('');
 
       if (onb) {
         // Show company_name (the prospect name) not reference_name/status
-        onb.innerHTML = '<option value="">— Nessuno —</option>' +
+        onb.innerHTML = '<option value="">Nessuno</option>' +
           onbs
             .filter(o => !['attivo','abbandonato','annullato','cancelled'].includes(o.status))
             .map(o => {

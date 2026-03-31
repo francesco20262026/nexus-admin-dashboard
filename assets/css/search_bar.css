@@ -1,0 +1,319 @@
+/* ============================================================
+   search_bar.css — CANONICAL search input + table column header
+   for all admin list pages.
+   Single source of truth. Include in every admin_*.html list page.
+   DO NOT redefine .cl-filter-row, .cl-search-input, .cl-col-header
+   in other CSS files.
+   ============================================================ */
+
+/* ── Search row container ───────────────────────────────────── */
+.cl-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.055);
+  background: #f9fafb;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+/* ── Search input wrapper ───────────────────────────────────── */
+.cl-filter-search-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* Reset browser-default styling for type=search */
+.cl-search-input[type="search"]::-webkit-search-cancel-button,
+.cl-search-input[type="search"]::-webkit-search-decoration { display: none; }
+.cl-search-input[type="search"] { -webkit-appearance: none; appearance: none; }
+
+.cl-filter-search-icon {
+  position: absolute;
+  left: 10px;
+  color: #9ca3af;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.cl-filter-search-icon svg { width: 15px; height: 15px; }
+
+.cl-search-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px 0 34px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  color: #111827;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+.cl-search-input::placeholder { color: #9ca3af; }
+.cl-search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: #fff;
+}
+
+/* ── Right side: reset button + optional extras ─────────────── */
+.cl-filter-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.cl-filter-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+.cl-filter-reset-btn svg { width: 13px; height: 13px; }
+.cl-filter-reset-btn:hover { background: #f3f4f6; color: #374151; }
+
+/* ── Column header row (table head bar) ─────────────────────── */
+.cl-col-header-row {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 36px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.055);
+  background: #f9fafb;
+}
+
+/* Checkbox column */
+.cl-col-check {
+  flex-shrink: 0;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Mac-style row selection (Used in list headers + JS rows via mac-select-btn) ─────── */
+.mac-select-btn {
+  background: transparent;
+  border: none;
+  padding: 4px !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.mac-select-btn:hover {
+  background: rgba(0,0,0,0.05);
+}
+.mac-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1.5px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  background: #fff;
+  position: relative;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+/* Selected states (row wrapper or direct header checkbox) */
+.mac-select-btn.selected .mac-checkbox,
+.mac-row-select.selected .mac-checkbox,
+.mac-checkbox.selected {
+  background: #007aff;
+  border-color: #007aff;
+}
+.mac-checkbox::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+  margin-bottom: 2px;
+}
+.mac-select-btn.selected .mac-checkbox::after,
+.mac-row-select.selected .mac-checkbox::after,
+.mac-checkbox.selected::after {
+  opacity: 1;
+}
+/* Remove explicit SVG if we are using ::after checkmark */
+.mac-checkbox svg {
+  display: none !important;
+}
+
+/* Row Identity Block (Text + Avatar + Checkbox alignment) */
+.cl-col-identity {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.cl-row-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.cl-row-identity-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Standard column header label */
+.cl-col-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Sortable column header */
+.cl-col-header.sortable { cursor: pointer; }
+.cl-col-header.sortable:hover { color: #6b7280; }
+.cl-col-header svg { width: 10px; height: 10px; opacity: 0.5; }
+.cl-col-header.sort-asc svg,
+.cl-col-header.sort-desc svg { opacity: 1; color: #3b82f6; }
+
+/* ── Inline select dropdowns (clients page extended filter) ─── */
+.cl-filter-selects-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+}
+.cl-filter-selects-wrap::-webkit-scrollbar { display: none; }
+
+.cl-filter-select {
+  height: 34px;
+  padding: 0 10px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12.5px;
+  color: #374151;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 26px;
+  transition: border-color 0.15s;
+}
+.cl-filter-select:focus { border-color: #3b82f6; }
+.cl-filter-select:hover { border-color: #d1d5db; }
+
+/* Reset button (alternate class used on clients pre-migration) */
+.cl-filter-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.cl-filter-reset svg { width: 13px; height: 13px; }
+.cl-filter-reset:hover { background: #f3f4f6; color: #374151; }
+
+/* ── Quick-filter badges row (clients Windoc/NonSync pills) ─── */
+.cl-tab-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 16px 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.055);
+}
+
+.cl-quick-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cl-quick-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.cl-quick-badge:hover { background: #e5e7eb; color: #374151; }
+.cl-quick-badge.active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+.cl-quick-badge span {
+  font-size: 11px;
+  font-weight: 700;
+  color: inherit;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .cl-filter-search-wrap { max-width: 180px; }
+  .cl-filter-selects-wrap { display: none; }
+}

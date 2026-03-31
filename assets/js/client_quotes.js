@@ -1,5 +1,5 @@
 /* ============================================================
-   client_quotes.js — Client quotes list (Client Portal)
+   client_quotes.js Client quotes list (Client Portal)
    ============================================================ */
 'use strict';
 (function () {

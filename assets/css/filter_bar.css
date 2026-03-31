@@ -1,0 +1,101 @@
+/* ============================================================
+   filter_bar.css — CANONICAL status filter pill bar for all admin list pages
+   Single source of truth. Include in every admin_*.html with a filter bar.
+   DO NOT redefine .cl-status-pills or .cl-status-pill in other CSS files.
+   ============================================================ */
+
+/* ── Filter bar container row ───────────────────────────────── */
+.cl-tab-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 4px 0 0;
+  padding: 10px 0 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ── Pill group container ───────────────────────────────────── */
+.cl-status-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f2f2f7;         /* Apple system gray container */
+  padding: 3px;
+  border-radius: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+/* Hide scrollbar visually but keep scrollability */
+.cl-status-pills::-webkit-scrollbar { display: none; }
+.cl-status-pills { scrollbar-width: none; }
+
+/* ── Individual pill button ────────────────────────────────── */
+.cl-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #3a3a3c;             /* Apple dark gray inactive text */
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: background 0.18s cubic-bezier(0.25, 0.1, 0.25, 1),
+              color 0.18s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.cl-status-pill:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Active state */
+.cl-status-pill.active {
+  background: #ffffff;
+  color: #1d1d1f;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Badge / counter chip inside pill ──────────────────────── */
+.cl-status-pill .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: rgba(0, 0, 0, 0.07);
+  color: inherit;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Active pill badge — blue tint */
+.cl-status-pill.active .badge {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+/* ── Right side: action buttons in filter bar ───────────────── */
+.cl-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .cl-tab-filter-bar { padding: 8px 12px; }
+  .cl-status-pills { max-width: 100%; }
+}

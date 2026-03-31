@@ -1,17 +1,17 @@
 /* ============================================================
-   NEXUS ADMIN Ã¢€â€ Design System
+   NEXUS ADMIN — Design System
    style.css
    ============================================================ */
 
 /* ---------- CSS Custom Properties ---------- */
 :root {
   /* COLORS */
-  --color-primary: #059669;
-  --color-primary-hover: #047857;
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
   --color-secondary: #e4e8ef;
-  --color-success: #15803d;
+  --color-success: #3b82f6;
   --color-warning: #b45309;
-  --color-danger: #b91c1c;
+  --color-danger: #ef4444;
   --color-info: #1d4ed8;
 
   --color-bg: #f8f9fb;
@@ -151,8 +151,8 @@ svg {
 /* ---------- Sidebar ---------- */
 .sidebar {
   grid-area: sidebar;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
+  background: linear-gradient(180deg, #1a2a3a 0%, #1e2f41 100%);
+  border-right: none;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -200,7 +200,7 @@ svg {
 .sidebar-brand .brand-name {
   font-size: var(--text-lg);
   font-weight: 700;
-  color: var(--gray-900);
+  color: #ffffff;
   letter-spacing: -0.02em;
 }
 
@@ -225,11 +225,11 @@ svg {
 
 .nav-section-label {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--gray-500);
-  padding: 8px 10px 4px;
+  letter-spacing: .09em;
+  color: rgba(255,255,255,0.3);
+  padding: 10px 12px 3px;
   white-space: nowrap;
   overflow: hidden;
   transition: opacity var(--trans);
@@ -243,11 +243,10 @@ svg {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  /* pill shape */
-  color: var(--gray-600);
-  font-size: var(--text-sm);
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: rgba(255,255,255,0.65);
+  font-size: 13.5px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -257,20 +256,27 @@ svg {
 }
 
 .nav-item:hover {
-  background: var(--gray-100);
-  color: var(--gray-900);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.9);
 }
 
 .nav-item.active {
-  background: var(--brand-500);
-  color: #fff;
+  background: rgba(255,255,255,0.12);
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .nav-item svg {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
+  stroke-width: 1.5; /* SF Symbols-like thin stroke */
+  color: rgba(255,255,255,0.5);
 }
+.nav-item:hover svg, .nav-item.active svg {
+  color: rgba(255,255,255,0.9);
+}
+.nav-item.active svg { color: #34d399; } /* verde emerald sull'icona attiva */
 
 .nav-label {
   transition: opacity var(--trans);
@@ -302,7 +308,7 @@ svg {
 
 .sidebar-footer {
   padding: 12px 16px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 /* ---------- Header ---------- */
@@ -558,6 +564,7 @@ body.has-local-search .header-search {
   font-weight: 700;
   color: var(--gray-900);
   letter-spacing: -0.02em;
+  margin: 0 !important;
 }
 
 .page-subtitle {
@@ -601,30 +608,13 @@ body.has-local-search .header-search {
   transition: transform var(--trans);
 }
 
-.btn-primary {
-  background: var(--color-primary);
-  color: #fff;
-  border-color: transparent;
-}
 
-.btn-primary:hover {
-  background: var(--color-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
-}
 
-.btn-secondary {
-  background: var(--color-surface);
-  color: var(--color-text);
-  border-color: var(--color-border);
-  box-shadow: var(--shadow-sm);
-}
 
-.btn-secondary:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
-  transform: translateY(-1px);
-}
+
+
+
+
 
 .btn-ghost {
   background: transparent;
@@ -1364,6 +1354,7 @@ tbody tr:last-child td {
 }
 
 .modal-overlay.open {
+  display: flex !important;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -4581,6 +4572,25 @@ textarea.form-input {
   align-items: center;
   gap: 6px;
 }
+.mac-modal-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+.mac-modal-icon-box.blue {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+.mac-modal-icon-box.amber {
+  background: #fffbeb;
+  color: #d97706;
+}
 .al-native-select {
   padding: 8px 32px 8px 12px;
   font-size: 12px;
@@ -4835,105 +4845,12 @@ textarea.form-input {
    ================================================================ */
 
 /* ── Tab + quick-filter bar ──────────────────────────────────── */
-.cl-tab-filter-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin: 16px 0 0;
-  padding: 12px 0 8px;
-  border-bottom: 1px solid var(--border);
-}
-.cl-status-pills { gap: 6px; }
-.cl-status-pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 13px; font-weight: 500; color: var(--gray-600);
-  padding: 6px 12px; background: transparent; border: 1px solid transparent; border-radius: 999px;
-  cursor: pointer; transition: all .15s;
-}
-.cl-status-pill:hover { background: var(--gray-100); }
-.cl-status-pill.active { background: #ecfdf5; color: #059669; font-weight: 600; border-color: #a7f3d0; }
-.cl-status-pill .badge {
-  background: var(--gray-200); color: var(--gray-700); font-size: 11px; padding: 2px 6px; border-radius: 999px;
-}
-.cl-status-pill.active .badge { background: #a7f3d0; color: #065f46; }
+/* Stile per il badge (numerino contatore) */
 
-/* Quick-filter badges */
-.cl-quick-badges {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.cl-quick-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--gray-600);
-  background: var(--gray-100);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 4px 10px;
-  cursor: pointer;
-  transition: background .15s, color .15s, border-color .15s;
-}
-.cl-quick-badge:hover { background: var(--gray-200); color: var(--gray-800); }
-.cl-quick-badge.active { background: var(--brand-50); color: var(--brand-700); border-color: var(--brand-300); }
 
-/* ── Filter row ──────────────────────────────────────────────── */
-.cl-filter-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--border);
-  background: #f9fafb;
-  overflow: hidden;
-}
-.cl-filter-search-wrap {
-  flex-shrink: 0;
-  width: 224px;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.cl-filter-search-icon {
-  position: absolute;
-  left: 10px;
-  color: var(--gray-400);
-  pointer-events: none;
-  flex-shrink: 0;
-}
-.cl-filter-search-input {
-  width: 100%;
-  padding-left: 32px !important;
-  font-size: 13px;
-  height: 34px;
-}
 /* scrollable selects wrapper */
-.cl-filter-selects-wrap {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 1px;
-}
 .cl-filter-selects-wrap::-webkit-scrollbar { display: none; }
-.cl-filter-select {
-  width: auto;
-  min-width: 0;
-  font-size: 12px;
-  height: 32px;
-  padding: 0 24px 0 8px;
-  flex-shrink: 0;
-  color: var(--gray-600);
-  border-radius: 6px;
-}
+
 /* Reset link-style button */
 .cl-filter-reset {
   display: inline-flex;
@@ -5324,12 +5241,14 @@ a.cl-row-link:hover { color: var(--brand-600); text-decoration: underline; }
   letter-spacing: 0.7px; color: var(--gray-500);
 }
 .zf-edit-link {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 12px; font-weight: 600; color: var(--brand-600);
-  background: none; border: none; cursor: pointer; padding: 2px 6px;
-  border-radius: 4px; transition: background .12s; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: #374151;
+  background: #e5e7eb; border: 1px solid #d1d5db;
+  cursor: pointer; padding: 4px 10px;
+  border-radius: 6px; transition: all .15s ease; font-family: inherit;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
-.zf-edit-link:hover { background: var(--brand-50); color: var(--brand-700); }
+.zf-edit-link:hover { background: #d1d5db; color: #111827; }
 .zf-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
 @media (max-width: 680px) { .zf-cols { grid-template-columns: 1fr; } }
 .zf-row {
@@ -5344,8 +5263,8 @@ a.cl-row-link:hover { color: var(--brand-600); text-decoration: underline; }
 }
 .zf-val { flex: 1; font-size: 13.5px; color: var(--gray-900); font-weight: 500; min-width: 0; }
 .zf-val.mono { font-family: monospace; font-size: 12.5px; color: var(--gray-700); }
-.zf-val a { color: var(--brand-600); text-decoration: none; }
-.zf-val a:hover { text-decoration: underline; }
+.zf-val a { color: #2563eb; text-decoration: none; }
+.zf-val a:hover { text-decoration: underline; color: #1d4ed8; }
 .zf-val strong { color: var(--gray-900); font-weight: 700; }
 
 /* ── Note compose (shared) ────────────────────────────────────── */
@@ -5549,3 +5468,1420 @@ a.cl-row-link:hover { color: var(--brand-600); text-decoration: underline; }
   margin-top: 5px;
 }
 .al-invite-btn:hover { background: var(--brand-50); }
+
+/* ==========================================================
+   BODY — Apple Vision gradient background (all admin pages)
+   ========================================================== */
+body {
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(circle at 85% 0%, rgba(220,252,231,0.6) 0%, transparent 40%),
+    radial-gradient(circle at 10% 40%, rgba(207,250,254,0.4) 0%, transparent 30%),
+    radial-gradient(circle at 50% 100%, rgba(241,245,249,0.6) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* ==========================================================
+   CLIENT DETAIL PAGE — admin_client_detail.html
+   All styles for the 2-column client detail view.
+   Memory.md: HTML = structure only. CSS = here only.
+   ========================================================== */
+
+/* ── Layout ── */
+.main.detail-main {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  gap: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+.detail-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.profile-col {
+  width: 220px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  background: rgba(248, 249, 251, 0.96);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-right: 1px solid rgba(0,0,0,0.07);
+  padding-top: 16px;
+}
+.data-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+.data-col-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+/* ── Left panel back link ── */
+.z-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-decoration: none;
+  padding: 0 16px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 14px;
+  transition: color 150ms;
+}
+.z-back-link:hover { color: #059669; }
+.z-back-link svg { width: 14px; height: 14px; }
+
+/* ── Identity block ── */
+.z-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 16px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.z-identity .z-avatar { width: 56px; height: 56px; font-size: 18px; margin-bottom: 10px; }
+.z-identity-text .z-title { font-size: 13.5px; font-weight: 700; color: #1e293b; line-height: 1.3; }
+.z-identity-text .z-subtitle { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+/* ── ELENCO CORRELATO nav ── */
+.profile-col > .z-sidebar { background: transparent; }
+.z-sidebar { padding: 0; }
+.z-sidebar-title {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 10px 12px 3px;
+  margin-top: 20px;
+  display: block;
+}
+.z-nav-list { list-style: none; padding: 4px 0 12px; margin: 0; }
+.z-nav-list li { margin-bottom: 2px; }
+.z-nav-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 13.5px;
+  color: #374151;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 10px;
+  transition: background 200ms, box-shadow 200ms, color 200ms;
+}
+.z-nav-item:hover { background: rgba(0,0,0,0.05); color: #111827; }
+.z-nav-item.active {
+  background: #ffffff;
+  color: #059669;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+}
+.z-nav-badge {
+  background: rgba(0,0,0,0.10);
+  color: inherit;
+  font-size: 10.5px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-weight: 700;
+  min-width: 20px;
+  text-align: center;
+}
+.z-nav-item.active .z-nav-badge { background: rgba(5,150,105,0.12); color: #059669; }
+.z-nav-badge:empty { display: none; }
+
+/* ── Client detail header bar ── */
+.z-header {
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+  margin-bottom: 0;
+  padding: 14px 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.z-header-left { display: flex; align-items: center; gap: 16px; }
+.z-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.z-header-right .btn {
+  height: 32px;
+  padding: 0 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-danger-ghost {
+  background: #fff;
+  color: #ef4444;
+  border: 1px solid #fca5a5;
+}
+.btn-danger-ghost:hover { background: #fef2f2; border-color: #f87171; }
+.btn svg { width: 14px; height: 14px; }
+
+/* ── Avatar ── */
+.z-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #059669 0%, #34d399 100%);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(5,150,105,0.22);
+  flex-shrink: 0;
+}
+
+/* ── Header text ── */
+.z-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+.z-subtitle { font-size: 12.5px; color: #64748b; margin-top: 3px; }
+.z-subtitle a { color: #059669; text-decoration: none; font-weight: 500; }
+.z-subtitle a:hover { text-decoration: underline; }
+.z-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-left: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Info pills ── */
+.z-info-strip { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+.z-info-pill { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #64748b; }
+.z-info-pill svg { width: 13px; height: 13px; color: #94a3b8; }
+.z-info-pill a { color: #059669; text-decoration: none; }
+.z-info-pill a:hover { text-decoration: underline; }
+
+/* ── View tab toggles ── */
+.z-view-toggles-container {
+  background: transparent;
+  border: none;
+  padding: 24px 32px 16px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.z-view-toggles { display: inline-flex; gap: 8px; }
+.z-view-btn {
+  padding: 7px 18px;
+  border: 1px solid transparent;
+  outline: none;
+  background: transparent;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 13.5px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 200ms;
+  font-family: inherit;
+}
+.z-view-btn.active {
+  font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+/* ── View containers ── */
+#view-panoramica { padding: 0 32px 32px; }
+#view-panoramica, #view-timeline { display: none; }
+#view-panoramica.active, #view-timeline.active {
+  display: block;
+  animation: cdFadeIn 250ms;
+}
+@keyframes cdFadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cards (glassmorphism light) ── */
+.z-card {
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  margin-bottom: 24px;
+  padding: 0;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.04);
+  scroll-margin-top: 90px;
+  overflow: hidden;
+}
+.z-card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.z-card-title { font-size: 13.5px; font-weight: 700; color: #1e293b; margin: 0; letter-spacing: -0.01em; }
+.z-card-body { padding: 20px; }
+.z-card-body--flush { padding: 0; }
+
+/* ── Outline action button ── */
+.z-btn-outline {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  border-radius: 7px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms;
+  font-family: inherit;
+}
+.z-btn-outline:hover { border-color: #059669; color: #059669; background: #f0fdf4; }
+
+/* ── Details grid ── */
+.z-details-grid {
+  display: grid;
+  grid-template-columns: minmax(170px, max-content) 1fr;
+  gap: 12px 24px;
+  align-items: center;
+}
+.z-detail-label { font-size: 12.5px; color: #94a3b8; font-weight: 500; text-align: right; }
+.z-detail-value { font-size: 13.5px; color: #1e293b; font-weight: 500; word-break: break-word; }
+
+/* ── KPI strip ── */
+.cd-chips {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  border: 1px solid #e4e9f0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 4px rgba(15,23,42,0.05);
+}
+.cd-chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-right: 1px solid #f0f2f5;
+  transition: background 150ms;
+}
+.cd-chip:last-child { border-right: none; }
+.cd-chip:hover { background: #f8fafc; }
+.cd-chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.cd-chip-lbl { font-size: 10.5px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap; }
+.cd-chip-val { font-size: 17px; font-weight: 700; color: #1e293b; margin-left: auto; line-height: 1; }
+
+/* ── Timeline ── */
+.z-timeline { position: relative; padding-left: 100px; margin-top: 10px; }
+.z-timeline::before {
+  content: '';
+  position: absolute;
+  left: 130px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #e4e9f0;
+}
+.z-timeline-date {
+  position: absolute;
+  left: 0;
+  top: -10px;
+  background: #fff;
+  border: 1px solid #e4e9f0;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+  z-index: 2;
+}
+.z-timeline-item { position: relative; margin-bottom: 28px; margin-top: 28px; display: flex; align-items: flex-start; }
+.z-timeline-time { position: absolute; left: -100px; width: 60px; text-align: right; font-size: 11.5px; color: #94a3b8; top: 6px; }
+.z-timeline-icon {
+  position: absolute;
+  left: -16px;
+  top: 2px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f8fafc;
+  border: 1px solid #e4e9f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  z-index: 2;
+}
+.z-timeline-icon svg { width: 14px; height: 14px; }
+.z-timeline-content { margin-left: 36px; padding-top: 6px; }
+.z-timeline-meta { font-size: 13px; color: #1e293b; font-weight: 600; margin-bottom: 4px; display: flex; gap: 4px; align-items: center; }
+.z-timeline-meta span.blue { color: #2563eb; font-weight: 400; }
+.z-timeline-text { font-size: 12px; color: #94a3b8; margin: 0; }
+
+/* ── Note compose ── */
+.z-note-compose {
+  border: 1px solid #e4e9f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  background: #fff;
+}
+.z-note-compose textarea {
+  width: 100%;
+  border: none;
+  padding: 14px;
+  font-size: 13px;
+  min-height: 72px;
+  resize: none;
+  background: transparent;
+  font-family: inherit;
+  color: #374151;
+  line-height: 1.6;
+}
+.z-note-compose textarea:focus { outline: none; }
+.z-note-actions {
+  border-top: 1px solid #f0f2f5;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: flex-end;
+  background: #fafbfc;
+}
+
+/* ── Modal size variants ──  */
+.modal--sm { max-width: 480px; width: 100%; }
+.modal--xs { max-width: 440px; width: 100%; }
+
+/* ── Sidebar brand logo ── */
+.sidebar-brand-logo { max-width: 220px; height: auto; max-height: 90px; object-fit: contain; }
+
+/* ── Sidebar footer user info ── */
+.sidebar-user-wrap { overflow: hidden; }
+.sidebar-user-name {
+  color: rgba(255,255,255,0.9);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-user-role { color: rgba(255,255,255,0.45); font-size: 11px; }
+.sidebar-avatar-sm { width: 30px; height: 30px; font-size: 11px; }
+
+/* ── Text utilities ── */
+.text-muted { color: var(--gray-500); font-size: 13px; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .detail-layout { flex-direction: column; overflow: visible; }
+  .profile-col { width: 100%; overflow-y: visible; }
+  .data-col { overflow-y: visible; height: auto; }
+}
+
+/* ============================================================
+   APPLE MAC-OS STYLE OVERRIDES (Dashboard & Sidebar)
+   ============================================================ */
+body {
+  background: #fbfbfd !important;
+}
+
+/* SIDEBAR LIGHT THEME */
+.sidebar {
+  background: rgba(245, 245, 247, 0.85) !important; 
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(0,0,0,0.05) !important;
+}
+.sidebar-brand .brand-name {
+  color: #1d1d1f !important;
+}
+.sidebar-user-name, .sidebar-user-role {
+  color: #1d1d1f !important;
+}
+.sidebar-user-role { opacity: 0.6; }
+
+/* SIDEBAR ICONS MAC-OS STYLE */
+.nav-item {
+  color: #515154 !important;
+  border-radius: 8px !important;
+  margin-bottom: 2px !important;
+  font-weight: 500 !important;
+}
+.nav-item:hover {
+  background: rgba(0,0,0,0.04) !important;
+  color: #1d1d1f !important;
+}
+.nav-item.active {
+  background: #e8e8ed !important;
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+}
+.nav-section-label {
+  color: #86868b !important;
+  font-weight: 600 !important;
+}
+.sidebar-footer {
+  border-top: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+.nav-item svg {
+  width: 26px !important;
+  height: 26px !important;
+  padding: 5px !important;
+  border-radius: 6px !important;
+  color: #ffffff !important;
+  flex-shrink: 0;
+  stroke-width: 1.8 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+/* Colori vibranti Apple per icone sidebar */
+.nav-item[href*="admin_dash"] svg { background: #34c759 !important; }
+.nav-item[href*="admin_onboarding"] svg { background: #af52de !important; }
+.nav-item[href*="admin_clients"] svg { background: #007aff !important; }
+.nav-item[href*="admin_quotes"] svg { background: #ff9500 !important; }
+.nav-item[href*="admin_services"] svg { background: #5ac8fa !important; }
+.nav-item[href*="admin_contracts"] svg { background: #5856d6 !important; }
+.nav-item[href*="admin_documents"] svg { background: #ff2d55 !important; }
+.nav-item[href*="admin_invoices"] svg { background: #34c759 !important; }
+.nav-item[href*="admin_renewals"] svg { background: #ff3b30 !important; }
+.nav-item[href*="admin_calendar"] svg { background: #ff3b30 !important; }
+.nav-item[href*="admin_activities"] svg { background: #8e8e93 !important; }
+.nav-item[href*="admin_reports"] svg { background: #007aff !important; }
+.nav-item[href*="admin_companies"] svg { background: #ff9500 !important; }
+.nav-item[href*="admin_users"] svg { background: #af52de !important; }
+
+/* KPI CARDS (DASHBOARD) */
+.stat-card {
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(0,0,0,0.04) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease !important;
+  overflow: hidden !important;
+}
+.stat-card::before {
+  display: none !important;
+}
+.stat-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.08) !important;
+}
+.stat-card-label {
+  font-weight: 600 !important;
+  color: #86868b !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-size: 11px !important;
+}
+.stat-card-val {
+  font-weight: 700 !important;
+  color: #1d1d1f !important;
+  font-size: 32px !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* QUICK ACTIONS (DASHBOARD) */
+.quick-action-btn {
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(0,0,0,0.04) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.02) !important;
+  padding: 12px 16px !important;
+  font-weight: 500 !important;
+  color: #1d1d1f !important;
+  transition: all 0.2s ease !important;
+}
+.quick-action-btn:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06) !important;
+  transform: scale(1.02) !important;
+}
+
+/* ============================================================
+   CORREZIONI APPLE STYLE + COMPLIANCE Card_Design.md
+   ============================================================ */
+body {
+  background: #ffffff !important; /* Rimuove il "tutto grigio" globale */
+}
+
+/* Ripristino Top Marker per le KPI Cards come richiesto in Card_Design.md */
+.stat-card::before {
+  display: block !important; 
+  height: 3px !important;
+  border-radius: 20px 20px 0 0 !important;
+}
+.stat-card {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.03) !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+}
+
+/* Sidebar Nav Item Attivo - Bianco su grigio per staccare */
+.nav-item.active {
+  background: #ffffff !important;
+  color: #1d1d1f !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.02) !important;
+  font-weight: 600 !important;
+}
+
+/* ============================================================
+   CORREZIONI APPLE STYLE + COMPLIANCE Card_Design.md
+   ============================================================ */
+body {
+  background: #ffffff !important; /* Rimuove il "tutto grigio" globale */
+}
+
+/* Ripristino Top Marker per le KPI Cards come richiesto in Card_Design.md */
+.stat-card::before {
+  display: block !important; 
+  height: 3px !important;
+  border-radius: 20px 20px 0 0 !important;
+}
+.stat-card {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.03) !important;
+  border: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+/* Sidebar Nav Item Attivo - Bianco su grigio per staccare */
+.nav-item.active {
+  background: #ffffff !important;
+  color: #1d1d1f !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03) !important;
+  font-weight: 600 !important;
+}
+
+/* ============================================================
+   CORREZIONI APPLE STYLE - BARRA FILTRI (Rimozione sfondi grigi)
+   ============================================================ */
+/* .cl-filter-row è la barra filtri orizzontale usata nelle tabelle */
+
+/* .filter-bar è il layout usato in altre sezioni (Dashboard) */
+.filter-bar {
+  background: #ffffff !important;
+}
+
+/* Gli input diventano molto tenui per risaltare sul bianco in stile Apple iOS */
+.cl-filter-search-wrap input,
+.cl-filter-select,
+.filter-bar-search,
+.filter-tab {
+  background: #f5f5f7 !important;
+  border-color: transparent !important;
+}
+
+/* Hover e Focus per i filtri */
+.cl-filter-search-wrap input:focus,
+.cl-filter-select:focus,
+.filter-bar-search:focus-within,
+.filter-tab:hover {
+  background: #ebebed !important;
+  box-shadow: none !important;
+}
+
+.filter-tab.active {
+  background: #1d1d1f !important;
+  color: #ffffff !important;
+}
+
+/* ============================================================
+   CORREZIONI APPLE STYLE - TINTA SFONDO & HEADER SEARCH
+   ============================================================ */
+/* Aggiungiamo una leggerissima tinta fresca allo sfondo (meno "vuoto bianco") */
+body {
+  background: #f4f6f9 !important; /* Grigio-azzurrino chiarissimo, elegante stile Apple/iPadOS */
+}
+
+/* La ricerca globale in alto diventa una 'pillola' identica ai filtri */
+.header-search {
+  background: #ebebed !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+.header-search:focus-within {
+  background: #e1e1e4 !important; /* Diventa leggermente più scura al focus */
+  box-shadow: none !important;
+}
+
+/* Header Navbar: se la pagina è grigina, la navbar in alto la facciamo staccare meglio col bianco */
+.header {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+/* Assicuriamoci che la Dashboard Card Area sia bianca */
+.card, .stat-card {
+  background: #ffffff !important;
+}
+
+/* ============================================================
+   MAC OS GROUPED FORM LIST (SETTINGS STYLE)
+   ============================================================ */
+.mac-form-section {
+  font-size: 13.5px;
+  font-weight: 600;
+  text-transform: none;
+  color: #1d1d1f;
+  margin: 32px 0 8px 12px;
+  max-width: 700px;
+}
+.mac-form-section:first-child { margin-top: 16px; }
+
+.mac-form-list {
+  background: #f5f5f7;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: none;
+  border: none;
+  max-width: 700px; /* Constrain width for a better form aesthetic */
+}
+
+.mac-form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: transparent;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  min-height: 44px; /* Settings inputs are slightly taller */
+}
+
+.mac-form-row:last-child {
+  border-bottom: none;
+}
+
+.mac-form-label {
+  font-size: 14.5px;
+  font-weight: 400;
+  color: #1d1d1f;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.mac-form-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none !important;
+  background: transparent !important;
+  text-align: right;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #86868b;
+  padding: 0 0 0 16px !important;
+  font-size: 14.5px;
+  height: 24px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  font-family: inherit;
+  transition: color 0.1s;
+}
+
+.mac-form-input:focus {
+  color: #1d1d1f;
+}
+.mac-form-input::placeholder {
+  color: #d1d1d6;
+}
+
+/* Mac Select Styling */
+select.mac-form-input {
+  direction: ltr; /* Reset to left-to-right */
+  text-align: right;
+  background: transparent !important; /* No pill */
+  border-radius: 0;
+  padding: 0 20px 0 0 !important; /* Space for chevron on the right */
+  height: auto !important;
+  color: #86868b;
+  font-weight: 400;
+  flex: 1 1 auto;
+  width: auto;
+  margin-left: auto;
+  max-width: 300px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M8 10l4-4 4 4'/%3e%3cpath d='M16 14l-4 4-4-4'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right center !important;
+  background-size: 14px 14px !important;
+  border: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+select.mac-form-input:hover {
+  background-color: transparent !important;
+  color: #1d1d1f;
+}
+
+select.mac-form-input option {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Modifica Header Buttons Top */
+.mac-btn-cancel {
+  background: transparent !important;
+  color: #007aff !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 500;
+  padding: 4px 8px;
+}
+.mac-btn-cancel:hover { background: rgba(0,122,255,0.1) !important; }
+
+
+/* ============================================================
+   MAC OS TOGGLE SWITCH (ACCENDI/SPEGNI)
+   ============================================================ */
+.mac-toggle {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 51px;
+  height: 31px;
+  background: #e5e5ea;
+  border-radius: 31px;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); /* subtle inner border */
+  transition: background 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.mac-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16), 0 3px 1px rgba(0,0,0,0.1);
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.mac-toggle:checked {
+  background: #34c759; /* iOS green */
+}
+
+.mac-toggle:checked::after {
+  transform: translateX(20px);
+}
+
+
+/* ============================================================
+   MAC OS SEGMENTED CONTROL (FILTER TABS)
+   ============================================================ */
+.mac-segmented-control {
+  display: inline-flex;
+  background: #e5e5ea; /* macOS light gray */
+  border-radius: 8px;
+  padding: 2px;
+  align-items: center;
+}
+.mac-segmented-control .cl-status-pill {
+  background: transparent !important;
+  border: none !important;
+  color: #000000 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s;
+  box-shadow: none !important;
+}
+.mac-segmented-control .cl-status-pill.active {
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.06) !important;
+}
+
+
+
+.mac-filter-input {
+  background-color: #e5e5ea !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 4px 12px !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: #000000 !important;
+  height: 28px !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.mac-filter-input::placeholder { color: #8e8e93 !important; }
+
+/* ============================================================
+   MAC OS 3-DOTS MENU (Context Menu)
+   ============================================================ */
+.mac-context-btn {
+  background: transparent;
+  border: none;
+  color: #8e8e93;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.mac-context-btn:hover {
+  background: #e5e5ea;
+  color: #000000;
+}
+.mac-context-btn svg { width: 16px; height: 16px; }
+
+/* The popup menu inside */
+.mac-context-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.85); /* Glassmorphism */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.2);
+  min-width: 140px;
+  padding: 6px;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+}
+.mac-context-menu.open {
+  display: flex;
+}
+.mac-context-item {
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #000;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.mac-context-item:hover {
+  background: #007aff;
+  color: #fff;
+}
+.mac-context-item.danger { color: #ff3b30; }
+.mac-context-item.danger:hover { background: #ff3b30; color: #fff; }
+
+/* In list rows, force position relative so context menu aligns right */
+.cl-row { position: relative; }
+
+/* ============================================================
+   GLOBAL FILTER SELECTS & INPUTS (MAC OS STYLE ALIGNED)
+   ============================================================ */
+.cl-filter-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+  min-height: 32px !important;
+  padding: 0 34px 0 12px !important;
+  font-size: 14px !important;
+  font-family: inherit !important;
+  font-weight: 500 !important;
+  color: #1c1c1e !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  line-height: 32px !important;
+  vertical-align: middle !important;
+  box-shadow: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='12' fill='%23ebebed'/%3E%3Cpath d='M8 10.5L12 6.5L16 10.5' stroke='%231c1c1e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M8 13.5L12 17.5L16 13.5' stroke='%231c1c1e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 4px center !important;
+  background-size: 24px !important;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: auto !important;
+  min-width: 0 !important;
+}
+.cl-filter-select:hover {
+  background-color: rgba(0,0,0,0.03) !important;
+}
+.cl-filter-select:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0,122,255,0.2) !important;
+}
+
+.cl-filter-search-input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #ffffff !important;
+  border: 1px solid #d1d1d6 !important;
+  border-radius: 100px !important; /* Forma a pillola Apple */
+  box-sizing: border-box !important;
+  min-height: 32px !important;
+  padding: 0 16px 0 36px !important; /* spazio per lente a sx, spazio a dx */
+  font-size: 14px !important;
+  font-family: inherit !important;
+  font-weight: 400 !important;
+  color: #1c1c1e !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 30px !important;
+  vertical-align: middle !important;
+  transition: all 0.2s;
+  min-width: 220px;
+}
+.cl-filter-search-input:focus {
+  outline: none !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 3px rgba(0,122,255,0.2) !important;
+}
+.cl-filter-search-input::placeholder { color: #8e8e93 !important; }
+
+/* Date specific fixes */
+input[type="date"].cl-filter-select, 
+input[type="text"].cl-filter-select {
+  background-image: none !important;
+  padding: 0 4px 0 10px !important; /* ridotto padding destro per incollare l'icona al testo */
+  width: 110px !important; /* costringe l'icona del calendario ad allinearsi strettamente */
+}
+
+/* ============================================================
+   GLOBAL MAC STYLE ACTION BUTTON (+)
+   ============================================================ */
+.btn-action-icon {
+  background: #007aff !important;
+  color: #ffffff !important;
+  border: none !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+  transition: background 0.2s, transform 0.1s !important;
+  flex-shrink: 0;
+}
+.btn-action-icon:hover {
+  background: #006ce4 !important;
+}
+.btn-action-icon:active {
+  transform: scale(0.95) !important;
+}
+.btn-action-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+
+/* Fix for date inputs acting as filters so they don't get the select arrow */
+input[type="date"].cl-filter-select, 
+input[type="text"].cl-filter-select {
+  background-image: none !important;
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
+  padding: 0 10px !important;
+}
+
+
+/* ============================================================
+   APPLE DESIGN SYSTEM (COMPLIANT)
+   ============================================================ */
+.cl-quick-badges {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: #f2f2f7; padding: 3px; border-radius: 8px; flex-wrap: nowrap; overflow-x: auto;
+}
+.cl-quick-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 500; color: #3a3a3c;
+  background: transparent; border: none; border-radius: 6px;
+  padding: 4px 12px; cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.cl-quick-badge:hover { background: rgba(0,0,0,0.05); }
+.cl-quick-badge.active { 
+  background: #ffffff; color: #000000; font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.06); 
+}
+.cl-quick-badge span {
+  background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 12px;
+  font-size: 11px; font-weight: 600; line-height: 1; border: none;
+}
+
+
+.btn-primary {
+  background: #007aff; color: #ffffff; border: none; border-radius: 6px;
+  padding: 6px 14px; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: all 0.2s;
+}
+.btn-primary:hover { background: #005bb5; }
+
+.btn-secondary {
+  background: #ffffff; color: #000000; border: 1px solid #d1d1d6; border-radius: 6px;
+  padding: 6px 14px; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,0.02); transition: all 0.2s;
+}
+.btn-secondary:hover { background: #f2f2f7; border-color: #c7c7cc; }
+
+/* Stile icone della search input filter */
+.relative:has(.cl-filter-search-input) svg { color: #1c1c1e; }
+
+.header {
+  background: #f2f2f7 !important;
+  border-bottom: 1px solid #e5e5ea !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.header-search {
+  background: #ffffff !important;
+  border: 1px solid #d1d1d6 !important;
+  border-radius: 100px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 16px !important;
+  height: 36px !important;
+  transition: all 0.2s !important;
+}
+.header-search:focus-within {
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2) !important;
+}
+/* Company selector background white */
+.company-selector {
+  background: #ffffff !important;
+  border: 1px solid #d1d1d6 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+  border-radius: 8px !important;
+}
+
+/* Default color for company dot 'T' */
+.company-dot {
+  background-color: #007aff; /* Apple blue default */
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Color icons (bell, help) */
+.icon-btn svg {
+  color: #007aff !important;
+}
+
+/* Profile role 'Admin' color so it's visible */
+.profile-role {
+  color: #5c5c60 !important; /* Darker gray to be visible, or #007aff */
+  font-weight: 500 !important;
+}
+
+/* The profile button background should probably match */
+.profile-btn {
+  background: transparent !important;
+}
+.profile-btn:hover {
+  background: rgba(0,0,0,0.04) !important;
+}
+.pill-red {
+  background: #fee2e2; color: #dc2626; border: none; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600;
+}
+
+
+/* ====== Mac-style detail page components (restored) ====== */
+
+/* Sidebar for detail pages */
+.mac-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: #f5f5f7;
+  border-right: 1px solid rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.mac-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #3a3a3c;
+  cursor: pointer;
+  border-radius: 8px;
+  margin: 0 8px 2px;
+  transition: background 0.12s;
+  text-decoration: none;
+  position: relative;
+}
+.mac-nav-item:hover { background: rgba(0,0,0,0.05); }
+.mac-nav-item.active {
+  background: var(--brand-500, #4f6ef7);
+  color: #fff;
+}
+.mac-nav-item .nav-badge {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: rgba(0,0,0,0.08);
+}
+.mac-nav-item.active .nav-badge {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+/* Section label inside sidebar */
+.mac-section {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-400, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 14px 20px 4px;
+}
+
+/* Top bar */
+
+/* Tab content sections */
+.mac-tab-section {
+  display: none;
+}
+.mac-tab-section.active {
+  display: block;
+}
+
+/* Divider */
+.mac-divider {
+  height: 1px;
+  background: rgba(0,0,0,0.08);
+  margin: 12px 0;
+}
+
+.mac-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 4px 6px;
+  gap: 8px;
+}
+.mac-form-header-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1c1c1e;
+  letter-spacing: -0.01em;
+}
+
+/* form-value (right-side value in a mac-form-row) */
+.mac-form-value {
+  font-size: 14px;
+  color: #1c1c1e;
+  text-align: right;
+  flex: 1;
+  word-break: break-word;
+}
+.mac-form-value a {
+  color: var(--brand-600, #2563eb);
+  text-decoration: none;
+}
+.mac-form-value.mono { font-family: ui-monospace, monospace; font-size: 13px; }
+
+/* Text-style button (e.g. Modifica) */
+.mac-btn-text {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--brand-600, #2563eb);
+  font-family: inherit;
+  padding: 0;
+  transition: opacity 0.1s;
+}
+.mac-btn-text:hover { opacity: 0.7; }
+.mac-btn-text.text-danger { color: #ef4444; }
+.mac-btn-text.text-save { color: var(--brand-600, #2563eb); }
+
+/* Pipeline / progress track */
+.mac-pipeline-wrap {
+  padding: 16px 0 8px;
+  overflow-x: auto;
+}
+.mac-pipeline-track {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  min-width: max-content;
+  padding: 0 8px;
+  position: relative;
+}
+.mac-pipeline-track-bg {
+  position: absolute;
+  top: 15px;
+  left: 36px;
+  right: 36px;
+  height: 2px;
+  background: #e5e7eb;
+  z-index: 0;
+}
+.mac-pipeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 80px;
+  position: relative;
+  z-index: 1;
+  cursor: default;
+}
+.mac-pipeline-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  border: 2px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+}
+.mac-pipeline-step.done .mac-pipeline-dot {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+.mac-pipeline-step.current .mac-pipeline-dot {
+  background: var(--brand-500, #4f6ef7);
+  border-color: var(--brand-500, #4f6ef7);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(79,110,247,0.18);
+}
+.mac-pipeline-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #9ca3af;
+  text-align: center;
+  max-width: 80px;
+  line-height: 1.3;
+}
+.mac-pipeline-step.done .mac-pipeline-label { color: #10b981; }
+.mac-pipeline-step.current .mac-pipeline-label {
+  color: var(--brand-500, #4f6ef7);
+  font-weight: 700;
+}
+.mac-pipeline-progress {
+  height: 2px;
+  background: #10b981;
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  right: -50%;
+  z-index: 0;
+}
+.mac-pipeline-step:last-child .mac-pipeline-progress { display: none; }
+
+/* Mass action bar */
+.mac-mass-action-bar {
+  position: fixed;
+  bottom: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30,30,30,0.92);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  transition: bottom 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 9999;
+  min-width: 320px;
+}
+.mac-mass-action-bar.visible { bottom: 28px; }
+.mac-mass-action-content { display: flex; align-items: center; gap: 12px; width: 100%; }
+.mac-mass-action-selected { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); white-space: nowrap; }
+.mac-mass-action-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.2); flex-shrink: 0; }
+.mac-mass-action-buttons { display: flex; gap: 8px; flex: 1; }
+.mac-mass-action-btn {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 6px 14px;
+  font-size: 13px; font-weight: 600; color: #fff;
+  cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.1s;
+}
+.mac-mass-action-btn:hover { background: rgba(255,255,255,0.22); }
+.mac-mass-action-btn.delete { color: #ff6b6b; }
+.mac-mass-action-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.mac-mass-action-close {
+  background: rgba(255,255,255,0.1); border: none; border-radius: 8px;
+  width: 32px; height: 32px; color: rgba(255,255,255,0.7);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-left: auto; transition: background 0.1s;
+}
+.mac-mass-action-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+/* Sidebar nav: colored icons */
+.sidebar-nav .nav-item:nth-child(2) svg { color: #4f6ef7; }
+.sidebar-nav .nav-item:nth-child(3) svg { color: #0ea5e9; }
+.sidebar-nav .nav-item:nth-child(4) svg { color: #10b981; }
+.sidebar-nav .nav-item:nth-child(5) svg { color: #8b5cf6; }
+.sidebar-nav .nav-item:nth-child(6) svg { color: #6366f1; }
+.sidebar-nav .nav-item:nth-child(7) svg { color: #f59e0b; }
+.sidebar-nav .nav-item:nth-child(8) svg { color: #ec4899; }
+.sidebar-nav .nav-item:nth-child(9) svg { color: #ef4444; }
+.sidebar-nav .nav-item:nth-child(10) svg { color: #06b6d4; }
+.sidebar-nav .nav-item:nth-child(11) svg { color: #84cc16; }
+.sidebar-nav .nav-item:nth-child(12) svg { color: #f97316; }
+.sidebar-nav .nav-item:nth-child(13) svg { color: #a855f7; }
+.sidebar-nav .nav-item:nth-child(14) svg { color: #14b8a6; }
+.sidebar-nav .nav-item.active svg { color: #fff !important; }
+/* ====== End mac-style detail page components ====== */

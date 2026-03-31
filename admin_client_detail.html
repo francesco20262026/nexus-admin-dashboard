@@ -1,1173 +1,614 @@
 <!DOCTYPE html>
+
 <html lang="it">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nova CRM — Scheda Cliente</title>
-  <meta name="description" content="Scheda 360° del cliente: anagrafica, servizi, contratti, fatture, documenti, rinnovi."/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preload" as="image" href="/assets/img/nova-crm-logo-sidebar.svg">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="assets/css/dash.css?v=102"/>
-  <style>
-    /* =========================================================
-       CLIENT DETAIL — NOVA CRM — VARIANT A (Dark Hero + Sidebar)
-       v=102
-       ========================================================= */
-
-    /* ── Page ───────────────────────────────────────────────── */
-    body { background: #f1f5f9; }
-    .main { background: transparent; padding: 0; overflow: visible; }
-
-    /* ── TOP ACTION BAR ─────────────────────────────────────── */
-    .cd-topbar {
-      background: #fff;
-      border-bottom: 1px solid #e2e8f0;
-      padding: 0 24px;
-      height: 46px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: var(--header-h, 56px);
-      z-index: 40;
-      box-shadow: 0 1px 0 rgba(15,23,42,0.04);
-    }
-    .cd-topbar-crumb {
-      display: flex; align-items: center; gap: 6px;
-      color: #94a3b8; font-size: 12px;
-    }
-    .cd-topbar-crumb a {
-      color: #64748b; text-decoration: none; font-weight: 500;
-      display: flex; align-items: center; gap: 4px; transition: color .12s;
-    }
-    .cd-topbar-crumb a:hover { color: #059669; }
-    .cd-topbar-crumb-sep { color: #cbd5e1; font-size: 11px; }
-    .cd-topbar-actions { display: flex; gap: 7px; align-items: center; }
-
-    .cd-topbar-btn {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 0 13px; height: 30px; border-radius: 7px;
-      font-size: 12px; font-weight: 500; cursor: pointer;
-      transition: all .14s; text-decoration: none; font-family: inherit;
-      white-space: nowrap;
-    }
-    .cd-topbar-btn-primary {
-      background: #059669; color: #fff; border: none;
-      font-weight: 600; box-shadow: 0 1px 4px rgba(5,150,105,0.35);
-    }
-    .cd-topbar-btn-primary:hover { background: #047857; }
-    .cd-topbar-btn-ghost {
-      background: #fff; color: #374151; border: 1px solid #e2e8f0;
-    }
-    .cd-topbar-btn-ghost:hover { border-color: #059669; color: #059669; background: #f0fdf4; }
-    .cd-topbar-btn-danger {
-      background: #fef2f2; color: #ef4444; border: 1px solid #fecaca;
-    }
-    .cd-topbar-btn-danger:hover { background: #fee2e2; border-color: #fca5a5; }
-
-    /* ══════════════════════════════════════════════════════════
-       CLIENT HEADER — Clean & refined
-       ══════════════════════════════════════════════════════════ */
-    .cd-hero {
-      background: #fff;
-      position: relative; overflow: visible;
-      padding: 20px 24px 0;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .cd-hero::before { display: none; }
-    .cd-hero::after  { display: none; }
-    .cd-hero-dots    { display: none; }
-    .cd-hero-glow    { display: none; }
-    .cd-hero-inner   { position: relative; z-index: 1; }
-
-    /* ── Avatar ── */
-    .z-avatar {
-      width: 52px !important; height: 52px !important; border-radius: 13px !important;
-      background: #059669 !important; border: none !important;
-      color: #fff !important; font-size: 18px !important; font-weight: 800 !important;
-      display: flex !important; align-items: center !important; justify-content: center !important;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.12), 0 4px 14px rgba(5,150,105,0.18) !important;
-      flex-shrink: 0 !important; letter-spacing: -0.5px;
-    }
-
-    /* ── Nome + meta ── */
-    .z-header {
-      display: flex !important; align-items: center !important;
-      gap: 16px !important; flex-wrap: wrap !important;
-      background: transparent !important; border: none !important;
-      padding: 0 !important; margin: 0 0 12px !important;
-    }
-    .z-header-left {
-      display: flex !important; align-items: center !important;
-      gap: 16px !important; flex: 1 !important; min-width: 0 !important;
-    }
-    .z-header-right { display: none !important; }
-
-    .z-title {
-      font-size: 19px !important; font-weight: 700 !important; color: #0f172a !important;
-      margin: 0 0 3px !important; letter-spacing: -0.025em !important;
-      display: flex !important; align-items: center !important;
-      gap: 10px !important; flex-wrap: wrap !important; line-height: 1.2 !important;
-    }
-    .z-badge {
-      background: transparent !important; color: inherit !important;
-      padding: 0 !important; border-radius: 0 !important;
-      font-size: inherit !important; font-weight: inherit !important;
-      border: none !important; letter-spacing: 0 !important;
-    }
-    .z-badge span { background: inherit !important; }
-
-    .z-subtitle { font-size: 12px; color: #94a3b8; margin: 0; }
-    .z-subtitle a { color: #059669; text-decoration: none; font-weight: 500; }
-    .z-subtitle a:hover { text-decoration: underline; }
-
-    /* ── Info strip ── */
-    .z-info-strip {
-      display: flex !important; flex-wrap: wrap !important;
-      gap: 16px !important; padding: 0 0 14px !important;
-      border-top: none !important; margin-top: 0 !important;
-    }
-    .z-info-pill {
-      display: flex !important; align-items: center !important; gap: 5px !important;
-      padding: 0 !important; margin: 0 !important; border-right: none !important;
-      font-size: 12.5px !important; color: #475569 !important; font-weight: 400 !important;
-    }
-    .z-info-pill svg { color: #94a3b8 !important; width: 13px !important; height: 13px !important; }
-
-    /* ── KPI — 4 schede orizzontali, label sinistra, valore destra ── */
-    .cd-kpi-strip {
-      display: flex !important; gap: 10px !important;
-      border-top: 1px solid #f1f5f9 !important;
-      padding: 14px 0 0 !important; margin: 0 !important;
-    }
-    .cd-kpi-item {
-      flex: 1 !important; min-width: 0 !important;
-      background: #f8fafc !important;
-      border: 1px solid #e8edf2 !important; border-radius: 10px !important;
-      padding: 12px 16px !important; backdrop-filter: none !important;
-      display: flex !important; flex-direction: row !important;
-      align-items: center !important; justify-content: space-between !important;
-      gap: 12px !important; transition: border-color .14s, box-shadow .14s !important;
-    }
-    .cd-kpi-item:hover {
-      border-color: #a7f3d0 !important;
-      box-shadow: 0 2px 8px rgba(5,150,105,0.08) !important;
-    }
-    .cd-kpi-item-icon { display: none !important; }
-    .cd-kpi-dot      { display: none !important; }
-    .cd-kpi-label {
-      font-size: 10px !important; color: #94a3b8 !important;
-      font-weight: 600 !important; text-transform: uppercase !important;
-      letter-spacing: 0.06em !important; line-height: 1.3 !important;
-    }
-    .cd-kpi-val {
-      font-size: 20px !important; font-weight: 700 !important; color: #1e293b !important;
-      letter-spacing: -0.03em !important; line-height: 1 !important;
-      margin: 0 !important; flex-shrink: 0 !important;
-    }
-    .cd-kpi-item:nth-child(1) .cd-kpi-val,
-    .cd-kpi-item:nth-child(2) .cd-kpi-val,
-    .cd-kpi-item:nth-child(3) .cd-kpi-val,
-    .cd-kpi-item:nth-child(4) .cd-kpi-val { color: #1e293b !important; }
-    .cd-kpi-sub { display: none !important; }
-
-    /* ── Tab strip ── */
-    .cd-hero-tabs {
-      display: flex; gap: 0; position: relative; z-index: 1;
-      margin-top: 12px;
-    }
-    .cd-hero-tab-btn {
-      padding: 9px 20px; background: transparent; border: none;
-      border-bottom: 2px solid transparent;
-      color: #64748b; font-weight: 500; font-size: 13px;
-      cursor: pointer; border-radius: 0; transition: all .14s; font-family: inherit;
-    }
-    .cd-hero-tab-btn.active {
-      color: #059669; font-weight: 600; border-bottom-color: #059669;
-    }
-    .cd-hero-tab-btn:hover:not(.active) { color: #1e293b; }
-
-    /* ── BODY: sidebar + content ────────────────────────────── */
-    .cd-body { display: flex; align-items: flex-start; }
-
-    /* Left sidebar nav */
-    .profile-col {
-      width: 216px !important; flex-shrink: 0 !important;
-      background: #fff !important;
-      border-right: 1px solid #e2e8f0 !important;
-      padding: 16px 10px !important;
-      position: sticky !important;
-      top: calc(var(--header-h, 56px) + 46px) !important;
-      max-height: calc(100vh - var(--header-h, 56px) - 46px) !important;
-      overflow-y: auto !important;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.04) !important;
-      border-radius: 0 !important; border-top: none !important;
-      border-bottom: none !important; height: auto !important;
-      align-self: stretch !important;
-      /* reset horizontal overrides */
-      flex-direction: column !important;
-    }
-    .z-sidebar { padding: 0 !important; }
-    .z-sidebar-title {
-      display: block !important; font-size: 10px !important; font-weight: 700 !important;
-      color: #94a3b8 !important; letter-spacing: 0.09em !important;
-      text-transform: uppercase !important; padding: 0 8px !important; margin-bottom: 8px !important;
-    }
-    .z-nav-list {
-      list-style: none !important; padding: 0 !important; margin: 0 !important;
-      display: flex !important; flex-direction: column !important;
-      gap: 2px !important; overflow-x: visible !important;
-      overflow-y: visible !important;
-      scrollbar-width: auto !important; height: auto !important;
-      align-items: stretch !important; flex-wrap: nowrap !important;
-    }
-    .z-nav-list li {
-      display: flex !important; align-items: stretch !important;
-      flex-shrink: 1 !important; height: auto !important;
-    }
-    .z-nav-item {
-      display: flex !important; align-items: center !important;
-      gap: 9px !important; width: 100% !important;
-      padding: 7px 10px !important; border-radius: 9px !important;
-      border: none !important; cursor: pointer !important;
-      text-align: left !important; text-decoration: none !important;
-      background: transparent !important; color: #475569 !important;
-      font-weight: 400 !important; font-size: 12.5px !important;
-      transition: all .12s !important; white-space: nowrap !important;
-      justify-content: flex-start !important;
-      border-bottom: none !important; border-bottom-color: transparent !important;
-      height: auto !important; box-sizing: border-box !important;
-      margin-bottom: 0 !important;
-    }
-    .z-nav-item:hover {
-      background: #f8fafc !important; color: #0f172a !important;
-      border-bottom: none !important;
-    }
-    .z-nav-item.active {
-      background: #ecfdf5 !important; color: #059669 !important;
-      font-weight: 700 !important; border-bottom: none !important;
-      border-bottom-color: transparent !important; box-shadow: none !important;
-    }
-    .z-nav-badge {
-      margin-left: auto !important;
-      background: #f1f5f9 !important; color: #64748b !important;
-      border-radius: 10px !important; padding: 1px 7px !important;
-      font-size: 10.5px !important; font-weight: 700 !important;
-      min-width: 18px !important; text-align: center !important;
-      height: auto !important; line-height: 1.6 !important;
-    }
-    .z-nav-item.active .z-nav-badge {
-      background: #059669 !important; color: #fff !important;
-    }
-
-    /* Quick contacts */
-    #sidebar-quick-contacts { display: block !important; }
-    .z-sidebar-quick { margin-top: 0; }
-    .z-sidebar-quick-title {
-      font-size: 10px; font-weight: 700; color: #94a3b8;
-      letter-spacing: 0.09em; text-transform: uppercase;
-      padding: 0 8px; margin-bottom: 10px;
-    }
-    .z-qc-card {
-      padding: 8px 10px; border-radius: 9px; margin-bottom: 4px;
-      background: #f8fafc; border: 1px solid #f1f5f9;
-    }
-    .z-qc-name { font-size: 12.5px; font-weight: 600; color: #1e293b; }
-    .z-qc-role { font-size: 11px; color: #94a3b8; margin-top: 1px; }
-    .z-qc-links { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; }
-    .z-qc-link {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 11px; color: #64748b; text-decoration: none;
-      transition: color .12s;
-    }
-    .z-qc-link:hover { color: #059669; }
-    .z-qc-link svg { width: 11px; height: 11px; flex-shrink: 0; }
-
-    /* sidebar divider before quick contacts */
-    .cd-sidebar-divider {
-      height: 1px; background: #f1f5f9; margin: 14px 0;
-    }
-
-    /* ── content area ───────────────────────────────────────── */
-    #cd-tab-placeholder { display: none !important; }
-    .detail-layout { display: block !important; padding: 0 !important; width: 100% !important; }
-    .data-col {
-      flex: 1 !important; min-width: 0;
-      padding: 20px 20px 40px;
-    }
-
-    /* ── CARDS ───────────────────────────────────────────────── */
-    .z-card {
-      background: #fff;
-      border-radius: 14px;
-      border: 1px solid #e8edf2;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
-      overflow: hidden; margin-bottom: 16px;
-    }
-    #card-azienda,
-    #card-chiamate, #card-comunicazioni, #card-contatti,
-    #card-servizi, #card-preventivi, #card-contratti,
-    #card-documenti, #card-fatture {
-      border-radius: 14px !important;
-      border-top: 1px solid #e8edf2 !important;
-      margin-top: 0;
-    }
-    .z-card-header {
-      padding: 16px 22px;
-      display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid #f1f5f9;
-      background: #fafbfc;
-    }
-    .z-card-title {
-      font-size: 14px; font-weight: 700; color: #0f172a; margin: 0;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .z-card-body { padding: 20px 22px; }
-
-    /* ── HERO action button (edit, on white bg) ─────────────── */
-    .z-hero-btn { display: none !important; }
-
-    /* Windoc badge */
-    .windoc-sync-badge {
-      background: transparent; border: 1px solid #3b82f6; color: #3b82f6;
-      font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 600;
-    }
-
-    /* Data grid */
-    .zf-section-title {
-      font-size: 10.5px; font-weight: 700; color: #059669;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 14px;
-    }
-    .zf-section-title::before {
-      content: ''; display: inline-block;
-      width: 3px; height: 14px; background: #059669;
-      border-radius: 2px; flex-shrink: 0;
-    }
-    .zf-section-title::after {
-      content: ''; flex: 1; height: 1px; background: #f1f5f9;
-    }
-    .zf-section-hd {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .zf-edit-link {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 11.5px; font-weight: 600; color: #64748b;
-      background: none; border: none; cursor: pointer;
-      transition: color .12s; padding: 0;
-    }
-    .zf-edit-link:hover { color: #059669; }
-    .zf-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; }
-    @media (max-width: 700px) { .zf-cols { grid-template-columns: 1fr; } }
-    .zf-row {
-      display: grid; grid-template-columns: 130px 1fr;
-      gap: 8px 16px; padding: 9px 0;
-      border-bottom: 1px solid #f8fafc; align-items: start;
-    }
-    .zf-lbl { font-size: 12px; font-weight: 600; color: #64748b; padding-top: 1px; }
-    .zf-val { font-size: 13px; color: #0f172a; font-weight: 500; }
-    .zf-val.mono { font-family: monospace; }
-    .zf-section + .zf-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid #f1f5f9; }
-
-    /* Note compose */
-    .z-note-compose {
-      border: 1px solid #e2e8f0; border-radius: 10px;
-      overflow: hidden; margin-bottom: 16px; background: #fff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
-    .z-note-compose textarea {
-      width: 100%; border: none; padding: 14px; font-size: 13px;
-      min-height: 80px; resize: none; background: transparent;
-      font-family: inherit; outline: none; color: #0f172a;
-    }
-    .cl-list { display: flex; flex-direction: column; }
-
-    /* ── CHIAMATE / ATTIVITÀ ─────────────────────────────────── */
-    .calls-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 0; border-top: 1px solid #f1f5f9;
-    }
-    .calls-col { padding: 18px 22px; }
-    .calls-col + .calls-col { border-left: 1px solid #f1f5f9; }
-    .calls-col-header {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 11px; font-weight: 700; color: #64748b;
-      margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.06em;
-    }
-    .calls-col-count {
-      margin-left: auto; background: #f1f5f9; color: #64748b;
-      border-radius: 10px; padding: 1px 8px; font-size: 11px; font-weight: 700;
-    }
-    .calls-list { display: flex; flex-direction: column; gap: 8px; }
-    .calls-empty { font-size: 12.5px; color: #94a3b8; text-align: center; padding: 24px 0; }
-    .call-item {
-      border: 1px solid #e8edf2; border-radius: 10px; padding: 12px 14px;
-      background: #fafbfc; position: relative;
-    }
-    .call-item.overdue { border-color: #fca5a5; background: #fff7f7; }
-    .call-item.done    { border-color: #bbf7d0; background: #f0fdf4; }
-    .call-item-title { font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 4px; }
-    .call-item-meta  { font-size: 11.5px; color: #64748b; display: flex; gap: 10px; flex-wrap: wrap; }
-    .call-item-notes { font-size: 11.5px; color: #94a3b8; margin-top: 6px; }
-    .call-item-actions { display: flex; gap: 6px; margin-top: 10px; }
-    .call-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600;
-    }
-    .call-badge.overdue   { background: #fee2e2; color: #dc2626; }
-    .call-badge.scheduled { background: #dbeafe; color: #2563eb; }
-    .call-badge.done      { background: #dcfce7; color: #16a34a; }
-    .call-badge.missed    { background: #f3f4f6; color: #6b7280; }
-
-    /* ── COMUNICAZIONI ────────────────────────────────────────── */
-    .comms-filter-bar {
-      display: flex; gap: 6px; padding: 12px 22px;
-      border-bottom: 1px solid #f1f5f9; flex-wrap: wrap;
-    }
-    .comms-filter-btn {
-      border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 20px;
-      padding: 4px 13px; font-size: 11.5px; font-weight: 600;
-      color: #64748b; cursor: pointer; transition: all .13s;
-    }
-    .comms-filter-btn:hover { border-color: #059669; color: #059669; background: #f0fdf4; }
-    .comms-filter-btn.active { background: #059669; color: #fff; border-color: #059669; }
-    .comms-timeline { padding: 0 22px 8px; }
-    .comms-empty { font-size: 12.5px; color: #94a3b8; text-align: center; padding: 32px 0; }
-    .comms-item {
-      display: grid; grid-template-columns: 40px 1fr;
-      gap: 12px; padding: 14px 0;
-      border-bottom: 1px solid #f8fafc; align-items: start;
-    }
-    .comms-item:last-child { border-bottom: none; }
-    .comms-icon {
-      width: 38px; height: 38px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 17px; flex-shrink: 0;
-    }
-    .comms-icon.email     { background: #dbeafe; color: #2563eb; }
-    .comms-icon.sms       { background: #fce7f3; color: #db2777; }
-    .comms-icon.whatsapp  { background: #dcfce7; color: #16a34a; }
-    .comms-icon.phone     { background: #fef9c3; color: #ca8a04; }
-    .comms-icon.letter    { background: #f3e8ff; color: #9333ea; }
-    .comms-icon.portal    { background: #e0f2fe; color: #0284c7; }
-    .comms-icon.other     { background: #f1f5f9; color: #64748b; }
-    .comms-body { min-width: 0; }
-    .comms-label {
-      font-size: 13px; font-weight: 700; color: #1e293b;
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    }
-    .comms-subject { font-size: 12px; color: #475569; margin-top: 2px; }
-    .comms-preview { font-size: 11.5px; color: #94a3b8; margin-top: 3px;
-                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .comms-meta {
-      display: flex; gap: 10px; align-items: center;
-      flex-wrap: wrap; margin-top: 6px; font-size: 11px; color: #94a3b8;
-    }
-    .comms-badge {
-      display: inline-flex; align-items: center; gap: 3px;
-      border-radius: 5px; padding: 1px 7px; font-size: 10.5px; font-weight: 700;
-    }
-    .comms-badge.sent      { background: #dbeafe; color: #2563eb; }
-    .comms-badge.failed    { background: #fee2e2; color: #dc2626; }
-    .comms-badge.delivered { background: #dcfce7; color: #16a34a; }
-    .comms-badge.opened    { background: #d1fae5; color: #059669; }
-    .comms-badge.outbound  { background: #f0f9ff; color: #0284c7; }
-    .comms-badge.inbound   { background: #fef3c7; color: #d97706; }
-    .comms-badge.automated { background: #f3f4f6; color: #6b7280; }
-
-    /* ── OVERDUE ALERT ────────────────────────────────────────── */
-    .calls-alert-overlay {
-      position: fixed; inset: 0; background: rgba(15,23,42,0.5);
-      z-index: 500; display: flex; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none; transition: opacity .2s;
-    }
-    .calls-alert-overlay.open { opacity: 1; pointer-events: auto; }
-    .calls-alert-box {
-      background: #fff; border-radius: 18px; padding: 32px 36px;
-      max-width: 480px; width: 90%;
-      box-shadow: 0 24px 64px rgba(15,23,42,0.22);
-    }
-    .calls-alert-icon { font-size: 36px; text-align: center; margin-bottom: 14px; }
-    .calls-alert-title { font-size: 18px; font-weight: 800; color: #dc2626; text-align: center; margin-bottom: 8px; }
-    .calls-alert-sub { font-size: 13px; color: #475569; text-align: center; margin-bottom: 20px; }
-    .calls-alert-list { background: #fff5f5; border: 1px solid #fca5a5; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; }
-    .calls-alert-row { font-size: 13px; color: #1e293b; padding: 4px 0; border-bottom: 1px solid #fee2e2; }
-    .calls-alert-row:last-child { border-bottom: none; }
-    .calls-alert-row strong { color: #dc2626; }
-    .calls-alert-actions { display: flex; gap: 10px; justify-content: center; }
-
-    /* ── RESPONSIVE ───────────────────────────────────────────── */
-    @media (max-width: 900px) {
-      .cd-body { flex-direction: column; }
-      .profile-col {
-        width: 100% !important; position: static !important;
-        border-right: none !important; border-bottom: 1px solid #e2e8f0 !important;
-        max-height: none !important;
-      }
-      .z-nav-list { flex-direction: row !important; overflow-x: auto !important; flex-wrap: nowrap !important; gap: 4px !important; }
-      .z-nav-list li { flex-shrink: 0 !important; }
-      .z-nav-item { padding: 6px 12px !important; white-space: nowrap !important; }
-    }
-    @media (max-width: 700px) {
-      .cd-kpi-strip { flex-wrap: wrap; }
-      .cd-kpi-item { min-width: calc(50% - 6px); }
-      .calls-grid { grid-template-columns: 1fr; }
-      .calls-col + .calls-col { border-left: none; border-top: 1px solid #f1f5f9; }
-      .cd-topbar-actions { gap: 5px; }
-      .cd-topbar-btn { padding: 0 10px; font-size: 11px; }
-    }
-  </style>
-</head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nova CRM Scheda Pratica</title>
+<meta content="Scheda 360° del cliente: anagrafica, servizi, contratti, fatture, documenti, rinnovi, Windoc." name="description"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link as="image" href="/assets/img/crm.png" rel="preload"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="assets/css/dash.css?v=152" rel="stylesheet"/>
+<link href="assets/css/mac_detail.css?v=152" rel="stylesheet"/>
 <body>
-<div class="shell" id="shell">
-
-<!-- ==================== APP SIDEBAR ==================== -->
+<div class="shell" id="shell" style="opacity: 0; transition: opacity 0.3s ease;">
+<!-- ==================== SIDEBAR ==================== -->
 <aside class="sidebar">
-  <div class="sidebar-brand">
-    <img src="/assets/img/nova-crm-logo-sidebar.svg" alt="Nova CRM" class="sidebar-brand-logo" loading="eager" fetchpriority="high" width="140" height="46">
-  </div>
-  <nav class="sidebar-nav avatar-colors">
-    <div class="nav-section-label" data-i18n="nav.main">Principale</div>
-    <a class="nav-item" href="admin_dash.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
-    </a>
-    <a class="nav-item" href="admin_onboarding.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-      <span class="nav-label" data-i18n="nav.onboarding">Onboarding</span>
-    </a>
-    <div class="nav-section-label" data-i18n="nav.management">Gestione</div>
-    <a class="nav-item" href="admin_clients.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-      <span class="nav-label" data-i18n="nav.clients">Clienti</span>
-    </a>
-    <a class="nav-item" href="admin_quotes.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-      <span class="nav-label" data-i18n="nav.quotes">Preventivi</span>
-    </a>
-    <a class="nav-item" href="admin_services.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-      <span class="nav-label" data-i18n="nav.services">Servizi</span>
-    </a>
-    <a class="nav-item" href="admin_contracts.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-      <span class="nav-label" data-i18n="nav.contracts">Contratti</span>
-    </a>
-    <a class="nav-item" href="admin_documents.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
-      <span class="nav-label" data-i18n="nav.documents">Documenti</span>
-    </a>
-    <div class="nav-section-label" data-i18n="nav.finance">Finanza</div>
-    <a class="nav-item" href="admin_invoices.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
-      <span class="nav-label" data-i18n="nav.invoices">Fatture</span>
-      <span class="nav-badge" id="nav-badge-invoices" style="display:none"></span>
-    </a>
-    <a class="nav-item" href="admin_renewals.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-      <span class="nav-label" data-i18n="nav.renewals">Rinnovi</span>
-    </a>
-    <div class="nav-section-label" data-i18n="nav.tools">Strumenti</div>
-    <a class="nav-item" href="admin_calendar.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"/></svg>
-      <span class="nav-label" data-i18n="nav.calendar">Calendario</span>
-    </a>
-    <div class="nav-section-label" data-i18n="nav.system">Sistema</div>
-    <a class="nav-item" href="admin_companies.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
-      <span class="nav-label" data-i18n="nav.companies">Aziende</span>
-    </a>
-    <a class="nav-item" href="admin_users.html?v=102">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
-      <span class="nav-label" data-i18n="nav.users">Utenti</span>
-    </a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="nav-item" style="gap:10px;">
-      <div class="avatar" style="width:30px;height:30px;font-size:11px;" id="sidebar-avatar">–</div>
-      <div style="overflow:hidden;">
-        <div class="nav-label" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="sidebar-name">—</div>
-        <div class="nav-label" style="color:var(--gray-500);font-size:11px;">Admin</div>
-      </div>
-    </div>
-  </div>
+<div class="sidebar-brand">
+<img alt="Nova CRM" class="sidebar-brand-logo" fetchpriority="high" loading="eager" src="/assets/img/crm.png"/>
+</div>
+<nav class="sidebar-nav avatar-colors">
+<div class="nav-section-label" data-i18n="nav.main">Principale</div>
+<a class="nav-item" href="admin_dash.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect></svg>
+<span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
+</a>
+<a class="nav-item" href="admin_onboarding.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-5.834L6.166 3.075m11.24 11.24-1.59-1.59" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.onboarding">Onboarding</span>
+</a>
+<div class="nav-section-label" data-i18n="nav.management">Gestione</div>
+<a class="nav-item" href="admin_clients.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.clients">Clienti</span>
+</a>
+<a class="nav-item" href="admin_quotes.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.quotes">Preventivi</span>
+</a>
+<a class="nav-item" href="admin_services.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.services">Servizi</span>
+</a>
+<a class="nav-item" href="admin_contracts.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.contracts">Contratti</span>
+</a>
+<a class="nav-item" href="admin_documents.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.documents">Documenti</span>
+</a>
+<div class="nav-section-label" data-i18n="nav.finance">Finanza</div>
+<a class="nav-item" href="admin_invoices.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.invoices">Fatture</span>
+<span class="nav-badge" id="nav-badge-invoices" style="display:none"></span>
+</a>
+<a class="nav-item" href="admin_renewals.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.renewals">Rinnovi</span>
+</a>
+<div class="nav-section-label" data-i18n="nav.tools">Strumenti</div>
+<a class="nav-item" href="admin_calendar.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.calendar">Calendario</span>
+</a>
+<a class="nav-item" href="admin_activities.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375M9 15l2.25 2.25L15 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.activities">Attività</span>
+</a>
+<div class="nav-section-label" data-i18n="nav.analytics">Analisi</div>
+<a class="nav-item" href="admin_reports.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.reports">Report</span>
+</a>
+<div class="nav-section-label" data-i18n="nav.system">Sistema</div>
+<a class="nav-item" href="admin_companies.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.companies">Aziende</span>
+</a><a class="nav-item" href="admin_users.html?v=152">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span class="nav-label" data-i18n="nav.users">Utenti</span>
+</a>
+</nav>
+<div class="sidebar-footer">
+<div class="nav-item">
+<div class="avatar sidebar-avatar-sm" id="sidebar-avatar">–</div>
+<div class="sidebar-user-wrap">
+<div class="sidebar-user-name" id="sidebar-name"></div>
+<div class="sidebar-user-role">Admin</div>
+</div>
+</div>
+</div>
 </aside>
-
-<script src="components/header.js?v=102"></script>
-
+<script src="components/header.js?v=152"></script>
 <!-- ===== MAIN ===== -->
-<main class="main">
+<main class="main detail-main" style="background:#ffffff;padding:0;">
+<!-- Hidden compat elements for JS -->
+<div id="breadcrumb-name" style="display:none;"></div>
+<span id="cd-status-pill" style="display:none;"></span>
+<!-- MAC SHELL -->
+<div class="mac-shell">
+<div class="mac-window">
+<!-- SIDEBAR: identity + nav -->
+<div class="mac-sidebar">
+<div class="mac-sb-identity">
+<a class="mac-back-link" href="admin_clients.html">
+<svg fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.75 19.5L8.25 12l7.5-7.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            Clienti
+          </a>
+<div class="mac-sb-avatar" id="pc-avatar">??</div>
+<div class="mac-sb-name" id="cd-title">Caricamento...</div>
+<div class="mac-sb-sub" id="cd-subtitle"></div>
+<div id="cd-status-pill-visible" style="margin-top:8px;"></div>
+</div>
+<div class="mac-sb-scroll">
+<div class="mac-nav-section-label">Sezioni</div>
+<a class="mac-nav-item active" href="#sec-anagrafica" id="tab-anagrafica" onclick="switchMainView('anagrafica');return false;">
+<div class="mac-icon-box ic-blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+            Anagrafica
+          </a>
+<a class="mac-nav-item" href="#sec-contatti" id="tab-contatti" onclick="switchMainView('contatti');return false;">
+<div class="mac-icon-box ic-green"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+            Contatti
+          </a>
+<a class="mac-nav-item" href="#sec-servizi" id="tab-servizi" onclick="switchMainView('servizi');return false;">
+<div class="mac-icon-box ic-orange"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+            Servizi <span class="mac-nav-badge" id="chip-services">0</span>
+</a>
+<a class="mac-nav-item" href="#sec-preventivi" id="tab-preventivi" onclick="switchMainView('preventivi');return false;">
+<div class="mac-icon-box ic-yellow"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+            Preventivi <span class="mac-nav-badge" id="chip-quotes">0</span>
+</a>
+<a class="mac-nav-item" href="#sec-contratti" id="tab-contratti" onclick="switchMainView('contratti');return false;">
+<div class="mac-icon-box ic-purple"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+            Contratti <span class="mac-nav-badge" id="chip-contracts">0</span>
+</a>
+<a class="mac-nav-item" href="#sec-documenti" id="tab-documenti" onclick="switchMainView('documenti');return false;">
+<div class="mac-icon-box ic-cyan"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+            Documenti <span class="mac-nav-badge" id="chip-docs">0</span>
+</a>
+<a class="mac-nav-item" href="#sec-attività" id="tab-activities" onclick="switchMainView('activities');return false;">
+<div class="mac-icon-box ic-purple"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375M9 15l2.25 2.25L15 12"></path></svg></div>
+            Attività <span class="mac-nav-badge" id="chip-activities">0</span>
+</a>
+<a class="mac-nav-item" href="#sec-fatture" id="tab-fatture" onclick="switchMainView('fatture');return false;">
+<div class="mac-icon-box ic-teal"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+            Fatture <span class="mac-nav-badge" id="chip-invoices">0</span>
+</a>
+<div class="mac-sb-divider" style="margin-top:8px;"></div>
+<a class="mac-nav-item" href="#sec-storico" id="tab-timeline" onclick="switchMainView('timeline');return false;">
+<div class="mac-icon-box ic-gray"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+            Storico Interazioni
+          </a>
+</div>
+</div>
+<!-- MAIN CONTENT -->
+<div class="mac-body">
+<div class="mac-topbar">
+<div class="mac-topbar-left">
+<span class="mac-topbar-title" id="mac-topbar-label">Scheda Pratica</span>
+</div>
+<div class="mac-topbar-right">
+<a class="mac-topbar-btn mac-topbar-btn-secondary" href="admin_invoices.html?new=1&amp;type=proforma" id="cd-link-new-proforma">Nuova Proforma</a>
+<a class="mac-topbar-btn mac-topbar-btn-secondary" href="admin_quotes.html?new=1" id="cd-link-new-quote-card">Crea Preventivo</a>
+<a class="mac-topbar-btn mac-topbar-btn-primary" href="admin_invoices.html" id="cd-link-invoices">Vai alle Fatture</a>
+</div>
+</div>
+<div class="mac-content">
+<!-- VISTA 1: PANORAMICA -->
+<div class="mac-tab-section active" id="view-anagrafica" style="display: block;">
+  <div id="onb-pipeline-req-container"></div>
+  <div id="sec-anagrafica">
+    <div id="cd-anag-grid"></div>
+  </div>
+  
+  <!-- Legacy compat: chip badges -->
+  <span id="chip-services-kpi" style="display:none;"></span>
+  <span id="chip-contracts-kpi" style="display:none;"></span>
+  <span id="chip-invoices-kpi" style="display:none;"></span>
+  <span id="chip-renewals-kpi" style="display:none;"></span>
+  <span id="chip-renewals" style="display:none;"></span>
+  <span id="badge-contact" style="display:none;"></span>
+  <span id="badge-service" style="display:none;"></span>
+  <span id="badge-quote" style="display:none;"></span>
+  <span id="badge-contract" style="display:none;"></span>
+  <span id="badge-doc" style="display:none;"></span>
+  <span id="badge-invoice" style="display:none;"></span>
+  <span id="badge-note" style="display:none;"></span>
+  <!-- Windoc compat -->
+  <div id="cd-windoc-body" style="display:none;"></div>
+  <div id="cd-renewals-list" style="display:none;"></div>
+  <!-- Note legacy compat -->
+  <div id="notes-list-container" style="display:none;"></div>
+</div>
 
-  <!-- ── TOP ACTION BAR ──────────────────────────────────────── -->
-  <div class="cd-topbar">
-    <div class="cd-topbar-crumb">
-      <a href="admin_clients.html">
-        <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
-        Clienti
-      </a>
-      <svg class="cd-topbar-crumb-sep" style="width:10px;height:10px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-      <span id="breadcrumb-name" style="color:#374151;font-weight:600;">Caricamento...</span>
+<div class="mac-tab-section" id="view-contatti" style="display: none;">
+  <div class="mac-section" id="sec-contatti" style="padding-top:0;">
+    <div class="mac-section-title">
+      <span>Contatti</span>
+      <button class="btn-action-icon" id="cd-btn-add-contact" title="Aggiungi Contatto">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
     </div>
-    <div class="cd-topbar-actions">
-      <button class="cd-topbar-btn cd-topbar-btn-danger" onclick="deleteClientFromDetail()">
-        <svg style="width:12px;height:12px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
-        Elimina
+    <div class="mac-list" id="cd-contacts-list"></div>
+  </div>
+</div>
+
+<div class="mac-tab-section" id="view-servizi" style="display: none;">
+  <div class="mac-section" id="sec-servizi">
+    <div class="mac-section-title">
+      <span>Servizi Attivi</span>
+      <button class="btn-action-icon" id="cd-btn-add-service" title="Assegna Servizio">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       </button>
-      <button class="cd-topbar-btn cd-topbar-btn-ghost" id="cd-btn-edit">
-        <svg style="width:12px;height:12px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
-        Modifica
+    </div>
+    <div id="cd-services-list"></div>
+  </div>
+</div>
+
+<div class="mac-tab-section" id="view-preventivi" style="display: none;">
+  <div class="mac-section" id="sec-preventivi">
+    <div class="mac-section-title">
+      <span>Preventivi</span>
+      <button class="btn-action-icon" id="cd-btn-new-quote" title="Crea Preventivo">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       </button>
-      <a class="cd-topbar-btn cd-topbar-btn-primary" id="cd-link-new-quote" href="admin_quotes.html?new=1">
-        <svg style="width:12px;height:12px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-        Nuovo preventivo
-      </a>
+    </div>
+    <div id="cd-quotes-list"></div>
+  </div>
+</div>
+
+<div class="mac-tab-section" id="view-contratti" style="display: none;">
+  <div class="mac-section" id="sec-contratti">
+    <div class="mac-section-title">
+      <span>Contratti</span>
+      <button class="btn-action-icon" id="cd-btn-add-contract" title="Collega Contratto">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
+    </div>
+    <div id="cd-contracts-list"></div>
+  </div>
+</div>
+
+<div class="mac-tab-section" id="view-documenti" style="display: none;">
+  <div class="mac-section" id="sec-documenti">
+    <div class="mac-section-title">
+      <span>Documenti</span>
+      <a class="mac-section-title-action" href="admin_documents.html" id="cd-link-docs">Tutti →</a>
+    </div>
+    <div id="cd-docs-list"></div>
+  </div>
+</div>
+
+<div class="mac-tab-section" id="view-activities" style="display: none;">
+  <div class="mac-section" id="sec-activities">
+    <div class="mac-section-title">
+      <span>Attività</span>
+      <button class="btn-action-icon" id="cd-btn-add-activity" title="Nuova Attività">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
+    </div>
+    <div id="cd-activities-list"></div>
+  </div>
+</div>
+
+<div class="mac-tab-section" id="view-fatture" style="display: none;">
+  <div class="mac-section" id="sec-fatture" style="padding-bottom:0;">
+    <div class="mac-section-title">
+      <span>Fatture Recenti</span>
+      <a class="mac-section-title-action" href="admin_invoices.html" id="cd-link-invoices">Tutte →</a>
+    </div>
+    <div id="cd-invoices-list"></div>
+  </div>
+</div>
+<!-- VISTA 2: TIMELINE -->
+<div class="mac-tab-section" id="view-timeline" style="display: none;">
+<div class="mac-section" style="padding-top:0;">
+<div class="mac-section-title">Storico Interazioni</div>
+<div style="margin-bottom:20px;">
+<textarea id="timeline-note-body" placeholder="Scrivi un aggiornamento o una nota rapida..." style="width:100%;border:1px solid rgba(0,0,0,0.1);border-radius:8px;padding:12px 14px;font-size:13.5px;font-family:inherit;resize:vertical;min-height:80px;outline:none;"></textarea>
+<div style="display:flex;justify-content:flex-end;margin-top:8px;">
+<button class="mac-topbar-btn mac-topbar-btn-primary" onclick="saveTimelineNote()">Registra</button>
+</div>
+</div>
+<div class="mac-activity-wrap">
+<div class="" id="timeline-feed-container"></div>
+</div>
+</div>
+</div>
+</div><!-- END mac-content -->
+</div><!-- END mac-body -->
+</div><!-- END mac-window -->
+</div><!-- END mac-shell -->
+<template id="panel-storico-tpl"></template>
+
+<!-- ===== EDIT CLIENT MODAL ===== -->
+<div class="modal-overlay" id="modal-edit-client" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="modal" style="max-width:700px;width:95vw;">
+    <div class="modal-header" style="padding:20px 24px 16px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div class="mac-modal-icon-box blue">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px;height:24px"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+        </div>
+        <div>
+          <div class="modal-title" style="font-size:20px;font-weight:800;color:#111827;margin-bottom:2px;">Modifica Cliente</div>
+          <div style="font-size:12px;color:#6b7280;">Aggiorna le informazioni del cliente selezionato</div>
+        </div>
+      </div>
+      <button class="icon-btn" onclick="document.getElementById('modal-edit-client').classList.remove('open')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    
+    <div class="modal-body" style="max-height:calc(90vh - 148px);overflow-y:auto;padding:20px 24px;">
+      
+      <div class="modal-section-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+        Anagrafica Azienda
+      </div>
+      <div style="margin-bottom:24px;">
+        <div class="form-grid">
+          <div class="form-group form-grid--full" style="border:1.5px solid #3b82f6;border-radius:10px;padding:10px 12px;background:#eff6ff;">
+            <label class="form-label" style="color:#2563eb;">Azienda fornitrice <span style="color:#ef4444;font-weight:700;">*</span></label>
+            <select class="form-input" id="f-edit-company-id" style="background:transparent;border:none;padding:4px 0;font-weight:600;">
+              <option value="">Seleziona fornitrice...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ragione sociale *</label>
+            <input class="form-input" id="f-edit-name" type="text" placeholder="Es. Rossi Srl"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Partita IVA</label>
+            <input class="form-input" id="f-edit-vat" type="text" placeholder="IT12345678901"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Codice destinatario (SDI)</label>
+            <input class="form-input" id="f-edit-sdi" type="text" placeholder="XXXXXXX" maxlength="7"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stato Cliente</label>
+            <select class="form-input" id="f-edit-status">
+               <option value="prospect">Prospect</option>
+               <option value="lead">Lead</option>
+               <option value="active">Active</option>
+               <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+        Contatto principale
+      </div>
+      <div style="margin-bottom:24px;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nome referente</label>
+            <input class="form-input" id="f-edit-referente" type="text" placeholder="Mario Rossi"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input class="form-input" id="f-edit-email" type="email" placeholder="info@azienda.it"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">PEC</label>
+            <input class="form-input" id="f-edit-pec" type="email" placeholder="azienda@pec.it"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefono</label>
+            <input class="form-input" id="f-edit-phone" type="tel" placeholder="+39 02…"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+        Indirizzo &amp; Altro
+      </div>
+      <div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Città</label>
+            <input class="form-input" id="f-edit-city" type="text" placeholder="Milano"/>
+          </div>
+          <div class="form-group form-grid--full">
+            <label class="form-label">Indirizzo completo</label>
+            <input class="form-input" id="f-edit-address" type="text" placeholder="Via Esempio 12, 20121 Milano"/>
+          </div>
+          <div class="form-group form-grid--full">
+            <label class="form-label">Note</label>
+            <textarea class="form-input" id="f-edit-notes" rows="2" style="resize:vertical;" placeholder="Eventuali note…"></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <div class="modal-footer" style="padding:16px 24px 24px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:12px;background:#f9fafb;border-bottom-left-radius:16px;border-bottom-right-radius:16px;">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-edit-client').classList.remove('open')">Annulla</button>
+      <button class="btn btn-primary" id="btn-edit-client-save" style="padding:10px 24px;">Salva Modifiche</button>
     </div>
   </div>
-
-  <!-- ── GREEN HERO ───────────────────────────────────────────── -->
-  <div class="cd-hero">
-    <!-- Decorative dot pattern -->
-    <svg class="cd-hero-dots" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="hero-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="1.5" fill="white"/>
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#hero-dots)"/>
-    </svg>
-    <!-- Blur glow -->
-    <div class="cd-hero-glow"></div>
-
-    <div class="cd-hero-inner">
-      <!-- Client info row -->
-      <div class="z-header">
-        <div class="z-header-left">
-          <!-- Avatar -->
-          <div class="z-avatar" id="pc-avatar">--</div>
-          <!-- Name + status + subtitle -->
-          <div>
-            <h1 class="z-title">
-              <span id="cd-title">Caricamento...</span>
-              <span id="cd-status-pill" class="z-badge"></span>
-            </h1>
-            <div class="z-subtitle" id="cd-subtitle"></div>
-          </div>
-        </div>
-        <!-- Hero ghost edit button (right side) -->
-        <div style="flex-shrink:0;">
-          <button class="z-hero-btn z-hero-btn-ghost" id="cd-hero-edit-btn" style="display:none;">
-            <svg style="width:12px;height:12px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
-            Modifica
-          </button>
-        </div>
-      </div>
-
-      <!-- Info strip: email, phone, city, VAT -->
-      <div class="z-info-strip" id="cd-info-strip"></div>
-
-      <!-- KPI cards glassmorphism strip -->
-      <div class="cd-kpi-strip" id="cd-chips">
-        <div class="cd-kpi-item">
-          <div class="cd-kpi-item-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg>
-          </div>
-          <div class="cd-kpi-label">Servizi attivi</div>
-          <div class="cd-kpi-val" id="chip-services-kpi">—</div>
-        </div>
-        <div class="cd-kpi-item">
-          <div class="cd-kpi-item-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
-          </div>
-          <div class="cd-kpi-label">Contratti attivi</div>
-          <div class="cd-kpi-val" id="chip-contracts-kpi">—</div>
-        </div>
-        <div class="cd-kpi-item">
-          <div class="cd-kpi-item-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
-          </div>
-          <div class="cd-kpi-label">Fatture aperte</div>
-          <div class="cd-kpi-val" id="chip-invoices-kpi">—</div>
-        </div>
-        <div class="cd-kpi-item">
-          <div class="cd-kpi-item-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-          </div>
-          <div class="cd-kpi-label">Prossimo rinnovo</div>
-          <div class="cd-kpi-val" id="chip-renewals-kpi">—</div>
-        </div>
-      </div>
-
-      <!-- Hero tab strip (main view toggle) -->
-      <div class="cd-hero-tabs">
-        <button class="cd-hero-tab-btn active" id="hero-tab-panoramica"
-          onclick="switchMainView('panoramica');this.classList.add('active');document.getElementById('hero-tab-timeline').classList.remove('active')">
-          Panoramica
-        </button>
-        <button class="cd-hero-tab-btn" id="hero-tab-timeline"
-          onclick="switchMainView('timeline');this.classList.add('active');document.getElementById('hero-tab-panoramica').classList.remove('active')">
-          Sequenza temporale
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Placeholder (kept for JS compat — invisible) -->
-  <div id="cd-tab-placeholder" style="display:none;"></div>
-
-  <!-- ── BODY: left sidebar nav + content ─────────────────────── -->
-  <div class="cd-body">
-
-    <!-- LEFT SIDEBAR NAV -->
-    <div class="profile-col" id="cd-profile-col">
-      <nav class="z-sidebar">
-        <p class="z-sidebar-title">Sezioni</p>
-        <ul class="z-nav-list" id="elenco-correlato">
-          <li><a href="#" class="z-nav-item active" id="tab-panoramica" onclick="event.preventDefault();switchMainView('panoramica');document.getElementById('hero-tab-panoramica').classList.add('active');document.getElementById('hero-tab-timeline').classList.remove('active')">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
-            Panoramica
-          </a></li>
-          <li><a href="#card-note" class="z-nav-item">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
-            Note <span class="z-nav-badge" id="badge-note">0</span>
-          </a></li>
-          <li><a href="#card-chiamate" class="z-nav-item">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z"/></svg>
-            Attività <span class="z-nav-badge" id="badge-call">0</span>
-          </a></li>
-          <li><a href="#card-comunicazioni" class="z-nav-item">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
-            Comunicazioni <span class="z-nav-badge" id="badge-comms">0</span>
-          </a></li>
-          <li><a href="#card-contatti" class="z-nav-item">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-            Contatti <span class="z-nav-badge" id="badge-contact">0</span>
-          </a></li>
-          <li><a href="#card-servizi" class="z-nav-item">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-            Servizi <span class="z-nav-badge" id="badge-service">0</span>
-          </a></li>
-          <li><a href="#card-preventivi" class="z-nav-item">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-            Preventivi <span class="z-nav-badge" id="badge-quote">0</span>
-          </a></li>
-          <li><a href="#card-contratti" class="z-nav-item">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-            Contratti <span class="z-nav-badge" id="badge-contract">0</span>
-          </a></li>
-          <li><a href="#card-documenti" class="z-nav-item">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
-            Documenti <span class="z-nav-badge" id="badge-doc">0</span>
-          </a></li>
-          <li><a href="#card-fatture" class="z-nav-item">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
-            Fatture <span class="z-nav-badge" id="badge-invoice">0</span>
-          </a></li>
-          <li><a href="#" class="z-nav-item" id="tab-timeline" onclick="event.preventDefault();switchMainView('timeline');document.getElementById('hero-tab-timeline').classList.add('active');document.getElementById('hero-tab-panoramica').classList.remove('active')">
-            <svg style="width:14px;height:14px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></svg>
-            Sequenza temporale
-          </a></li>
-        </ul>
-
-        <!-- Sidebar divider + quick contacts -->
-        <div class="cd-sidebar-divider"></div>
-        <div id="sidebar-quick-contacts"></div>
-      </nav>
-    </div><!-- /profile-col -->
-
-    <!-- RIGHT CONTENT -->
-    <div class="data-col">
-
-      <!-- VISTA 1: PANORAMICA (stacked cards) -->
-      <div id="view-panoramica" class="active">
-
-        <!-- Azienda -->
-        <div class="z-card" id="card-azienda">
-          <div class="z-card-header">
-            <h2 class="z-card-title">Informazioni Azienda</h2>
-          </div>
-          <div class="z-card-body">
-            <div id="cd-anag-grid"></div>
-          </div>
-        </div>
-
-        <!-- Note -->
-        <div class="z-card" id="card-note">
-          <div class="z-card-header">
-            <h2 class="z-card-title">Note</h2>
-            <button class="btn btn-primary btn-sm" id="note-save-btn" onclick="saveNote()">+ Aggiungi nota</button>
-          </div>
-          <div class="z-card-body">
-            <div class="z-note-compose">
-              <textarea id="note-input" placeholder="Aggiungi una nota interna..."></textarea>
-            </div>
-            <div id="notes-list-container"></div>
-          </div>
-        </div>
-
-        <!-- Attività -->
-        <div class="z-card" id="card-chiamate">
-          <div class="z-card-header">
-            <h2 class="z-card-title">
-              <svg style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z"/></svg>
-              Attività
-            </h2>
-            <button class="btn btn-primary btn-sm" onclick="openCallModal()">+ Nuova chiamata</button>
-          </div>
-          <div class="z-card-body" style="padding:0;">
-            <div class="calls-grid">
-              <div class="calls-col">
-                <div class="calls-col-header">
-                  <svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                  <span>Chiamate aperte</span>
-                  <span class="calls-col-count" id="count-open">0</span>
-                </div>
-                <div id="calls-open-list" class="calls-list">
-                  <div class="calls-empty">Nessuna chiamata programmata</div>
-                </div>
-              </div>
-              <div class="calls-col">
-                <div class="calls-col-header" style="color:#16a34a;">
-                  <svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                  <span>Completate</span>
-                  <span class="calls-col-count" id="count-done">0</span>
-                </div>
-                <div id="calls-done-list" class="calls-list">
-                  <div class="calls-empty">Nessuna chiamata completata</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Comunicazioni -->
-        <div class="z-card" id="card-comunicazioni">
-          <div class="z-card-header">
-            <h2 class="z-card-title">
-              <svg style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
-              Comunicazioni
-            </h2>
-            <button class="btn btn-primary btn-sm" onclick="openCommsModal()">+ Aggiungi</button>
-          </div>
-          <div class="z-card-body" style="padding:0;">
-            <div class="comms-filter-bar">
-              <button class="comms-filter-btn active" data-filter="" onclick="setCommsFilter(this,'')">Tutte</button>
-              <button class="comms-filter-btn" data-filter="email"    onclick="setCommsFilter(this,'email')">Email</button>
-              <button class="comms-filter-btn" data-filter="whatsapp" onclick="setCommsFilter(this,'whatsapp')">WhatsApp</button>
-              <button class="comms-filter-btn" data-filter="phone"    onclick="setCommsFilter(this,'phone')">Telefono</button>
-              <button class="comms-filter-btn" data-filter="sms"      onclick="setCommsFilter(this,'sms')">SMS</button>
-              <button class="comms-filter-btn" data-filter="letter"   onclick="setCommsFilter(this,'letter')">Lettera</button>
-            </div>
-            <div id="comms-timeline" class="comms-timeline">
-              <div class="comms-empty">Nessuna comunicazione registrata</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Contatti -->
-        <div class="z-card" id="card-contatti">
-          <div class="z-card-header">
-            <h2 class="z-card-title">Contatti</h2>
-            <button class="btn btn-primary btn-sm" id="cd-btn-add-contact">+ Nuovo</button>
-          </div>
-          <div class="z-card-body" style="padding:0;">
-            <div id="cd-contacts-list" class="cl-list"></div>
-          </div>
-        </div>
-
-        <!-- Servizi -->
-        <div class="z-card" id="card-servizi">
-          <div class="z-card-header">
-            <h2 class="z-card-title">Servizi Attivi</h2>
-            <button class="btn btn-primary btn-sm" id="cd-btn-add-service">+ Assegna</button>
-          </div>
-          <div class="z-card-body" style="padding:0;">
-            <div id="cd-services-list" class="cl-list"></div>
-          </div>
-        </div>
-
-        <!-- Preventivi -->
-        <div class="z-card" id="card-preventivi">
-          <div class="z-card-header">
-            <h2 class="z-card-title">Preventivi</h2>
-            <a class="btn btn-primary btn-sm" id="cd-link-new-quote-card" href="admin_quotes.html?new=1">+ Nuovo</a>
-          </div>
-          <div class="z-card-body" style="padding:0;">
-            <div id="cd-quotes-list" class="cl-list"></div>
-          </div>
-        </div>
-
-        <!-- Contratti -->
-        <div class="z-card" id="card-contratti">
-          <div class="z-card-header">
-            <h2 class="z-card-title">Contratti</h2>
-            <a class="btn btn-primary btn-sm" id="cd-link-contracts" href="#">Vedi tutti</a>
-          </div>
-          <div class="z-card-body" style="padding:0;">
-            <div id="cd-contracts-list" class="cl-list"></div>
-          </div>
-        </div>
-
-        <!-- Documenti -->
-        <div class="z-card" id="card-documenti">
-          <div class="z-card-header">
-            <h2 class="z-card-title">Documenti</h2>
-            <a class="btn btn-primary btn-sm" id="cd-link-docs" href="#">Vedi tutti</a>
-          </div>
-          <div class="z-card-body" style="padding:0;">
-            <div id="cd-docs-list" class="cl-list"></div>
-          </div>
-        </div>
-
-        <!-- Fatture -->
-        <div class="z-card" id="card-fatture">
-          <div class="z-card-header">
-            <h2 class="z-card-title">Fatture Recenti</h2>
-            <a class="btn btn-primary btn-sm" id="cd-link-invoices" href="#">Vedi tutte</a>
-          </div>
-          <div class="z-card-body" style="padding:0;">
-            <div id="cd-invoices-list" class="cl-list"></div>
-          </div>
-        </div>
-
-      </div><!-- /view-panoramica -->
-
-      <!-- VISTA 2: SEQUENZA TEMPORALE -->
-      <div id="view-timeline">
-        <div id="timeline-feed-container">
-          <div style="padding:40px 0;text-align:center;color:var(--gray-400);font-size:13px;">Caricamento attività...</div>
-        </div>
-      </div>
-
-    </div><!-- /data-col -->
-
-  </div><!-- /cd-body -->
-
-  <template id="panel-storico-tpl"></template>
-
-</main><!-- /main -->
+</div>
 
 <!-- ===== ADD SERVICE MODAL ===== -->
-<div class="modal-overlay" id="modal-add-service">
-  <div class="modal" style="max-width:480px;width:100%;">
-    <div class="modal-header" style="padding:20px 24px 0;">
-      <div class="modal-title">Aggiungi servizio</div>
-      <button class="icon-btn" onclick="document.getElementById('modal-add-service').classList.remove('open')">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="modal-body" style="padding:20px 24px;">
-      <div class="form-group">
-        <label class="form-label">Servizio</label>
-        <select class="form-input" id="f-service-id"></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Ciclo di fatturazione</label>
-        <select class="form-input" id="f-service-cycle">
-          <option value="monthly">Mensile</option>
-          <option value="quarterly">Trimestrale</option>
-          <option value="annual">Annuale</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Data inizio</label>
-        <input class="form-input" type="date" id="f-service-start"/>
-      </div>
-    </div>
-    <div class="modal-footer" style="padding:0 24px 20px;">
-      <button class="btn btn-ghost" onclick="document.getElementById('modal-add-service').classList.remove('open')">Annulla</button>
-      <button class="btn btn-primary" id="modal-service-save">Salva</button>
-    </div>
-  </div>
+<div class="modal-overlay" id="modal-add-service" style="display:none;">
+<div class="modal modal--sm">
+<div class="modal-header">
+<div class="modal-title" data-i18n="cl.add_service">Aggiungi servizio</div>
+<button class="icon-btn" onclick="document.getElementById('modal-add-service').classList.remove('open')">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
 </div>
-
+<div class="modal-body" style="padding:20px 24px; background:#ffffff;">
+<div class="mac-form-list">
+<div class="mac-form-row">
+<label class="mac-form-label" data-i18n="cl.f_service">Servizio</label>
+<select class="mac-form-input" id="f-service-id"></select>
+</div>
+<div class="mac-form-row">
+<label class="mac-form-label" data-i18n="cl.f_cycle">Ciclo di fatt.</label>
+<select class="mac-form-input" id="f-service-cycle">
+<option data-i18n="cl.cycle_monthly" value="monthly">Mensile</option>
+<option data-i18n="cl.cycle_quarterly" value="quarterly">Trimestrale</option>
+<option data-i18n="cl.cycle_annual" value="annual">Annuale</option>
+</select>
+</div>
+<div class="mac-form-row">
+<label class="mac-form-label" data-i18n="cl.f_start_date">Data inizio</label>
+<input class="mac-form-input" id="f-service-start" type="date"/>
+</div>
+</div>
+</div>
+<div class="modal-footer" style="padding:0 24px 20px;">
+<button class="btn btn-ghost" data-i18n="modal.cancel" onclick="document.getElementById('modal-add-service').classList.remove('open')">Annulla</button>
+<button class="btn btn-primary" data-i18n="modal.save" id="modal-service-save">Salva</button>
+</div>
+</div>
+</div>
 <!-- ===== ADD CONTACT MODAL ===== -->
-<div class="modal-overlay" id="modal-add-contact">
-  <div class="modal" style="max-width:440px;width:100%;">
-    <div class="modal-header" style="padding:20px 24px 0;">
-      <div class="modal-title">Aggiungi contatto</div>
-      <button class="icon-btn" onclick="document.getElementById('modal-add-contact').classList.remove('open')">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="modal-body" style="padding:20px 24px;">
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">Nome *</label>
-          <input class="form-input" id="fc-name" type="text" placeholder="Mario Rossi"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Ruolo</label>
-          <input class="form-input" id="fc-role" type="text" placeholder="CEO, Amministratore…"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input class="form-input" id="fc-email" type="email" placeholder="mario@azienda.it"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Telefono</label>
-          <input class="form-input" id="fc-phone" type="tel" placeholder="+39…"/>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer" style="padding:0 24px 20px;">
-      <button class="btn btn-ghost" onclick="document.getElementById('modal-add-contact').classList.remove('open')">Annulla</button>
-      <button class="btn btn-primary" id="modal-contact-save">Salva</button>
-    </div>
-  </div>
+<div class="modal-overlay" id="modal-add-contact" style="display:none;">
+<div class="modal modal--xs">
+<div class="modal-header">
+<div class="modal-title" data-i18n="cl.add_contact">Aggiungi contatto</div>
+<button class="icon-btn" onclick="document.getElementById('modal-add-contact').classList.remove('open')">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+<div class="modal-body" style="padding:20px 24px; background:#ffffff;">
+<div class="mac-form-list">
+<div class="mac-form-row">
+<label class="mac-form-label" data-i18n="cl.f_contact_name">Nome *</label>
+<input class="mac-form-input" id="fc-name" placeholder="Mario Rossi" type="text"/>
+</div>
+<div class="mac-form-row">
+<label class="mac-form-label" data-i18n="cl.f_contact_role">Ruolo</label>
+<input class="mac-form-input" id="fc-role" placeholder="CEO, Amministratore…" type="text"/>
+</div>
+<div class="mac-form-row">
+<label class="mac-form-label" data-i18n="cl.f_email">Email</label>
+<input class="mac-form-input" id="fc-email" placeholder="mario@azienda.it" type="email"/>
+</div>
+<div class="mac-form-row">
+<label class="mac-form-label" data-i18n="cl.f_phone">Telefono</label>
+<input class="mac-form-input" id="fc-phone" placeholder="+39…" type="tel"/>
+</div>
+</div>
+</div>
+<div class="modal-footer" style="padding:0 24px 20px;">
+<button class="btn btn-ghost" data-i18n="modal.cancel" onclick="document.getElementById('modal-add-contact').classList.remove('open')">Annulla</button>
+<button class="btn btn-primary" data-i18n="modal.save" id="modal-contact-save">Salva</button>
+</div>
+</div>
 </div>
 
-<!-- ── MODAL NUOVA COMUNICAZIONE ──────────────────────────────── -->
-<div class="modal-overlay" id="modal-add-comm" onclick="if(event.target===this)closeCommsModal()">
-  <div class="modal-sheet" style="max-width:520px;">
-    <div class="modal-header" style="padding:20px 24px 0;">
-      <h3 style="font-size:16px;font-weight:700;color:#1e293b;">
-        <svg style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
-        Nuova comunicazione
-      </h3>
-      <button class="icon-btn" onclick="closeCommsModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="modal-body" style="padding:20px 24px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div class="form-group">
-          <label class="form-label">Canale <span style="color:#dc2626">*</span></label>
-          <select id="comm-channel" class="form-input">
-            <option value="email">📧 Email</option>
-            <option value="phone">📞 Telefono</option>
-            <option value="whatsapp">💬 WhatsApp</option>
-            <option value="sms">📱 SMS</option>
-            <option value="letter">📄 Lettera</option>
-            <option value="portal">🌐 Portale</option>
-            <option value="other">📌 Altro</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Direzione</label>
-          <select id="comm-direction" class="form-input">
-            <option value="outbound">→ Uscente (a cliente)</option>
-            <option value="inbound">← Entrante (da cliente)</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Oggetto / Titolo</label>
-        <input type="text" id="comm-subject" class="form-input" placeholder="Es. Risposta a preventivo, Richiesta supporto…">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Contenuto / Note</label>
-        <textarea id="comm-body" class="form-input" rows="3" placeholder="Riepilogo o preview del contenuto…" style="resize:vertical;"></textarea>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div class="form-group">
-          <label class="form-label">Stato</label>
-          <select id="comm-status" class="form-input">
-            <option value="sent">Inviata</option>
-            <option value="delivered">Consegnata</option>
-            <option value="opened">Aperta</option>
-            <option value="failed">Fallita</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Data e ora</label>
-          <input type="datetime-local" id="comm-sent-at" class="form-input">
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer" style="padding:0 24px 20px;">
-      <button class="btn btn-ghost" onclick="closeCommsModal()">Annulla</button>
-      <button class="btn btn-primary" onclick="saveComm()">Salva comunicazione</button>
-    </div>
-  </div>
+<!-- ===== ADD CONTRACT MODAL ===== -->
+<div class="modal-overlay" id="modal-add-contract" style="display:none;">
+<div class="modal modal--xs">
+<div class="modal-header">
+<div class="modal-title">Nuovo Contratto</div>
+<button class="icon-btn" onclick="document.getElementById('modal-add-contract').classList.remove('open')">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+<div class="modal-body" style="padding:20px 24px; background:#ffffff;">
+<div class="mac-form-list">
+<div class="mac-form-row">
+<label class="mac-form-label">Template *</label>
+<select class="mac-form-input" id="fac-template"><option value="">Caricamento...</option></select>
+</div>
+<div class="mac-form-row" style="display:none;">
+<!-- Se vogliamo mostrare i servizi del template potremmo popolare questo div in JS -->
+<div id="fac-services-list" style="padding:12px; font-size:12px; color:var(--gray-500); background:var(--gray-50); border-radius:8px;"></div>
+</div>
+</div>
+</div>
+<div class="modal-footer" style="padding:0 24px 20px;">
+<button class="btn btn-ghost" onclick="document.getElementById('modal-add-contract').classList.remove('open')">Annulla</button>
+<button class="btn btn-primary" id="modal-contract-save">Genera</button>
+</div>
+</div>
 </div>
 
-<!-- ── MODAL NUOVA CHIAMATA ────────────────────────────────────── -->
-<div class="modal-overlay" id="modal-add-call" onclick="if(event.target===this)closeCallModal()">
-  <div class="modal-sheet" style="max-width:500px;">
-    <div class="modal-header" style="padding:20px 24px 0;">
-      <h3 style="font-size:16px;font-weight:700;color:#1e293b;">
-        <svg style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z"/></svg>
-        Nuova chiamata
-      </h3>
-      <button class="icon-btn" onclick="closeCallModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="modal-body" style="padding:20px 24px;">
-      <div class="form-group">
-        <label class="form-label">Oggetto / Titolo <span style="color:#dc2626">*</span></label>
-        <input type="text" id="call-title" class="form-input" placeholder="Es. Rinnovo contratto, Supporto tecnico…">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div class="form-group">
-          <label class="form-label">Data e ora <span style="color:#dc2626">*</span></label>
-          <input type="datetime-local" id="call-scheduled-at" class="form-input">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Durata (minuti)</label>
-          <select id="call-duration" class="form-input">
-            <option value="15">15 min</option>
-            <option value="30" selected>30 min</option>
-            <option value="45">45 min</option>
-            <option value="60">60 min</option>
-            <option value="90">90 min</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Note</label>
-        <textarea id="call-notes" class="form-input" rows="3" placeholder="Argomenti da trattare, contesto…" style="resize:vertical;"></textarea>
-      </div>
-    </div>
-    <div class="modal-footer" style="padding:0 24px 20px;">
-      <button class="btn btn-ghost" onclick="closeCallModal()">Annulla</button>
-      <button class="btn btn-primary" onclick="saveCall()">Salva chiamata</button>
-    </div>
-  </div>
+<!-- ===== ADD CONTRACT MODAL ===== -->
+<div class="modal-overlay" id="modal-upload-contract" style="display:none;">
+<div class="modal modal--xs">
+<div class="modal-header">
+<div class="modal-title">Carica Contratto</div>
+<button class="icon-btn" onclick="document.getElementById('modal-upload-contract').classList.remove('open')">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+<div class="modal-body" style="padding:20px 24px; background:#ffffff;">
+<div class="mac-form-list">
+<div class="mac-form-row">
+<label class="mac-form-label">Titolo Contratto *</label>
+<input class="mac-form-input" id="fuc-title" placeholder="Es. Contratto di Sviluppo" type="text"/>
+</div>
+<div class="mac-form-row">
+<label class="mac-form-label">File PDF *</label>
+<input class="mac-form-input" id="fuc-file" type="file" accept="application/pdf" style="padding-top: 10px; padding-bottom: 25px;"/>
+</div>
+</div>
+</div>
+<div class="modal-footer" style="padding:0 24px 20px;">
+<button class="btn btn-ghost" onclick="document.getElementById('modal-upload-contract').classList.remove('open')">Annulla</button>
+<button class="btn btn-primary" id="modal-contract-upload-save">Carica PDF</button>
+</div>
+</div>
 </div>
 
-<!-- ── ALERT CHIAMATE SCADUTE ─────────────────────────────────── -->
-<div class="calls-alert-overlay" id="alert-overdue-calls">
-  <div class="calls-alert-box">
-    <div class="calls-alert-icon">📞</div>
-    <div class="calls-alert-title">Chiamate non effettuate!</div>
-    <div class="calls-alert-sub">Le seguenti chiamate erano programmate e non sono ancora state completate.</div>
-    <div class="calls-alert-list" id="alert-overdue-list"></div>
-    <div class="calls-alert-actions">
-      <button class="btn btn-ghost btn-sm" onclick="dismissOverdueAlert()">Ignora</button>
-      <button class="btn btn-primary btn-sm" onclick="dismissOverdueAlert();document.getElementById('card-chiamate').scrollIntoView({behavior:'smooth'})">Vai alle chiamate</button>
-    </div>
-  </div>
+<!-- ===== ADD QUOTE MODAL ===== -->
+<div class="modal-overlay" id="modal-add-quote" style="display:none;">
+<div class="modal modal--xs">
+<div class="modal-header">
+<div class="modal-title">Nuovo Preventivo</div>
+<button class="icon-btn" onclick="document.getElementById('modal-add-quote').classList.remove('open')">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+<div class="modal-body" style="padding:20px 24px; background:#ffffff;">
+<div class="mac-form-list">
+<div class="mac-form-row">
+<label class="mac-form-label">Titolo *</label>
+<input class="mac-form-input" id="fq-title" placeholder="Es. Sviluppo Sito Web" type="text"/>
+</div>
+<div class="mac-form-row">
+<label class="mac-form-label">Importo Totale (€)</label>
+<input class="mac-form-input" id="fq-amount" placeholder="0.00" type="number" step="0.01"/>
+</div>
+</div>
+</div>
+<div class="modal-footer" style="padding:0 24px 20px;">
+<button class="btn btn-ghost" onclick="document.getElementById('modal-add-quote').classList.remove('open')">Annulla</button>
+<button class="btn btn-primary" id="modal-quote-save">Crea Preventivo</button>
+</div>
+</div>
 </div>
 
-<div id="toast-container" class="toast-container"></div>
+<!-- ===== ADD ACTIVITY MODAL ===== -->
+<div class="modal-overlay" id="modal-add-activity" style="display:none;">
+<div class="modal modal--xs">
+<div class="modal-header">
+<div class="modal-title">Nuova Attività</div>
+<button class="icon-btn" onclick="document.getElementById('modal-add-activity').classList.remove('open')">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+<div class="modal-body" style="padding:20px 24px; background:#ffffff;">
+<div class="mac-form-list">
+<div class="mac-form-row">
+<label class="mac-form-label">Tipo *</label>
+<select class="mac-form-input" id="fa-type">
+  <option value="call">Telefonata</option>
+  <option value="email_sent">Email Inviata</option>
+  <option value="meeting">Riunione</option>
+  <option value="note">Nota Interna</option>
+</select>
+</div>
+<div class="mac-form-row">
+<label class="mac-form-label">Descrizione *</label>
+<textarea class="mac-form-input" id="fa-desc" placeholder="Dettagli attività..." style="resize:vertical;min-height:60px;"></textarea>
+</div>
+</div>
+</div>
+<div class="modal-footer" style="padding:0 24px 20px;">
+<button class="btn btn-ghost" onclick="document.getElementById('modal-add-activity').classList.remove('open')">Annulla</button>
+<button class="btn btn-primary" id="modal-activity-save">Salva Attività</button>
+</div>
+</div>
+</div>
 
+<div class="toast-container" id="toast-container"></div>
+</main>
 <!-- ==================== SCRIPTS ==================== -->
-<script src="assets/js/api.js?v=102"></script>
-<script src="assets/js/auth.js?v=102"></script>
-<script src="assets/js/ui.js?v=102"></script>
-<script src="assets/js/i18n.js?v=102"></script>
-<script src="assets/js/dash.js?v=102"></script>
-<script src="assets/js/router.js?v=102"></script>
-<script src="assets/js/activity_timeline.js?v=102"></script>
-<script src="assets/js/admin_client_calls.js?v=102"></script>
-<script src="assets/js/admin_client_comms.js?v=102"></script>
-<script src="assets/js/admin_client_detail.js?v=102"></script>
-<script>
-/* Sync hero tab buttons with switchMainView calls from JS */
-(function () {
-  var origSwitch = window.switchMainView;
-  window.switchMainView = function (viewId) {
-    if (origSwitch) origSwitch(viewId);
-    var hp = document.getElementById('hero-tab-panoramica');
-    var ht = document.getElementById('hero-tab-timeline');
-    if (hp) hp.classList.toggle('active', viewId === 'panoramica');
-    if (ht) ht.classList.toggle('active', viewId === 'timeline');
-  };
-})();
-</script>
-</body>
-</html>
+<script src="assets/js/api.js?v=152"></script>
+<script src="assets/js/auth.js?v=152"></script>
+<script src="assets/js/ui.js?v=152"></script>
+<script src="assets/js/i18n.js?v=152"></script>
+<script src="assets/js/dash.js?v=152"></script>
+<script src="assets/js/router.js?v=152"></script>
+<script src="assets/js/admin_client_calls.js?v=152"></script>
+<script src="assets/js/admin_client_comms.js?v=152"></script>
+<script src="assets/js/activity_timeline.js?v=152"></script>
+<script src="assets/js/admin_client_detail.js?v=152"></script>
+</div></body>
+</link>  <!-- Shared Components: canonical single-source-of-truth CSS -->
+  <link rel="stylesheet" href="assets/css/header_bar.css">
+  <link rel="stylesheet" href="assets/css/filter_bar.css">
+  <link rel="stylesheet" href="assets/css/search_bar.css">
+</head></html>

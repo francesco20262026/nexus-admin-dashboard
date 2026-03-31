@@ -3,10 +3,6 @@
    inserts the header HTML. Works on both initial MPA load and SPA navigations. */
 (function () {
   var headerHTML = '<header class="header" id="main-header">'
-   + '<button class="header-toggle" id="sidebar-toggle" title="Menu">'
-   + '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>'
-   + '</button>'
-
    + '<div class="header-search">'
    + '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>'
    + '<input type="text" data-i18n="header.search_admin" placeholder="Cerca clienti, fatture, contratti\u2026" id="global-search"/>'

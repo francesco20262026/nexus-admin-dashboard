@@ -1,4 +1,4 @@
-/* admin_companies.js — Multi-tenant company management — Premium UI v2 */
+/* admin_companies.js Multi-tenant company management Premium UI v2 */
 'use strict';
 (function () {
   Auth.guard('admin');
@@ -50,7 +50,7 @@
       ALL = await apiList();
     } catch (e) {
       list.innerHTML = `<div style="padding:40px 24px;text-align:center;color:var(--color-danger);font-size:14px;">
-        Errore: ${e?.message||'Caricamento fallito'} — <a href="#" onclick="window._reloadCompanies();return false">Riprova</a></div>`;
+        Errore: ${e?.message||'Caricamento fallito'} <a href="#" onclick="window._reloadCompanies();return false">Riprova</a></div>`;
       return;
     }
     updateKpis();
@@ -78,6 +78,120 @@
     s('email',  ALL.filter(c=>c.email_active).length,  'con Brevo Email');
   }
 
+  // ── Selection & Mass Actions (Mac Style) ───────────────────
+  window.selectedIds = new Set();
+  
+  window.toggleSelection = function(e, id) {
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    btn.classList.toggle('selected');
+    if (btn.classList.contains('selected')) window.selectedIds.add(id);
+    else window.selectedIds.delete(id);
+    updateSelectionUI();
+  };
+  
+  window.toggleSelectAll = function(el) {
+    const isSelected = el.classList.toggle('selected');
+    let currentFiltered = ALL;
+    if (currentFilter === 'windoc') currentFiltered = ALL.filter(c => c.windoc_active);
+    else if (currentFilter === 'zoho') currentFiltered = ALL.filter(c => c.zoho_active);
+    else if (currentFilter === 'email') currentFiltered = ALL.filter(c => c.email_active);
+
+    currentFiltered.forEach(i => {
+      if (isSelected) window.selectedIds.add(i.id);
+      else window.selectedIds.delete(i.id);
+    });
+    
+    document.querySelectorAll('.mac-select-btn').forEach(cb => {
+      if (isSelected) cb.classList.add('selected'); else cb.classList.remove('selected');
+      const row = cb.closest('.cl-row');
+      if (row) {
+        if (isSelected) row.classList.add('selected');
+        else row.classList.remove('selected');
+      }
+    });
+    updateSelectionUI();
+  };
+  
+  window.clearSelection = function() {
+    window.selectedIds.clear();
+    const selectAllBtn = document.getElementById('mass-select-all');
+    if (selectAllBtn) selectAllBtn.classList.remove('selected');
+    document.querySelectorAll('.mac-select-btn').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.cl-row.selected').forEach(r => r.classList.remove('selected'));
+    updateSelectionUI();
+  };
+  
+  window.updateSelectionUI = function() {
+    const bar = document.getElementById('mac-mass-action-bar');
+    const countEl = document.getElementById('mac-mass-action-count');
+    const selectAllBtn = document.getElementById('mass-select-all');
+    
+    if (!bar || !countEl) return;
+    
+    const count = window.selectedIds.size;
+    countEl.textContent = count;
+    
+    if (count > 0) bar.classList.add('visible');
+    else {
+      bar.classList.remove('visible');
+      if (selectAllBtn) selectAllBtn.classList.remove('selected');
+    }
+    
+    document.querySelectorAll('.cl-row').forEach(row => {
+      const id = row.dataset.id;
+      const cb = row.querySelector('.mac-select-btn');
+      if (window.selectedIds.has(id)) {
+        row.classList.add('selected');
+        if (cb) cb.classList.add('selected');
+      } else {
+        row.classList.remove('selected');
+        if (cb) cb.classList.remove('selected');
+      }
+    });
+
+    if (selectAllBtn) {
+      let currentFiltered = ALL;
+      if (currentFilter === 'windoc') currentFiltered = ALL.filter(c => c.windoc_active);
+      else if (currentFilter === 'zoho') currentFiltered = ALL.filter(c => c.zoho_active);
+      else if (currentFilter === 'email') currentFiltered = ALL.filter(c => c.email_active);
+
+      const currentPageIds = currentFiltered.map(i => i.id);
+      const allSelected = currentPageIds.length > 0 && currentPageIds.every(id => window.selectedIds.has(id));
+      if (allSelected) selectAllBtn.classList.add('selected');
+      else selectAllBtn.classList.remove('selected');
+    }
+  };
+  
+  window.massDelete = async function() {
+    if (window.selectedIds.size === 0) return;
+    if (!confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} aziende selezionate? L'operazione è IRREVERSIBILE.`)) return;
+    
+    let success = 0;
+    try {
+      UI.toast(`Eliminazione in corso...`, 'info');
+      for (const id of window.selectedIds) {
+        try {
+          await API.del(`/companies/${id}`);
+          success++;
+          ALL = ALL.filter(c => c.id !== id);
+        } catch (err) {
+          console.error(`Error deleting company ${id}:`, err);
+        }
+      }
+      if (success > 0) {
+        UI.toast(`${success} aziende eliminate.`, 'success');
+        updateKpis();
+        window.clearSelection();
+        render();
+      } else {
+        UI.toast("Errore durante l\'eliminazione. Riprova.", 'error');
+      }
+    } catch (e) {
+      UI.toast("Errore durante l\'eliminazione multipla.", 'error');
+    }
+  };
+
   function render() {
     const list = $('comp-list');
     if (!list) return;
@@ -97,12 +211,13 @@
 
     const activeId = API.getCompanyId?.() || null;
     list.innerHTML = filtered.map((c,i) => {
+      const isSelected = window.selectedIds.has(c.id);
       const [c1, c2] = pal(c.name);
       const ini = initials(c.name);
       const isEnabled = c.is_active !== false;
       let avatarHtml = '';
       if (c.logo_url) {
-        avatarHtml = `<div style="width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid var(--border);background:#fff;overflow:hidden;padding:4px;"><img src="${c.logo_url}" alt="${ini}" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.innerHTML='<div class=\\'avatar\\' style=\\'background:linear-gradient(135deg,${c1},${c2});width:100%;height:100%;font-size:13px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;border-radius:50%;margin:-4px;\\'>${ini}</div>'"></div>`;
+        avatarHtml = `<div style="width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid var(--border);background:#fff;overflow:hidden;padding:4px;"><img src="${c.logo_url}" alt="${ini}" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.innerHTML='<div class=\'avatar\' style=\'background:linear-gradient(135deg,${c1},${c2});width:100%;height:100%;font-size:13px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;border-radius:50%;margin:-4px;\'>${ini}</div>'"></div>`;
       } else {
         avatarHtml = `<div class="avatar" style="background:linear-gradient(135deg,${c1},${c2});width:40px;height:40px;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;"><span style="font-weight:800;color:#fff;letter-spacing:-.5px;">${ini}</span></div>`;
       }
@@ -115,27 +230,36 @@
 
       const disabledStyle = isEnabled ? '' : 'opacity:.5;';
 
-      return `<div class="cl-row fade-in" data-id="${c.id}" onclick="goDetail('${c.id}')" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s; cursor:pointer; ${disabledStyle}">
+      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${c.id}" onclick="document.querySelector('.mac-select-btn', this)?.click()" style="display:grid; grid-template-columns: 2.5fr 2fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer; ${disabledStyle}">
         <!-- Colonna 1: Logo e Nome -->
-        <div class="cl-col" style="flex:2; min-width:0; display:flex; flex-direction:row; align-items:center; gap:12px;">
+        <div class="cl-col cl-col-1">
+          <div class="cl-row-identity">
+            <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${c.id}" onclick="window.toggleSelection(event, '${c.id}')" style="flex-shrink:0;">
+              <div class="mac-checkbox"></div>
+            </div>
           ${avatarHtml}
-          <div style="min-width:0;">
+          <div class="cl-row-identity-body" style="min-width:0;">
             <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.name}</div>
-            <div class="cl-row-meta" style="font-size:12px; color:var(--gray-500); margin-top:2px;">🔗 ${c.slug||'—'}</div>
+            <div class="cl-row-meta" style="font-size:12px; color:var(--gray-500); margin-top:2px;">🔗 ${c.slug||''}</div>
           </div>
         </div>
 
+        </div>
         <!-- Colonna 2: Integrazioni -->
-        <div class="cl-col" style="flex:2; min-width:0; display:flex; flex-direction:row; gap:6px; flex-wrap:wrap; align-items:center;">
+        <div class="cl-col" style="min-width:0; display:flex; flex-direction:row; gap:6px; flex-wrap:wrap; align-items:center;">
           ${badges}
         </div>
 
         <!-- Colonna 3: Stato -->
-        <div class="cl-col cl-col-actions" style="flex-shrink:0; display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
+        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
           ${!isEnabled ? '<span class="tag-pill" style="color:var(--color-danger); border-color:var(--color-danger);">Disabilitata</span>' : '<span class="tag-pill" style="color:var(--color-success); border-color:var(--color-success);">Attiva</span>'}
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); goDetail('${c.id}')" title="Visualizza" style="padding:4px;">
+            <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+          </button>
         </div>
       </div>`;
     }).join('');
+    setTimeout(() => { if(window.updateSelectionUI) window.updateSelectionUI(); }, 10);
   }
 
   window.goDetail = id => { location.href = `admin_company_detail.html?id=${id}`; };
@@ -199,12 +323,11 @@
           <svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
           Aggiorna
         </button>
-        <button class="btn btn-primary" id="btn-new-company">
-          <svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-          Nuova azienda
-        </button>`;
+        <button class="btn-action-icon " id="btn-action-icon-new-company" title="Nuova azienda">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+</button>`;
       $('btn-refresh').addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
-      $('btn-new-company').addEventListener('click', () => openCompanyModal());
+      $('btn-action-icon-new-company').addEventListener('click', () => openCompanyModal());
     }
 
     $('btn-save-company')?.addEventListener('click', async () => {

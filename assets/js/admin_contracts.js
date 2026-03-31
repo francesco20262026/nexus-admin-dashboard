@@ -1,4 +1,4 @@
-/* admin_contracts.js — Contracts lifecycle management */
+/* admin_contracts.js Contracts lifecycle management */
 'use strict';
 (function () {
   Auth.guard('admin');
@@ -26,9 +26,11 @@
   const actDiv = $('page-actions');
   if (actDiv) actDiv.innerHTML = `
     <button class="btn btn-secondary" id="btn-refresh"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> <span>Aggiorna</span></button>
-    <button class="btn btn-primary" id="btn-new-contract"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> <span>Nuovo contratto</span></button>`;
+    <button class="btn-action-icon " id="btn-action-icon-new-contract" title="Nuovo contratto">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+</button>`;
   $('btn-refresh')?.addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
-  $('btn-new-contract')?.addEventListener('click', openModal);
+  $('btn-action-icon-new-contract')?.addEventListener('click', openModal);
 
   // Restore tab
   pipelineBar?.querySelectorAll('.cl-status-pill').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
@@ -128,53 +130,199 @@
     render();
   }
 
+  // ── Selection & Mass Actions (Mac Style) ───────────────────
+  window.selectedIds = new Set();
+  
+  window.toggleSelection = function(e, id) {
+    e.stopPropagation(); // Evita di far scattare l'onclick della riga
+    if (e.target.checked) {
+      window.selectedIds.add(id);
+    } else {
+      window.selectedIds.delete(id);
+    }
+    updateSelectionUI();
+  };
+  
+  window.toggleSelectAll = function(el) {
+    const isSelected = el.classList.toggle('selected');
+    filtered.slice((page-1)*PER, page*PER).forEach(i => {
+      if (isSelected) window.selectedIds.add(i.id);
+      else window.selectedIds.delete(i.id);
+    });
+    
+    // Aggiorna le checkbox individuali
+    document.querySelectorAll('.mac-select-btn').forEach(cb => {
+      if (isSelected) cb.classList.add('selected'); else cb.classList.remove('selected');
+      const row = cb.closest('.cl-row');
+      if (row) {
+        if (isSelected) row.classList.add('selected');
+        else row.classList.remove('selected');
+      }
+    });
+    updateSelectionUI();
+  };
+  
+  window.clearSelection = function() {
+    window.selectedIds.clear();
+    const selectAllBtn = document.getElementById('mass-select-all');
+    if (selectAllBtn) selectAllBtn.classList.remove('selected');
+    document.querySelectorAll('.mac-select-btn').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.cl-row.selected').forEach(r => r.classList.remove('selected'));
+    updateSelectionUI();
+  };
+  
+  window.updateSelectionUI = function() {
+    const bar = document.getElementById('mac-mass-action-bar');
+    const countEl = document.getElementById('mac-mass-action-count');
+    const selectAllBtn = document.getElementById('mass-select-all');
+    
+    if (!bar || !countEl) return;
+    
+    const count = window.selectedIds.size;
+    countEl.textContent = count;
+    
+    if (count > 0) {
+      bar.classList.add('visible');
+    } else {
+      bar.classList.remove('visible');
+      if (selectAllBtn) selectAllBtn.classList.remove('selected');
+    }
+    
+    // Sincronizza lo stato visivo delle righe
+    document.querySelectorAll('.cl-row').forEach(row => {
+      const id = row.dataset.id;
+      const cb = row.querySelector('.mac-select-btn');
+      if (window.selectedIds.has(id)) {
+        row.classList.add('selected');
+        if (cb) cb.classList.add('selected');
+      } else {
+        row.classList.remove('selected');
+        if (cb) cb.classList.remove('selected');
+      }
+    });
+
+    // Aggiorna lo stato del select all
+    if (selectAllBtn) {
+      const currentPageIds = filtered.slice((page-1)*PER, page*PER).map(i => i.id);
+      // Ensure all items on current page are selected
+      const allSelected = currentPageIds.length > 0 && currentPageIds.every(id => window.selectedIds.has(id));
+      if (allSelected) selectAllBtn.classList.add('selected');
+      else selectAllBtn.classList.remove('selected');
+    }
+  };
+  
+  window.massDelete = async function() {
+    if (window.selectedIds.size === 0) return;
+    
+    // Filter only drafts or allowed
+    const toDeleteIds = [];
+    let disallowedCount = 0;
+    
+    for (const id of window.selectedIds) {
+      const contract = ALL.find(c => c.id === id);
+      if (contract && contract.status === 'draft') {
+        toDeleteIds.push(id);
+      } else {
+        disallowedCount++;
+      }
+    }
+    
+    if (toDeleteIds.length === 0) {
+      UI.toast('Solo le bozze possono essere eliminate in massa.', 'warning');
+      return;
+    }
+    
+    let msg = `Sei sicuro di voler eliminare ${toDeleteIds.length} bozze?`;
+    if (disallowedCount > 0) {
+      msg += `\nAlcuni record (${disallowedCount}) sono stati ignorati perché non sono bozze e non possono essere eliminati.`;
+    }
+    
+    if (!confirm(msg)) return;
+    
+    let success = 0;
+    try {
+      UI.toast(`Eliminazione di ${toDeleteIds.length} bozze in corso...`, 'info');
+      // Execute deletions sequentially to avoid overloading the API
+      for (const id of toDeleteIds) {
+        try {
+          if (API.Contracts.remove) {
+             await API.Contracts.remove(id);
+          } else {
+             await API.del(`/contracts/${id}`);
+          }
+          success++;
+        } catch (err) {
+          console.error(`Error deleting contract ${id}:`, err);
+        }
+      }
+      
+      if (success > 0) {
+        UI.toast(`${success} bozze eliminate con successo.`, 'success');
+        window.clearSelection();
+        load();
+      } else {
+        UI.toast("Errore durante l\'eliminazione. Riprova.", 'error');
+      }
+    } catch (e) {
+      UI.toast("Errore durante l\'eliminazione multipla.", 'error');
+    }
+  };
+
   // ── Render ────────────────────────────────────────────────────
   function render() {
     if (!list) return;
     if (!filtered.length) {
-      list.innerHTML = `<div class="list-card">${UI.createEmptyState(null, ALL.length ? 'Nessun contratto corrisponde ai filtri.' : 'Nessun contratto presente.')}</div>`;
-      if (info) info.textContent = '';
-      if (pag)  pag.innerHTML   = '';
-      return;
+      list.innerHTML = `<div class="list-card">${UI.createEmptyState(null, ALL.length ? 'Nessun record corrisponde ai filtri.' : 'Nessun contratto presente.')}</div>`;
+      if (info) info.textContent = ''; if (pag) pag.innerHTML = ''; return;
     }
     const slice = filtered.slice((page-1)*PER, page*PER);
+
     list.innerHTML = slice.map(c => {
-      const sentDate   = c.sent_at    ? UI.date(c.sent_at)   : '—';
-      const signedDate = c.signed_at  ? UI.date(c.signed_at) : '—';
-      const validTo    = c.valid_to   ? UI.date(c.valid_to)  : '';
-      return `<div class="cl-row fade-in" data-id="${c.id}" style="display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s;">
-        <!-- Colonna 1: Titolo e Cliente -->
-        <div class="cl-col" style="flex:2; min-width:0;">
-          <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.title || 'Contratto senza titolo'}</div>
-          <div class="cl-row-meta" style="display:flex; gap:8px; align-items:center; margin-top:2px;">
-            <span class="cl-row-chip" style="font-size:12px;"><a href="admin_client_detail.html?id=${c.client_id}" style="color:var(--brand-600); text-decoration:none;">🏢 ${c.client_name || 'Sconosciuto'}</a></span>
-            ${c.template_name ? `<span class="cl-row-chip" style="font-size:12px; color:var(--gray-500);">📄 ${c.template_name}</span>` : ''}
+      const isSelected = window.selectedIds.has(c.id);
+      const sentDate   = c.sent_at   ? UI.date(c.sent_at)   : '';
+      const signedDate = c.signed_at ? UI.date(c.signed_at) : '';
+      const validTo    = c.valid_to  ? UI.date(c.valid_to)  : null;
+
+      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${c.id}" style="display:grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;" onclick="document.querySelector('.mac-select-btn', this)?.click()">
+        <!-- Colonna 1: Info Base -->
+        <div class="cl-col cl-col-1">
+          <div class="cl-row-identity">
+            <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${c.id}" onclick="window.toggleSelection(event, '${c.id}')" style="flex-shrink:0;">
+              <div class="mac-checkbox"></div>
+            </div>
+          <div style="flex:1; min-width:0;">
+            <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.title || 'Contratto senza titolo'}</div>
+            <div class="cl-row-meta" style="display:flex; gap:8px; align-items:center; margin-top:2px;">
+              <span class="cl-row-chip" style="font-size:12px;"><a href="admin_client_detail.html?id=${c.client_id}" onclick="event.stopPropagation();" style="color:var(--brand-600); text-decoration:none;">🏢 ${c.client_name || 'Sconosciuto'}</a></span>
+              ${c.template_name ? `<span class="cl-row-chip" style="font-size:12px; color:var(--gray-500);">📄 ${c.template_name}</span>` : ''}
+            </div>
           </div>
         </div>
 
+        </div>
         <!-- Colonna 2: Date Invio/Firma -->
-        <div class="cl-col" style="flex:1.5; min-width:0;">
+        <div class="cl-col" style="min-width:0;">
           <div style="font-size:12px; color:var(--gray-600);">Inviato: <span style="font-weight:600;">${sentDate}</span></div>
           <div style="font-size:12px; color:var(--gray-600); margin-top:2px;">Firmato: <span style="font-weight:600;">${signedDate}</span></div>
           ${validTo ? `<div style="font-size:12px; color:var(--gray-500); margin-top:2px;">Scade: ${validTo}</div>` : ''}
         </div>
 
         <!-- Colonna 3: Riepilogo Componenti e Stato -->
-        <div class="cl-col" style="flex:1.5; min-width:0;">
+        <div class="cl-col" style="min-width:0;">
           <div style="margin-bottom:4px;">${UI.pill(c.status || 'draft')}</div>
           ${c.service_name ? `<div style="font-size:12px; color:var(--gray-500); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${c.service_name.replace(/"/g,'&quot;')}">📦 ${c.service_name}</div>` : ''}
-          ${c.quote_id ? `<div style="font-size:12px; margin-top:2px;"><a href="admin_quotes.html?highlight=${c.quote_id}" style="color:var(--brand-600); text-decoration:none;">📋 Da preventivo</a></div>` : ''}
+          ${c.quote_id ? `<div style="font-size:12px; margin-top:2px;"><a href="admin_quotes.html?highlight=${c.quote_id}" onclick="event.stopPropagation();" style="color:var(--brand-600); text-decoration:none;">📋 Da preventivo</a></div>` : ''}
         </div>
 
         <!-- Colonna 4: Azioni -->
-        <div class="cl-col cl-col-actions" style="flex-shrink:0; display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
-          <button class="btn btn-secondary btn-sm" onclick="viewContract('${c.id}')" title="Visualizza contratto">👁 Visualizza</button>
-          ${c.status === 'draft' ? `<button class="btn btn-secondary btn-sm" onclick="editContract('${c.id}')">✏️ Modifica</button>` : ''}
-          ${c.status === 'draft' ? `<button class="btn btn-primary btn-sm" onclick="sendContract('${c.id}')">Invia per firma</button>` : ''}
-          ${(c.status === 'sent' || c.status === 'signing') ? `<button class="btn btn-secondary btn-sm" onclick="checkSignStatus('${c.id}')">Verifica stato</button>` : ''}
-          ${(c.status === 'signed' || c.status === 'active') ? `<button class="btn btn-ghost btn-sm" onclick="archiveContract('${c.id}')">Archivia</button>` : ''}
-          ${c.status === 'draft' ? `<button class="btn btn-ghost btn-sm" style="color:#dc2626;" onclick="deleteContract('${c.id}')" title="Elimina bozza">🗑</button>` : ''}
-          <button class="btn btn-ghost btn-sm" onclick="downloadContract('${c.id}')" title="Stampa / Scarica PDF">
+        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); viewContract('${c.id}')" title="Visualizza contratto">👁 Visualizza</button>
+          ${c.status === 'draft' ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editContract('${c.id}')">✏️ Modifica</button>` : ''}
+          ${c.status === 'draft' ? `<button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); sendContract('${c.id}')">Invia per firma</button>` : ''}
+          ${(c.status === 'sent' || c.status === 'signing') ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); checkSignStatus('${c.id}')">Verifica stato</button>` : ''}
+          ${(c.status === 'signed' || c.status === 'active') ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); archiveContract('${c.id}')">Archivia</button>` : ''}
+          ${c.status === 'draft' ? `<button class="btn btn-ghost btn-sm" style="color:#dc2626;" onclick="event.stopPropagation(); deleteContract('${c.id}')" title="Elimina bozza">🗑</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); downloadContract('${c.id}')" title="Stampa / Scarica PDF">
             <svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
             <span class="sr-only">Scarica</span>
           </button>
@@ -183,7 +331,8 @@
     }).join('');
     const s=(page-1)*PER+1, e=Math.min(page*PER,filtered.length);
     if (info) info.textContent = `${s}–${e} di ${filtered.length}`;
-    UI.pagination(pag, null, page, filtered.length, PER, p => { page=p; render(); });
+    UI.pagination(pag, null, page, filtered.length, PER, p => { page=p; render(); window.updateSelectionUI(); });
+    setTimeout(() => { if(window.updateSelectionUI) window.updateSelectionUI(); }, 10);
   }
 
   async function openModal(editId = null) {
@@ -219,7 +368,7 @@
       .filter(o => o.status !== 'cancelled')   // escludi solo i cancellati
       .map(o => ({
         id: `onb:${o.id}`,
-        company_name: o.company_name || o.email || '—',
+        company_name: o.company_name || o.email || '',
         status: 'prospect',
         _isProspect: true,
         _stage: o.status,
@@ -236,8 +385,8 @@
     if (!allClients.length) {
       UI.toast('Nessun cliente o prospect trovato.', 'warning');
     }
-    if (wc) wc.innerHTML = '<option value="">— Seleziona cliente —</option>' + allClients.map(c => {
-      const label = c.company_name || c.name || c.email || '—';
+    if (wc) wc.innerHTML = '<option value="">Seleziona cliente</option>' + allClients.map(c => {
+      const label = c.company_name || c.name || c.email || '';
       const badge = c._isProspect
         ? ` 🔸 [prospect${c._stage ? ' · ' + c._stage : ''}]`
         : (c.status && c.status !== 'active' ? ` [${c.status}]` : '');
@@ -249,7 +398,7 @@
     const tl = tplsRes
       ? (Array.isArray(tplsRes) ? tplsRes : (tplsRes.data ?? tplsRes.items ?? []))
       : [];
-    if (wt) wt.innerHTML = '<option value="">— Seleziona template —</option>' + tl.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+    if (wt) wt.innerHTML = '<option value="">Seleziona template</option>' + tl.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
 
     // ── Services (checkbox list) ──
     const sl = srvsRes
@@ -272,7 +421,7 @@
         const labels = wsList.querySelectorAll('label');
         if (labels.length) labels[labels.length - 1].style.borderBottom = 'none';
 
-        // Live total bar — remove previous instance if modal reopened
+        // Live total bar remove previous instance if modal reopened
         document.getElementById('svc-total-bar')?.remove();
         const totalBar = document.createElement('div');
         totalBar.id = 'svc-total-bar';
@@ -350,7 +499,7 @@
     const cid = $('w-client')?.value, tid = $('w-template')?.value;
     if (!cid || !tid) { UI.toast('Cliente e Template sono obbligatori', 'warning'); return; }
 
-    // Prospect: id è onb:<uuid> — estraiamo l'onboarding_id
+    // Prospect: id è onb:<uuid> estraiamo l'onboarding_id
     const isProspect = cid.startsWith('onb:');
     const onboarding_id = isProspect ? cid.replace('onb:', '') : null;
     const client_id     = isProspect ? null : cid;
@@ -409,7 +558,7 @@
   };
 
   window.deleteContract = async id => {
-    if (!confirm('Eliminare questa bozza di contratto? L\'operazione non è reversibile.')) return;
+    if (!confirm('Eliminare questa bozza di contratto? L'operazione non è reversibile.')) return;
     try {
       await API.Contracts.remove(id);
       ALL = ALL.filter(c => c.id !== id);

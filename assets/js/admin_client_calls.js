@@ -1,6 +1,6 @@
 /**
- * admin_client_calls.js — Chiamate client: carica, crea, aggiorna stato, alert scadute
- * v1 — 2026-03-28
+ * admin_client_calls.js Chiamate client: carica, crea, aggiorna stato, alert scadute
+ * v1 2026-03-28
  */
 
 /* ──────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ function initCallsModule(clientId) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   loadCalls() — GET /api/clients/{id}/calls
+   loadCalls() GET /api/clients/{id}/calls
    ────────────────────────────────────────────────────────── */
 async function loadCalls() {
   if (!_callsClientId) return;
@@ -46,7 +46,7 @@ async function loadCalls() {
 }
 
 /* ──────────────────────────────────────────────────────────
-   renderCalls() — split open vs done, build DOM
+   renderCalls() split open vs done, build DOM
    ────────────────────────────────────────────────────────── */
 function renderCalls() {
   const now     = new Date();
@@ -77,7 +77,7 @@ function renderCalls() {
 }
 
 /* ──────────────────────────────────────────────────────────
-   _buildCallItem(call, now) — HTML per singola riga
+   _buildCallItem(call, now) HTML per singola riga
    ────────────────────────────────────────────────────────── */
 function _buildCallItem(c, now) {
   const dt      = new Date(c.scheduled_at);
@@ -115,7 +115,7 @@ function _buildCallItem(c, now) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   updateCallsBadge() — badge nel tab nav
+   updateCallsBadge() badge nel tab nav
    ────────────────────────────────────────────────────────── */
 function updateCallsBadge() {
   const badge = document.getElementById('badge-call');
@@ -150,7 +150,7 @@ function closeCallModal() {
 }
 
 /* ──────────────────────────────────────────────────────────
-   saveCall() — POST /api/clients/{id}/calls
+   saveCall() POST /api/clients/{id}/calls
    ────────────────────────────────────────────────────────── */
 async function saveCall() {
   const title = document.getElementById('call-title').value.trim();
@@ -216,7 +216,7 @@ async function deleteCall(id) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   checkOverdueCalls() — mostra alert popup se ci sono scadute
+   checkOverdueCalls() mostra alert popup se ci sono scadute
    ────────────────────────────────────────────────────────── */
 async function checkOverdueCalls() {
   if (!_callsClientId) return;
@@ -235,7 +235,7 @@ async function checkOverdueCalls() {
         : diff < 1440
           ? `${Math.floor(diff / 60)} ore fa`
           : `${Math.floor(diff / 1440)} giorni fa`;
-      return `<div class="calls-alert-row"><strong>${ago}</strong> — ${_escHtml(c.title)}</div>`;
+      return `<div class="calls-alert-row"><strong>${ago}</strong> ${_escHtml(c.title)}</div>`;
     }).join('');
 
     document.getElementById('alert-overdue-calls').classList.add('open');

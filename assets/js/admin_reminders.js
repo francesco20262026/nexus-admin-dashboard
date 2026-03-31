@@ -1,5 +1,5 @@
 /* ============================================================
-   admin_reminders.js — Reminders & Notification Control
+   admin_reminders.js Reminders & Notification Control
    ============================================================ */
 'use strict';
 (function () {
@@ -156,14 +156,14 @@
       const tyLbl = typeLabels[r.type] || r.type || 'Sconosciuto';
       const lvl   = r.level ? `(Liv. ${r.level})` : '';
 
-      // Date — safe fallback to empty string instead of 0
+      // Date safe fallback to empty string instead of 0
       const dtRaw = r.scheduled_at || r.sent_at || r.created_at;
       const dt    = dtRaw ? new Date(dtRaw).toLocaleString('it-IT') : '';
       const dlRes = r.delivery_result
         ? `<div style="font-size:11px;color:var(--gray-500);margin-top:4px;">${r.delivery_result}</div>`
         : '';
 
-      // Related entity links — use href directly, no onclick+preventDefault
+      // Related entity links use href directly, no onclick+preventDefault
       const relClient = r.client_id || r.client_name
         ? `<a href="admin_client_detail.html?id=${r.client_id || ''}" class="hover-link" style="color:var(--brand-600);">${r.client_name || 'Cliente'}</a>`
         : `<span style="color:var(--gray-400);font-size:12px;">N/A</span>`;
@@ -176,9 +176,9 @@
         relRef = `<a href="admin_renewals.html?highlight=${r.renewal_id}" class="hover-link" style="color:var(--gray-700);font-weight:600;">🔄 Rinnovo ${r.renewal_id.substring(0, 8)}</a>`;
       }
 
-      // Email contact — only show if present
+      // Email contact only show if present
       const emailLine = r.contact_email
-        ? ` <span style="color:var(--gray-500);font-size:11px;">— ${r.contact_email}</span>`
+        ? ` <span style="color:var(--gray-500);font-size:11px;">${r.contact_email}</span>`
         : '';
 
       const actions = [];
@@ -221,7 +221,7 @@
   window.viewReminder = (id) => {
     const rem = ALL.find(r => r.id === id);
     if (!rem) return;
-    // Show a summary toast with key fields — full preview modal is future work
+    // Show a summary toast with key fields full preview modal is future work
     const info = [
       rem.title || '',
       rem.contact_email ? `→ ${rem.contact_email}` : '',
@@ -236,7 +236,7 @@
       window.showToast?.('Invio in corso...', 'info');
       const res = await API.post(`/reminders/${id}/retry`);
       window.showToast?.(res?.message || 'Promemoria inviato con successo', 'success');
-      // Optimistic local update to 'pending' — full status will resolve on next load
+      // Optimistic local update to 'pending' full status will resolve on next load
       ALL = ALL.map(r => r.id === id ? { ...r, status: 'pending' } : r);
       updateChips();
       applyFilters();

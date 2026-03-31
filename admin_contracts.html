@@ -4,13 +4,17 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Nova CRM — Contratti</title>
+<title>Nova CRM Contratti</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link as="image" href="/assets/img/nova-crm-logo-sidebar.svg" rel="preload"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
 <link href="assets/css/dash.css?v=92" rel="stylesheet"/>
 <link href="assets/css/global_search.css" rel="stylesheet"/>
-</link></head>
+</link>  <!-- Shared Components: canonical single-source-of-truth CSS -->
+  <link rel="stylesheet" href="assets/css/header_bar.css">
+  <link rel="stylesheet" href="assets/css/filter_bar.css">
+  <link rel="stylesheet" href="assets/css/search_bar.css">
+</head>
 <body>
 <div class="shell" id="shell">
 <aside class="sidebar">
@@ -85,7 +89,7 @@
 <div class="nav-item" style="gap:10px;">
 <div class="avatar" id="sidebar-avatar" style="width:30px;height:30px;font-size:11px;">–</div>
 <div style="overflow:hidden;">
-<div class="nav-label" id="sidebar-name" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+<div class="nav-label" id="sidebar-name" style="color:var(--gray-900);font-size:13px;font-weight:600;opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
 <div class="nav-label" style="color:var(--gray-500);font-size:11px;">Admin</div>
 </div>
 </div>
@@ -96,7 +100,6 @@
 <div class="page-header">
 <div>
 <h1 class="page-title" data-i18n="ctr.title">Contratti</h1>
-<p class="page-subtitle" data-i18n="ctr.subtitle">Gestione lifecycle contratti e firme digitali</p>
 </div>
 <div class="page-header-actions" id="page-actions"></div>
 </div>
@@ -128,11 +131,13 @@
 </div>
 
 <!-- ② Filter bar + list -->
-<div class="card" style="margin-top:0;"><div class="cl-filter-row"><div class="cl-filter-search-wrap"><svg class="cl-filter-search-icon" fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><input autocomplete="off" class="form-input cl-filter-search-input" id="cnt-search" placeholder="Cerca..." type="text"/></div><select class="form-input cl-filter-select" id="ctr-filter-client"><option data-i18n="ctr.all_clients" value="">Tutti i clienti</option></select><select class="form-input cl-filter-select" id="ctr-filter-template"><option data-i18n="ctr.all_templates" value="">Tutti i template</option></select><div style="display:flex;align-items:center;gap:4px;"><input class="form-input cl-filter-select" id="ctr-date-from" style="max-width:130px;" title="Da" type="date"/><span style="color:#9ca3af;font-size:10px;font-weight:700;">→</span><input class="form-input cl-filter-select" id="ctr-date-to" style="max-width:130px;" title="A" type="date"/></div></div>
+<div class="card" style="margin-top:0;"><div class="cl-filter-row"><div class="cl-filter-search-wrap"><span class="cl-filter-search-icon"><svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><input autocomplete="off" class="cl-search-input" id="cnt-search" placeholder="Cerca..." type="text"/></div></div>
 
+  <div class="cl-list" id="ctr-list"></div>
+  <div class="cl-pagination" id="ctr-pagination" style="padding:16px 24px; border-top:1px solid var(--border);"></div>
 </div></main>
 </div>
-<div class="modal-overlay" id="modal-contract" open')"="">
+<div class="modal-overlay" id="modal-contract">
 <div class="modal onb-form-modal" style="max-width:700px;width:95vw;">
 <div class="modal-header" style="padding:20px 24px 16px;">
 <div style="display:flex;align-items:flex-start;gap:12px;">

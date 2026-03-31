@@ -1,4 +1,4 @@
-/* admin_settings.js — Application settings management */
+/* admin_settings.js Application settings management */
 'use strict';
 (function () {
   Auth.guard('admin');
@@ -180,7 +180,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
           <div>
             <div style="font-weight:600;font-size:14px;">${t.name}</div>
-            <div style="font-size:11px;color:var(--gray-400);">Creato: ${t.created_at ? new Date(t.created_at).toLocaleDateString('it-IT') : '—'}</div>
+            <div style="font-size:11px;color:var(--gray-400);">Creato: ${t.created_at ? new Date(t.created_at).toLocaleDateString('it-IT') : ''}</div>
           </div>
           <div style="display:flex;gap:6px;">
             <button class="btn btn-ghost btn-sm" onclick="openContractTemplateForm('${t.id}')">Modifica</button>
@@ -252,7 +252,7 @@
     ta.focus();
   };
 
-  window.editEmailTemplate    = id => { alert('Editor template ' + id + ' — da implementare'); };
+  window.editEmailTemplate    = id => { alert('Editor template ' + id + ' da implementare'); };
   window.previewEmailTemplate = id => { window.open('/admin/email-template-preview/' + id, '_blank'); };
 
   window.onPageReady(async () => {

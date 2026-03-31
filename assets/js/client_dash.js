@@ -1,5 +1,5 @@
 /* ============================================================
-   client_dash.js — Client dashboard page logic
+   client_dash.js Client dashboard page logic
    ============================================================ */
 'use strict';
 (function () {
@@ -301,14 +301,14 @@
   document.addEventListener('DOMContentLoaded', async () => {
     await I18n.init('lang-switcher-slot');
     renderIdentity();
-    // All widgets in parallel — one failing doesn't block the others
+    // All widgets in parallel one failing doesn't block the others
     Promise.allSettled([
       loadQuotes(),
       loadInvoices(),
       loadContracts(),
       loadDocuments(),
       renderTimeline(),
-      // Silent first-login tracker — marks portal_first_login_at in onboarding DB
+      // Silent first-login tracker marks portal_first_login_at in onboarding DB
       API.Onboarding?.markPortalLogin?.().catch(() => {}),
     ]);
   });
