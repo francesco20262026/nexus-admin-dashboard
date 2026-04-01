@@ -265,6 +265,7 @@ const API = {
     remove:        (id)       => API.del(`/clients/${id}`),
     contacts:      (id)       => API.get(`/clients/${id}/contacts`),
     addContact:    (id, body) => API.post(`/clients/${id}/contacts`, body),
+    updateContact: (id, cid, body) => API.put(`/clients/${id}/contacts/${cid}`, body),
     removeContact: (id, cid)  => API.del(`/clients/${id}/contacts/${cid}`),
     services:      (id)       => API.get(`/clients/${id}/services`),
     invoices:      (id)       => API.get(`/clients/${id}/invoices`),
@@ -355,6 +356,10 @@ const API = {
     cancel:   (id)        => API.post(`/onboarding/${id}/cancel`, {}),
     invite:   (id, body)  => API.post(`/onboarding/${id}/invite`, body),
     markPortalLogin:  ()          => API.post('/onboarding/mark-portal-login', {}),
+    contacts: (id)        => API.get(`/onboarding/${id}/contacts`),
+    addContact: (id, body)=> API.post(`/onboarding/${id}/contacts`, body),
+    updateContact: (id, cid, body) => API.put(`/onboarding/${id}/contacts/${cid}`, body),
+    removeContact: (id, cid) => API.del(`/onboarding/${id}/contacts/${cid}`),
   },
 
 

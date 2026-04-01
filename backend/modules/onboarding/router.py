@@ -632,6 +632,14 @@ async def convert_onboarding(
     except Exception as exc:
         logger.warning("convert: permissions update failed: %s", exc)
 
+    # 3b. Migrate onboarding contacts
+    try:
+        supabase.table('client_contacts').update({
+            'client_id': client_id,
+        }).eq('onboarding_id', str(onboarding_id)).eq('company_id', company_id).execute()
+    except Exception as exc:
+        logger.warning('convert: contacts migration failed: %s', exc)
+
     # 4. Audit
     _audit(company_id, str(user.user_id), str(onboarding_id), "convert", new={
         "client_id": client_id,
@@ -851,3 +859,105 @@ async def mark_portal_first_login(
         .execute()
 
     return {"marked": True, "first_login_at": now, "onboarding_id": record["id"]}
+
+
+# ── Contacts (Onboarding) ─────────────────────────────────────────
+
+from modules.clients.router import ContactCreate
+
+@router.get('/{onboarding_id}/contacts')
+async def list_onboarding_contacts(
+    onboarding_id: UUID,
+    user: CurrentUser = Depends(get_current_user),
+):
+    _require_onboarding(onboarding_id, user)
+    res = (
+        supabase.table('client_contacts')
+        .select('*')
+        .eq('onboarding_id', str(onboarding_id))
+        .eq('company_id', str(user.active_company_id))
+        .order('is_primary', desc=True)
+        .execute()
+    )
+    return res.data or []
+
+@router.post('/{onboarding_id}/contacts', status_code=status.HTTP_201_CREATED)
+async def add_onboarding_contact(
+    onboarding_id: UUID,
+    body: ContactCreate,
+    user: CurrentUser = Depends(require_admin),
+):
+    _require_onboarding(onboarding_id, user)
+    row = {
+        **body.model_dump(),
+        'onboarding_id': str(onboarding_id),
+        'company_id': str(user.active_company_id),
+    }
+    try:
+        res = supabase.table('client_contacts').insert(row).execute()
+        if not res.data:
+            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, 'Failed to create contact')
+        return res.data[0]
+    except Exception as exc:
+        logger.error("Failed to add onboarding contact: %s", exc)
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Impossibile salvare il contatto. Verifica i dati o aggiorna la struttura del database (Constraint error).")
+
+from modules.clients.router import ContactUpdate
+
+@router.put('/{onboarding_id}/contacts/{contact_id}', status_code=status.HTTP_200_OK)
+async def update_onboarding_contact(
+    onboarding_id: UUID,
+    contact_id: UUID,
+    body: ContactUpdate,
+    user: CurrentUser = Depends(require_admin),
+):
+    _require_onboarding(onboarding_id, user)
+    
+    # Check if exists
+    existing = (
+        supabase.table("client_contacts")
+        .select("id")
+        .eq("id", str(contact_id))
+        .eq("onboarding_id", str(onboarding_id))
+        .eq("company_id", str(user.active_company_id))
+        .maybe_single()
+        .execute()
+    )
+    if not existing.data:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Contatto non trovato")
+
+    row = body.model_dump(exclude_unset=True)
+    if not row:
+        return {"id": str(contact_id)}
+        
+    try:
+        res = (
+            supabase.table("client_contacts")
+            .update(row)
+            .eq("id", str(contact_id))
+            .execute()
+        )
+        return res.data[0] if res.data else None
+    except Exception as exc:
+        logger.error("Failed to update onboarding contact: %s", exc)
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Impossibile aggiornare il contatto. Verifica i dati inseriti.")
+
+@router.delete('/{onboarding_id}/contacts/{contact_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_onboarding_contact(
+    onboarding_id: UUID,
+    contact_id: UUID,
+    user: CurrentUser = Depends(require_admin),
+):
+    existing = (
+        supabase.table('client_contacts')
+        .select('id')
+        .eq('id', str(contact_id))
+        .eq('onboarding_id', str(onboarding_id))
+        .eq('company_id', str(user.active_company_id))
+        .maybe_single()
+        .execute()
+    )
+    if not existing.data:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, 'Contact not found')
+    
+    supabase.table('client_contacts').delete().eq('id', str(contact_id)).eq('company_id', str(user.active_company_id)).execute()

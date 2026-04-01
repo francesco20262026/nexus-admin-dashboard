@@ -6000,7 +6000,6 @@ body {
   overflow: hidden !important;
 }
 .stat-card::before {
-  display: none !important;
 }
 .stat-card:hover {
   transform: translateY(-4px) !important;
@@ -6885,3 +6884,4 @@ input[type="text"].cl-filter-select {
 .sidebar-nav .nav-item:nth-child(14) svg { color: #14b8a6; }
 .sidebar-nav .nav-item.active svg { color: #fff !important; }
 /* ====== End mac-style detail page components ====== */
+.sidebar-footer { display: none !important; }

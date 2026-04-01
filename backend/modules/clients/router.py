@@ -93,7 +93,13 @@ class ContactCreate(BaseModel):
     notes: Optional[str] = None
 
 
-# ── Helpers ──────────────────────────────────────────────────
+class ContactUpdate(BaseModel):
+    role: Optional[str] = None
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    is_primary: Optional[bool] = None
+    notes: Optional[str] = None# ── Helpers ──────────────────────────────────────────────────
 
 def _audit(user: CurrentUser, entity_id: str, action: str,
            old: Optional[dict] = None, new: Optional[dict] = None) -> None:
@@ -636,11 +642,53 @@ async def add_contact(
         "client_id":  str(client_id),
         "company_id": str(user.active_company_id),
     }
-    res = supabase.table("client_contacts").insert(row).execute()
-    if not res.data:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Failed to create contact")
-    return res.data[0]
+    try:
+        res = supabase.table("client_contacts").insert(row).execute()
+        if not res.data:
+            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Failed to create contact")
+        return res.data[0]
+    except Exception as exc:
+        logger.error("Failed to add client contact: %s", exc)
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Impossibile salvare il contatto. Verifica i dati o aggiorna la struttura del database (Constraint error).")
 
+
+@router.put("/{client_id}/contacts/{contact_id}", status_code=status.HTTP_200_OK)
+async def update_contact(
+    client_id: UUID,
+    contact_id: UUID,
+    body: ContactUpdate,
+    user: CurrentUser = Depends(require_admin),
+):
+    _require_client(client_id, user)
+    
+    # Check if exists
+    existing = (
+        supabase.table("client_contacts")
+        .select("id")
+        .eq("id", str(contact_id))
+        .eq("client_id", str(client_id))
+        .eq("company_id", str(user.active_company_id))
+        .maybe_single()
+        .execute()
+    )
+    if not existing.data:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Contatto non trovato")
+
+    row = body.model_dump(exclude_unset=True)
+    if not row:
+        return {"id": str(contact_id)}
+        
+    try:
+        res = (
+            supabase.table("client_contacts")
+            .update(row)
+            .eq("id", str(contact_id))
+            .execute()
+        )
+        return res.data[0] if res.data else None
+    except Exception as exc:
+        logger.error("Failed to update client contact: %s", exc)
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Impossibile aggiornare il contatto. Verifica i dati inseriti.")
 
 @router.delete("/{client_id}/contacts/{contact_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_contact(

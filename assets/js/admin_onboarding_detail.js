@@ -8,9 +8,9 @@
   Auth.initUI();
 
   /* ── URL params ─────────────────────────────────────────────── */
-  const params   = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
   const onboardingId = params.get('id') || params.get('onboarding_id');
-  const openTab  = params.get('tab');
+  const openTab = params.get('tab');
 
   if (!onboardingId) {
     setTimeout(() => { location.href = 'admin_onboarding.html'; }, 800);
@@ -21,7 +21,7 @@
   const $ = id => document.getElementById(id);
 
   let ONBOARDING = null;
-  let _companies  = [];
+  let _companies = [];
 
   /* ── Tab Routing (SPA) ────────────────────────────────────────── */
   window.switchMainView = function (viewId) {
@@ -30,7 +30,7 @@
       el.style.display = 'none';
       el.classList.remove('active');
     });
-    
+
     // Show target tab
     const target = document.getElementById('view-' + viewId);
     if (target) {
@@ -54,15 +54,15 @@
   /* ── Deep-link quick links from list page ────────────────────── */
   function updateDeepLinks() {
     const safe = encodeURIComponent(onboardingId);
-    const el   = $('cd-link-invoices');  if (el)  el.href = `admin_invoices.html?onboarding_id=${safe}`;
-    const ec   = $('cd-link-contracts'); if (ec)  ec.href = `admin_contracts.html?onboarding_id=${safe}`;
-    const ed   = $('cd-link-docs');      if (ed)  ed.href = `admin_documents.html?onboarding_id=${safe}`;
-    const er   = $('cd-link-renewals');  if (er)  er.href = `admin_renewals.html?onboarding_id=${safe}`;
+    const el = $('cd-link-invoices'); if (el) el.href = `admin_invoices.html?onboarding_id=${safe}`;
+    const ec = $('cd-link-contracts'); if (ec) ec.href = `admin_contracts.html?onboarding_id=${safe}`;
+    const ed = $('cd-link-docs'); if (ed) ed.href = `admin_documents.html?onboarding_id=${safe}`;
+    const er = $('cd-link-renewals'); if (er) er.href = `admin_renewals.html?onboarding_id=${safe}`;
     // Quick-create links with client pre-selected
-    const eq   = $('cd-link-new-quote');      if (eq)  eq.href = `admin_quotes.html?new=1&onboarding_id=${safe}`;
-    const eqc  = $('cd-link-new-quote-card'); if (eqc) eqc.href = `admin_quotes.html?new=1&onboarding_id=${safe}`;
+    const eq = $('cd-link-new-quote'); if (eq) eq.href = `admin_quotes.html?new=1&onboarding_id=${safe}`;
+    const eqc = $('cd-link-new-quote-card'); if (eqc) eqc.href = `admin_quotes.html?new=1&onboarding_id=${safe}`;
     const einv = $('cd-link-new-invoice'); if (einv) einv.href = `admin_invoices.html?new=1&onboarding_id=${safe}`;
-    const epro = $('cd-link-new-proforma');if (epro) epro.href = `admin_invoices.html?new=1&type=proforma&onboarding_id=${safe}`;
+    const epro = $('cd-link-new-proforma'); if (epro) epro.href = `admin_invoices.html?new=1&type=proforma&onboarding_id=${safe}`;
   }
 
   /* ── Load main client ────────────────────────────────────────── */
@@ -94,13 +94,13 @@
     return (words[0][0] + words[words.length - 1][0]).toUpperCase();
   }
 
-  
+
   function renderPipeline() {
     const r = ONBOARDING;
     if (!r) return;
 
-    const STATES = ['new','quote_draft','quote_sent','quote_accepted','contract_draft','contract_sent','contract_signed','proforma_draft','proforma_issued','payment_under_review'];
-    const SLBL   = { new:'Nuova', quote_draft:'Prev. Bozza', quote_sent:'Prev. Inviato', quote_accepted:'Prev. Acc.', contract_draft:'Contr. Bozza', contract_sent:'Contr. Inv.', contract_signed:'Contr. Firmato', proforma_draft:'Proforma Bozza', proforma_issued:'Proforma Emessa', payment_under_review:'Fatturazione' };
+    const STATES = ['new', 'quote_draft', 'quote_sent', 'quote_accepted', 'contract_draft', 'contract_sent', 'contract_signed', 'proforma_draft', 'proforma_issued', 'payment_under_review'];
+    const SLBL = { new: 'Nuova', quote_draft: 'Prev. Bozza', quote_sent: 'Prev. Inviato', quote_accepted: 'Prev. Acc.', contract_draft: 'Contr. Bozza', contract_sent: 'Contr. Inv.', contract_signed: 'Contr. Firmato', proforma_draft: 'Proforma Bozza', proforma_issued: 'Proforma Emessa', payment_under_review: 'Fatturazione' };
 
     let idx = STATES.indexOf(r.status);
     if (idx < 0) { if (r.status === 'waiting_payment') idx = STATES.indexOf('proforma_issued'); else idx = 0; }
@@ -108,11 +108,11 @@
 
     const pFields = [
       { label: 'Ragione Sociale', val: r.company_name || r.lead_name },
-      { label: 'Partita IVA',     val: r.vat_number },
-      { label: 'Email',           val: r.email || r._client_email },
-      { label: 'SDI / PEC',       val: r.dest_code || r.codice_destinatario || r.pec },
-      { label: 'Indirizzo',       val: r.address || r.indirizzo },
-      { label: 'Città',           val: r.city || r.citta },
+      { label: 'Partita IVA', val: r.vat_number },
+      { label: 'Email', val: r.email || r._client_email },
+      { label: 'SDI / PEC', val: r.dest_code || r.codice_destinatario || r.pec },
+      { label: 'Indirizzo', val: r.address || r.indirizzo },
+      { label: 'Città', val: r.city || r.citta },
     ];
 
     const pipelineHtml = r.status === 'cancelled'
@@ -125,13 +125,13 @@
            <div class="mac-pipeline-track" style="margin-top:0;">
              <div class="mac-pipeline-line" style="top:10px;"></div>
              <div class="mac-pipeline-progress" style="top:10px; height:2px; background:#3b82f6; position:absolute; left:30px; z-index:0; width:${progressPct}%;"></div>
-             ${STATES.map((s,i) => {
-               const cls = i < idx ? 'done' : i === idx ? 'active' : '';
-               return `<div class="mac-pipeline-step ${cls}" onclick="changePipelineStatus('${s}')" style="cursor:pointer;" title="Imposta come ${SLBL[s]||s}">
+             ${STATES.map((s, i) => {
+        const cls = i < idx ? 'done' : i === idx ? 'active' : '';
+        return `<div class="mac-pipeline-step ${cls}" onclick="changePipelineStatus('${s}')" style="cursor:pointer;" title="Imposta come ${SLBL[s] || s}">
                  <div class="mac-pipeline-dot" style="width:20px; height:20px; border-width:3px;"></div>
                  <div class="mac-pipeline-label" style="font-size:9px; margin-top:4px; text-align:center;">${SLBL[s] || s}</div>
                </div>`;
-             }).join('')}
+      }).join('')}
            </div>
          </div>`;
 
@@ -142,9 +142,9 @@
            Requisiti Proforma
         </div>
         ${pFields.map(f => {
-          if (f.val) return `<div style="display:flex; align-items:center; gap:2px; font-weight:600; color:#10b981; background:#d1fae5; padding:2px 6px; border-radius:12px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg> ${f.label}</div>`;
-          return `<div style="display:flex; align-items:center; gap:2px; font-weight:600; color:#f97316; background:#ffedd5; padding:2px 6px; border-radius:12px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> ${f.label}</div>`;
-        }).join('')}
+      if (f.val) return `<div style="display:flex; align-items:center; gap:2px; font-weight:600; color:#10b981; background:#d1fae5; padding:2px 6px; border-radius:12px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg> ${f.label}</div>`;
+      return `<div style="display:flex; align-items:center; gap:2px; font-weight:600; color:#f97316; background:#ffedd5; padding:2px 6px; border-radius:12px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> ${f.label}</div>`;
+    }).join('')}
       </div>
     `;
 
@@ -164,7 +164,7 @@
     const fornitriceName = fornitriceLine ? fornitriceLine.name : '';
 
     // ── Backward compat IDs ──────────────────────────────────────
-    if ($('cd-status-pill'))  $('cd-status-pill').innerHTML = statusBadge(c.status);
+    if ($('cd-status-pill')) $('cd-status-pill').innerHTML = statusBadge(c.status);
     document.title = `${displayName} Nexus Admin`;
 
     // ── Sidebar Identity ──────────────────────────────────────────
@@ -225,11 +225,11 @@
       };
       const emailIcon = '<path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>';
       const phoneIcon = '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6z"/>';
-      const cityIcon  = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>';
-      const vatIcon   = '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/>';
+      const cityIcon = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>';
+      const vatIcon = '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/>';
       const createdIcon = '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>';
       const createdStr = c.created_at
-        ? new Date(c.created_at).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' })
+        ? new Date(c.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })
         : null;
       strip.innerHTML = [
         pill(emailIcon, c.email, c.email ? `mailto:${c.email}` : null),
@@ -242,19 +242,19 @@
   }
 
   /* ── ① Anagrafica ───────────────────────────────────────────── */
-      const STATUS_LABELS = {
-    new:                  { label: 'Nuova',           color: '#0284c7', bg: '#e0f2fe' },
-    quote_draft:          { label: 'Prev. Bozza',     color: '#ca8a04', bg: '#fef3c7' },
-    quote_sent:           { label: 'Prev. Inviato',   color: '#2563eb', bg: '#dbeafe' },
-    quote_accepted:       { label: 'Prev. Accettato', color: '#3b82f6', bg: '#eff6ff' },
-    contract_draft:       { label: 'Contr. Bozza',    color: '#ca8a04', bg: '#fef3c7' },
-    contract_sent:        { label: 'Contr. Inviato',  color: '#2563eb', bg: '#dbeafe' },
-    contract_signed:      { label: 'Contr. Firmato',  color: '#3b82f6', bg: '#eff6ff' },
-    proforma_draft:       { label: 'Prof. Bozza',     color: '#ca8a04', bg: '#fef3c7' },
-    proforma_issued:      { label: 'Prof. Emessa',    color: '#2563eb', bg: '#dbeafe' },
-    payment_under_review: { label: 'Pagam. in rev.',  color: '#9333ea', bg: '#f3e8ff' },
-    cancelled:            { label: 'Annullata',       color: '#ef4444', bg: '#fef2f2' },
-    blocked:              { label: 'Bloccata',        color: '#ef4444', bg: '#fef2f2' },
+  const STATUS_LABELS = {
+    new: { label: 'Nuova', color: '#0284c7', bg: '#e0f2fe' },
+    quote_draft: { label: 'Prev. Bozza', color: '#ca8a04', bg: '#fef3c7' },
+    quote_sent: { label: 'Prev. Inviato', color: '#2563eb', bg: '#dbeafe' },
+    quote_accepted: { label: 'Prev. Accettato', color: '#3b82f6', bg: '#eff6ff' },
+    contract_draft: { label: 'Contr. Bozza', color: '#ca8a04', bg: '#fef3c7' },
+    contract_sent: { label: 'Contr. Inviato', color: '#2563eb', bg: '#dbeafe' },
+    contract_signed: { label: 'Contr. Firmato', color: '#3b82f6', bg: '#eff6ff' },
+    proforma_draft: { label: 'Prof. Bozza', color: '#ca8a04', bg: '#fef3c7' },
+    proforma_issued: { label: 'Prof. Emessa', color: '#2563eb', bg: '#dbeafe' },
+    payment_under_review: { label: 'Pagam. in rev.', color: '#9333ea', bg: '#f3e8ff' },
+    cancelled: { label: 'Annullata', color: '#ef4444', bg: '#fef2f2' },
+    blocked: { label: 'Bloccata', color: '#ef4444', bg: '#fef2f2' },
   };
 
   function statusBadge(s) {
@@ -291,25 +291,25 @@
     const f = (label, val, fieldId, type = "text") => {
       let display;
       if (_editingAnag) {
-          if (type === 'textarea') {
-              display = `<textarea class="mac-flat-input" id="${fieldId}" rows="3" style="width:100%; font-size:13px; padding:6px; min-height:60px; margin:0; resize:vertical;">${val || ''}</textarea>`;
-          } else if (type === 'lang') {
-              display = `<select class="mac-flat-input" id="${fieldId}" style="width:100%; font-size:13px; padding:4px 8px; margin:0; height:32px;">
-                 <option value="it" ${val==='it'?'selected':''}>Italiano</option>
-                 <option value="en" ${val==='en'?'selected':''}>English</option>
+        if (type === 'textarea') {
+          display = `<textarea class="mac-flat-input" id="${fieldId}" rows="3" style="width:100%; font-size:13px; padding:6px; min-height:60px; margin:0; resize:vertical;">${val || ''}</textarea>`;
+        } else if (type === 'lang') {
+          display = `<select class="mac-flat-input" id="${fieldId}" style="width:100%; font-size:13px; padding:4px 8px; margin:0; height:32px;">
+                 <option value="it" ${val === 'it' ? 'selected' : ''}>Italiano</option>
+                 <option value="en" ${val === 'en' ? 'selected' : ''}>English</option>
               </select>`;
-          } else {
-              display = `<input class="mac-flat-input" id="${fieldId}" type="${type}" value="${(val||'').replace(/"/g, '&quot;')}" style="width:100%; font-size:13px; padding:4px 8px; margin:0; height:32px;"/>`;
-          }
+        } else {
+          display = `<input class="mac-flat-input" id="${fieldId}" type="${type}" value="${(val || '').replace(/"/g, '&quot;')}" style="width:100%; font-size:13px; padding:4px 8px; margin:0; height:32px;"/>`;
+        }
       } else {
-          // Read-only
-          if (type === 'textarea') {
-              display = val ? `<div style="white-space:pre-wrap; line-height:1.5;">${val}</div>` : `<span class="empty">—</span>`;
-          } else {
-              const link = type === 'email' && val ? `mailto:${val}` : type === 'tel' && val ? `tel:${val}` : null;
-              display = val ? (link ? `<a href="${link}">${val}</a>` : val) : `<span class="empty">—</span>`;
-          }
-          if (type === 'lang' && val) display = val.toUpperCase();
+        // Read-only
+        if (type === 'textarea') {
+          display = val ? `<div style="white-space:pre-wrap; line-height:1.5;">${val}</div>` : `<span class="empty">—</span>`;
+        } else {
+          const link = type === 'email' && val ? `mailto:${val}` : type === 'tel' && val ? `tel:${val}` : null;
+          display = val ? (link ? `<a href="${link}">${val}</a>` : val) : `<span class="empty">—</span>`;
+        }
+        if (type === 'lang' && val) display = val.toUpperCase();
       }
       return `
         <div class="detail-field">
@@ -342,7 +342,7 @@
 
       <div class="detail-section-body">
         <div class="detail-field-grid">
-          ${f('Ragione Sociale / Lead', c.company_name || c.lead_name, 'anag-company-name', 'text')}
+          ${f('Ragione Sociale', c.company_name || c.lead_name, 'anag-company-name', 'text')}
           ${f('Nome Referente', c.lead_name, 'anag-lead-name', 'text')}
           ${f('Email', c.email, 'anag-email', 'email')}
           ${f('Telefono', c.phone, 'anag-phone', 'tel')}
@@ -414,19 +414,19 @@
           const payload = {
             lead_name: $('anag-lead-name')?.value?.trim() || null,
             company_name: $('anag-company-name')?.value?.trim() || null,
-            email:   $('anag-email')?.value?.trim() || null,
-            phone:   $('anag-phone')?.value?.trim() || null,
+            email: $('anag-email')?.value?.trim() || null,
+            phone: $('anag-phone')?.value?.trim() || null,
             vat_number: $('anag-vat')?.value?.trim() || null,
-            pec:     $('anag-pec')?.value?.trim() || null,
+            pec: $('anag-pec')?.value?.trim() || null,
             dest_code: $('anag-sdi')?.value?.trim() || null,
-            iban:    $('anag-iban')?.value?.trim() || null,
+            iban: $('anag-iban')?.value?.trim() || null,
             address: $('anag-address')?.value?.trim() || null,
-            city:    $('anag-city')?.value?.trim() || null,
-            lang:    $('anag-lang')?.value || 'it',
-            notes:   $('anag-notes')?.value?.trim() || null,
+            city: $('anag-city')?.value?.trim() || null,
+            lang: $('anag-lang')?.value || 'it',
+            notes: $('anag-notes')?.value?.trim() || null,
           };
           Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
-          
+
           try {
             toggle.disabled = true;
             UI.toast('Salvataggio in corso...', 'info');
@@ -455,7 +455,7 @@
     if (!el) return;
     el.innerHTML = UI.skeletonCardList(2);
     try {
-      const res  = [];
+      const res = await API.Onboarding?.contacts(onboardingId);
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
       const badge = $('badge-contact');
       if (badge) badge.textContent = data.length;
@@ -465,8 +465,8 @@
         return;
       }
       el.innerHTML = data.map(ct => {
-        const initials = ct.name ? ct.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() : '?';
-        return `<div class="z-contact-row">
+        const initials = ct.name ? ct.name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() : '?';
+        return `<div class="z-contact-row" data-id="${ct.id}" style="cursor:pointer">
           <div class="z-contact-avatar">${initials}</div>
           <div class="z-contact-info">
             <div class="z-contact-name">${ct.name || ''}${ct.is_primary ? '<span style="font-size:10px;font-weight:700;color:#3b82f6;background:#eff6ff;padding:1px 7px;border-radius:20px;margin-left:8px;">Principale</span>' : ''}</div>
@@ -478,6 +478,21 @@
           </div>
         </div>`;
       }).join('');
+      el.querySelectorAll('.z-contact-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const ct = data.find(c => c.id === row.dataset.id);
+          if (!ct) return;
+          window._editingContactId = ct.id;
+          $('fc-name').value = ct.name || '';
+          $('fc-role').value = ct.role || '';
+          $('fc-email').value = ct.email || '';
+          $('fc-phone').value = ct.phone || '';
+          const titleEl = document.querySelector('#modal-add-contact .modal-title');
+          if (titleEl) titleEl.textContent = 'Modifica contatto';
+          $('modal-add-contact').classList.add('open');
+        });
+      });
+      _renderSidebarContacts(data);
       _renderSidebarContacts(data);
     } catch {
       el.innerHTML = `<div style="padding:20px;color:var(--gray-500);font-size:13px;">Errore nel caricamento contatti.</div>`;
@@ -493,15 +508,30 @@
       <div class="z-sidebar-quick">
         <div class="z-sidebar-quick-title">Contatti</div>
         ${shown.map(ct => `
-          <div class="z-qc-card">
+          <div class="z-qc-card" data-id="${ct.id}" style="cursor:pointer">
             <div class="z-qc-name">${ct.name || ''}</div>
             ${ct.role ? `<div class="z-qc-role">${ct.role}</div>` : ''}
             <div class="z-qc-links">
-              ${ct.email ? `<a href="mailto:${ct.email}" class="z-qc-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>${ct.email}</a>` : ''}
-              ${ct.phone ? `<a href="tel:${ct.phone}" class="z-qc-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6z"/></svg>${ct.phone}</a>` : ''}
+              ${ct.email ? `<a href="mailto:${ct.email}" class="z-qc-link" onclick="event.stopPropagation()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>${ct.email}</a>` : ''}
+              ${ct.phone ? `<a href="tel:${ct.phone}" class="z-qc-link" onclick="event.stopPropagation()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6z"/></svg>${ct.phone}</a>` : ''}
             </div>
           </div>`).join('')}
       </div>`;
+
+    el.querySelectorAll('.z-qc-card').forEach(row => {
+      row.addEventListener('click', () => {
+        const ct = data.find(c => c.id === row.dataset.id);
+        if (!ct) return;
+        window._editingContactId = ct.id;
+        $('fc-name').value = ct.name || '';
+        $('fc-role').value = ct.role || '';
+        $('fc-email').value = ct.email || '';
+        $('fc-phone').value = ct.phone || '';
+        const titleEl = document.querySelector('#modal-add-contact .modal-title');
+        if (titleEl) titleEl.textContent = 'Modifica contatto';
+        $('modal-add-contact').classList.add('open');
+      });
+    });
   }
 
   /* ── ③ Services ─────────────────────────────────────────────── */
@@ -510,7 +540,7 @@
     if (!el) return;
     el.innerHTML = UI.skeletonCardList(2);
     try {
-      const res  = [];
+      const res = [];
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
       const chip = $('chip-services');
       if (chip) chip.textContent = data.length;
@@ -542,9 +572,9 @@
     if (!el) return;
     el.innerHTML = UI.skeletonCardList(2);
     try {
-      const res  = await API.Contracts?.list({onboarding_id: onboardingId});
+      const res = await API.Contracts?.list({ onboarding_id: onboardingId });
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
-      const active = data.filter(c => ['active','signed'].includes(c.status)).length;
+      const active = data.filter(c => ['active', 'signed'].includes(c.status)).length;
       const chip = $('chip-contracts');
       if (chip) chip.textContent = active;
       const kpi = $('chip-contracts-kpi');
@@ -575,7 +605,7 @@
     if (!el) return;
     el.innerHTML = UI.skeletonCardList(2);
     try {
-      const res  = [];
+      const res = [];
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
       const chip = $('chip-docs');
       if (chip) chip.textContent = data.length;
@@ -590,7 +620,7 @@
             ${UI.pill(d.status || 'active')}
           </div>
           <div class="list-card-body">
-            ${d.size ? `<div class="list-card-meta">${Math.round(d.size/1000)} KB</div>` : ''}
+            ${d.size ? `<div class="list-card-meta">${Math.round(d.size / 1000)} KB</div>` : ''}
             <div class="list-card-meta">${UI.date(d.created_at || d.uploaded)}</div>
             ${d.download_url ? `<a href="${d.download_url}" target="_blank" class="btn btn-ghost btn-sm" style="margin-top:6px;">${I18n.t('common.download') || 'Scarica'}</a>` : ''}
           </div>
@@ -606,7 +636,7 @@
     if (!el) return;
     el.innerHTML = UI.skeletonCardList(2);
     try {
-      const res  = await API.Quotes?.list({onboarding_id: onboardingId});
+      const res = await API.Quotes?.list({ onboarding_id: onboardingId });
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
       const chip = $('chip-quotes');
       if (chip) chip.textContent = data.length;
@@ -637,9 +667,9 @@
     if (!el) return;
     el.innerHTML = UI.skeletonCardList(2);
     try {
-      const res  = await API.Invoices?.list({onboarding_id: onboardingId});
+      const res = await API.Invoices?.list({ onboarding_id: onboardingId });
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
-      const open = data.filter(i => !['paid','cancelled'].includes(i.status)).length;
+      const open = data.filter(i => !['paid', 'cancelled'].includes(i.status)).length;
       const chip = $('chip-invoices');
       if (chip) chip.textContent = open;
       const kpi = $('chip-invoices-kpi');
@@ -672,7 +702,7 @@
     el.innerHTML = UI.skeletonCardList(2);
     try {
       const endpoint = null ?? API.Renewals?.listByClient;
-      const res  = endpoint ? await endpoint(onboardingId) : [];
+      const res = endpoint ? await endpoint(onboardingId) : [];
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
       const chip = $('chip-renewals');
       if (chip) chip.textContent = data.length;
@@ -712,22 +742,22 @@
       }
       if (!info && ONBOARDING) {
         info = {
-          windoc_id:       ONBOARDING.windoc_id,
-          windoc_status:   ONBOARDING.windoc_sync_at ? 'synced' : 'not_configured',
+          windoc_id: ONBOARDING.windoc_id,
+          windoc_status: ONBOARDING.windoc_sync_at ? 'synced' : 'not_configured',
           windoc_last_sent: ONBOARDING.windoc_sync_at,
         };
       }
 
-      const windocId   = info?.windoc_id;
-      const status     = info?.windoc_status || (windocId ? 'synced' : 'not_configured');
-      const lastSent   = info?.windoc_last_sent || info?.last_sent;
+      const windocId = info?.windoc_id;
+      const status = info?.windoc_status || (windocId ? 'synced' : 'not_configured');
+      const lastSent = info?.windoc_last_sent || info?.last_sent;
 
       const statusColor = status === 'synced' ? 'success' : status === 'error' ? 'danger' : 'gray';
       const statusLabel = {
-        synced:          I18n.t('cl.windoc_synced')    || 'Sincronizzato',
-        pending:         I18n.t('cl.windoc_pending')   || 'In attesa',
-        error:           I18n.t('cl.windoc_error')     || 'Errore sync',
-        not_configured:  I18n.t('cl.windoc_not_cfg')   || 'Non configurato',
+        synced: I18n.t('cl.windoc_synced') || 'Sincronizzato',
+        pending: I18n.t('cl.windoc_pending') || 'In attesa',
+        error: I18n.t('cl.windoc_error') || 'Errore sync',
+        not_configured: I18n.t('cl.windoc_not_cfg') || 'Non configurato',
       }[status] || status;
 
       body.innerHTML = `
@@ -782,8 +812,8 @@
   async function loadStorico() {
     if (window.ActivityTimeline) {
       await ActivityTimeline.init({
-        entityType:  'client',
-        entityId:    onboardingId,
+        entityType: 'client',
+        entityId: onboardingId,
         containerId: 'timeline-feed-container',
       });
     } else {
@@ -799,14 +829,14 @@
     const content = input?.value.trim();
     if (!content) return;
     try {
-       await window.API.post(`/onboarding/${onboardingId}/notes`, { content });
-       window.UI.toast('Aggiornamento registrato', 'success');
-       input.value = '';
-       // Ricarica sia le note di base che la timeline se è già attiva
-       loadNotes();
-       if (loaded['storico']) loadStorico();
-    } catch(e) {
-       window.UI.toast(e.message || 'Errore salvataggio nota', 'error');
+      await window.API.post(`/onboarding/${onboardingId}/notes`, { content });
+      window.UI.toast('Aggiornamento registrato', 'success');
+      input.value = '';
+      // Ricarica sia le note di base che la timeline se è già attiva
+      loadNotes();
+      if (loaded['storico']) loadStorico();
+    } catch (e) {
+      window.UI.toast(e.message || 'Errore salvataggio nota', 'error');
     }
   };
 
@@ -837,7 +867,7 @@
     sel.innerHTML = `<option>${I18n.t('common.loading') || 'Caricamento…'}</option>`;
     modal?.classList.add('open');
     try {
-      const res  = await API.Services.catalog(true);
+      const res = await API.Services.catalog(true);
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
       sel.innerHTML = `<option value="">${I18n.t('cl.select_service') || 'Seleziona servizio'}</option>` +
         data.map(s => `<option value="${s.id}">${s.name} (${UI.currency(s.price_monthly, s.currency)}/mo)</option>`).join('');
@@ -846,7 +876,7 @@
   });
 
   $('modal-service-save')?.addEventListener('click', async () => {
-    const sId  = $('f-service-id')?.value;
+    const sId = $('f-service-id')?.value;
     if (!sId) { UI.toast(I18n.t('cl.select_service') || 'Seleziona un servizio', 'warning'); return; }
     try {
       await API.Services.subscribe({ onboarding_id: onboardingId, service_id: sId, billing_cycle: $('f-service-cycle')?.value || 'monthly', start_date: $('f-service-start')?.value || null });
@@ -858,6 +888,13 @@
 
   /* ── Add Contact Modal ──────────────────────────────────────── */
   $('cd-btn-add-contact')?.addEventListener('click', () => {
+    window._editingContactId = null;
+    $('fc-name').value = '';
+    $('fc-role').value = '';
+    $('fc-email').value = '';
+    $('fc-phone').value = '';
+    const titleEl = document.querySelector('#modal-add-contact .modal-title');
+    if (titleEl) titleEl.textContent = 'Aggiungi contatto';
     $('modal-add-contact')?.classList.add('open');
   });
 
@@ -865,13 +902,19 @@
     const name = $('fc-name')?.value?.trim();
     if (!name) { UI.toast(I18n.t('cl.form_required') || 'Nome obbligatorio', 'warning'); return; }
     try {
-      await API.Clients.addContact?.(onboardingId, {
-        lead_name: name, role: $('fc-role')?.value?.trim() || null,
+      const body = {
+        name: name, role: $('fc-role')?.value?.trim() || "",
         email: $('fc-email')?.value?.trim() || null,
         phone: $('fc-phone')?.value?.trim() || null,
-      });
+      };
+      if (window._editingContactId) {
+        await API.Onboarding.updateContact?.(onboardingId, window._editingContactId, body);
+        UI.toast('Contatto aggiornato', 'success');
+      } else {
+        await API.Onboarding.addContact?.(onboardingId, body);
+        UI.toast(I18n.t('cl.contact_added') || 'Contatto aggiunto', 'success');
+      }
       $('modal-add-contact').classList.remove('open');
-      UI.toast(I18n.t('cl.contact_added') || 'Contatto aggiunto', 'success');
       loadContacts();
     } catch (e) { UI.toast(e.message || I18n.t('error.generic'), 'error'); }
   });
@@ -886,9 +929,9 @@
   $('modal-quote-save')?.addEventListener('click', async () => {
     const title = $('fq-title')?.value?.trim();
     if (!title) { UI.toast(I18n.t('cl.form_required') || 'Titolo obbligatorio', 'warning'); return; }
-    
+
     const amount = parseFloat($('fq-amount')?.value) || 0;
-    
+
     const body = {
       onboarding_id: onboardingId,
       title: title,
@@ -896,9 +939,9 @@
         { description: 'Prestazione', quantity: 1, unit_price: amount, vat_rate: 22 }
       ]
     };
-    
+
     try {
-      const btn = $('modal-quote-save'); if(btn) btn.disabled = true;
+      const btn = $('modal-quote-save'); if (btn) btn.disabled = true;
       await API.post('/quotes/', body);
       $('modal-add-quote').classList.remove('open');
       UI.toast('Preventivo creato', 'success');
@@ -906,7 +949,7 @@
     } catch (e) {
       UI.toast(e.message || 'Errore durante la creazione del preventivo', 'error');
     } finally {
-      const btn = $('modal-quote-save'); if(btn) btn.disabled = false;
+      const btn = $('modal-quote-save'); if (btn) btn.disabled = false;
     }
   });
 
@@ -929,18 +972,18 @@
     fd.append('file', file);
 
     try {
-      const btn = $('modal-contract-upload-save'); if(btn) btn.disabled = true;
+      const btn = $('modal-contract-upload-save'); if (btn) btn.disabled = true;
       UI.toast('Caricamento in corso...', 'info');
       await API.Contracts.uploadSigned(fd);
       $('modal-upload-contract').classList.remove('open');
       UI.toast('Contratto caricato con successo', 'success');
       $('fuc-title').value = '';
-      if(fileInput) fileInput.value = '';
+      if (fileInput) fileInput.value = '';
       if (typeof loadContracts === 'function') loadContracts();
     } catch (e) {
       UI.toast(e.message || 'Errore durante il caricamento del contratto', 'error');
     } finally {
-      const btn = $('modal-contract-upload-save'); if(btn) btn.disabled = false;
+      const btn = $('modal-contract-upload-save'); if (btn) btn.disabled = false;
     }
   });
 
@@ -974,7 +1017,7 @@
   window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');
     await loadClient();
-    
+
     // Load EVERYTHING in parallel immediately no artificial delays
     Promise.allSettled([
       loadContacts(),
@@ -985,9 +1028,9 @@
       loadDocuments(),
     ]).then(() => {
       loaded['contacts'] = loaded['services'] =
-      loaded['contracts'] = loaded['quotes'] = loaded['invoices'] =
-      loaded['documents'] = true;
-      
+        loaded['contracts'] = loaded['quotes'] = loaded['invoices'] =
+        loaded['documents'] = true;
+
       // Reveal UI after data is loaded to prevent FOUC skeleton flash
       setTimeout(() => {
         const shell = document.getElementById('shell');

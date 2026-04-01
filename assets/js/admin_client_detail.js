@@ -22,6 +22,7 @@
 
   let CLIENT = null;
   let _companies = [];
+  let _editingAnag = false;
 
   /* ── Tab Routing (SPA) ────────────────────────────────────────── */
   window.switchMainView = function (viewId) {
@@ -189,50 +190,140 @@
 
   function renderAnagrafica() {
     const c = CLIENT;
-
     const grid = $('cd-anag-grid') || $('cd-anag-list');
     if (!grid) return;
 
-    const f = (label, val, cls = '') => `
-      <div class="mac-form-row">
-        <div class="mac-form-label">${label}</div>
-        <div class="mac-form-value ${cls}">${val || ''}</div>
+    const f = (label, val, fieldId = null, type = 'text') => {
+      let display = '';
+      if (_editingAnag && fieldId) {
+        if (type === 'textarea') {
+          display = `<textarea class="mac-flat-input" id="${fieldId}" style="width:100%; font-size:13px; line-height:1.5; padding:8px; border-radius:6px; min-height:80px; margin:0; resize:vertical;">${val || ''}</textarea>`;
+        } else if (type === 'lang') {
+          display = `<select class="mac-flat-input" id="${fieldId}" style="width:100%; font-size:13px; padding:4px 8px; margin:0; height:32px;">
+                <option value="it" ${val==='it' ? 'selected':''}>IT</option>
+                <option value="en" ${val==='en' ? 'selected':''}>EN</option>
+                <option value="de" ${val==='de' ? 'selected':''}>DE</option>
+                <option value="fr" ${val==='fr' ? 'selected':''}>FR</option>
+                <option value="es" ${val==='es' ? 'selected':''}>ES</option>
+              </select>`;
+        } else {
+          display = `<input class="mac-flat-input" id="${fieldId}" type="${type}" value="${(val || '').replace(/"/g, '&quot;')}" style="width:100%; font-size:13px; padding:4px 8px; margin:0; height:32px;"/>`;
+        }
+      } else {
+        if (type === 'textarea') {
+          display = val ? `<div style="white-space:pre-wrap; line-height:1.5;">${val}</div>` : `<span class="empty">—</span>`;
+        } else {
+          const link = type === 'email' && val ? `mailto:${val}` : type === 'tel' && val ? `tel:${val}` : null;
+          display = val ? (link ? `<a href="${link}">${val}</a>` : val) : `<span class="empty">—</span>`;
+        }
+        if (type === 'lang' && val) display = val.toUpperCase();
+      }
+      return `
+        <div class="detail-field">
+          <div class="detail-field-label">${label}</div>
+          <div class="detail-field-value" style="display:flex; align-items:center;">${display}</div>
+        </div>`;
+    };
+
+    const editToggle = `
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase;">Modifica</span>
+        <label class="mac-switch" title="Abilita/Disabilita Modifica">
+          <input type="checkbox" id="anag-edit-toggle" ${_editingAnag ? 'checked' : ''}>
+          <span class="mac-slider"></span>
+        </label>
       </div>`;
 
-    const editPencil = `<button class="btn-action-icon" id="cd-btn-edit-anag" title="Modifica" style="width:28px;height:28px;background:white;border:1px solid #e5e7eb;border-radius:6px;color:#3b82f6;"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"></path></svg></button>`;
-
     grid.innerHTML = `
-      <div class="mac-section-title" style="margin-top:0;">
-        <span>Informazioni Principali</span>
-        ${editPencil}
-      </div>
-      <div class="mac-form-list">
-        ${f('Stato', statusBadge(c.status))}
-        ${f('Ragione sociale', c.company_name ? `<strong>${c.company_name}</strong>` : null)}
-        ${f('Nome contatto', c.name)}
-        ${f('Email', c.email ? `<a href="mailto:${c.email}">${c.email}</a>` : null)}
-        ${f('Telefono', c.phone ? `<a href="tel:${c.phone}">${c.phone}</a>` : null)}
-        ${f('Lingua', (c.lang || 'it').toUpperCase())}
-        ${f('Partita IVA', c.vat_number, 'mono')}
-        ${f('Codice SDI', c.dest_code, 'mono')}
-        ${f('PEC', c.pec)}
-        ${f('IBAN', c.iban, 'mono')}
-        ${f('Cliente dal', c.created_at ? UI.date(c.created_at) : null)}
+      <div class="detail-section-header" style="flex-wrap: wrap; gap: 16px;">
+        <div class="detail-section-label" style="flex:1;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <span>Dati Anagrafici</span>
+          </div>
+        </div>
+        ${editToggle}
       </div>
 
-      <div class="mac-section-title" style="margin-top:24px;"><span>Indirizzo</span></div>
-      <div class="mac-form-list">
-        ${f('Via / Indirizzo', c.address)}
-        ${f('Città', c.city)}
+      <div class="detail-section-body">
+        <div class="detail-field-grid">
+          ${f('Ragione Sociale', c.company_name, 'anag-company-name', 'text')}
+          ${f('Nome Referente', c.name, 'anag-lead-name', 'text')}
+          ${f('Email', c.email, 'anag-email', 'email')}
+          ${f('Telefono', c.phone, 'anag-phone', 'tel')}
+          ${f('Lingua', c.lang, 'anag-lang', 'lang')}
+          ${f('Settore', c.sector, 'anag-sector', 'text')}
+        </div>
       </div>
 
-      ${c.notes ? `<div class="mac-section-title" style="margin-top:24px;"><span>Note interne</span></div>
-      <div class="mac-form-list">
-        <div style="font-size:14.5px;line-height:1.6;color:#86868b;white-space:pre-wrap;padding:12px 16px;">${c.notes}</div>
-      </div>` : ''}`;
+      <div class="detail-section-header" style="border-top:1px solid #f1f5f9;">
+        <div class="detail-section-label">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+          Indirizzo &amp; Fatturazione
+        </div>
+      </div>
+      <div class="detail-section-body">
+        <div class="detail-field-grid">
+          ${f('Indirizzo', c.address, 'anag-address', 'text')}
+          ${f('Città', c.city, 'anag-city', 'text')}
+          ${f('Partita IVA', c.vat_number, 'anag-vat', 'text')}
+          ${f('IBAN', c.iban, 'anag-iban', 'text')}
+          ${f('PEC', c.pec, 'anag-pec', 'email')}
+          ${f('Codice SDI', c.dest_code, 'anag-sdi', 'text')}
+        </div>
+      </div>
 
-    const pencilBtn = $('cd-btn-edit-anag');
-    if (pencilBtn) pencilBtn.onclick = openClientModal;
+      <div class="detail-section-header" style="border-top:1px solid #f1f5f9;">
+        <div class="detail-section-label">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>
+          Note Interne
+        </div>
+      </div>
+      <div class="detail-section-body">
+        ${f('Note', c.notes, 'anag-notes', 'textarea')}
+      </div>
+    `;
+
+    const toggle = $('anag-edit-toggle');
+    if (toggle) {
+      toggle.onchange = async (e) => {
+        if (e.target.checked) {
+          _editingAnag = true;
+          renderAnagrafica();
+        } else {
+          const payload = {
+            company_name: $('anag-company-name')?.value?.trim() || null,
+            name: $('anag-lead-name')?.value?.trim() || null,
+            email: $('anag-email')?.value?.trim() || null,
+            phone: $('anag-phone')?.value?.trim() || null,
+            vat_number: $('anag-vat')?.value?.trim() || null,
+            pec: $('anag-pec')?.value?.trim() || null,
+            dest_code: $('anag-sdi')?.value?.trim() || null,
+            iban: $('anag-iban')?.value?.trim() || null,
+            address: $('anag-address')?.value?.trim() || null,
+            city: $('anag-city')?.value?.trim() || null,
+            lang: $('anag-lang')?.value || 'it',
+            sector: $('anag-sector')?.value?.trim() || null,
+            notes: $('anag-notes')?.value?.trim() || null,
+          };
+          Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
+
+          try {
+            toggle.disabled = true;
+            UI.toast('Salvataggio in corso...', 'info');
+            CLIENT = await API.Clients.update(clientId, payload);
+            UI.toast('Anagrafica aggiornata', 'success');
+            _editingAnag = false;
+            renderHeader();
+            renderAnagrafica();
+          } catch (err) {
+            UI.toast(err?.message || 'Errore', 'error');
+            e.target.checked = true;
+            toggle.disabled = false;
+          }
+        }
+      };
+    }
   }
 
   function openClientModal() {
@@ -326,7 +417,7 @@
       }
       el.innerHTML = data.map(ct => {
         const initials = ct.name ? ct.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() : '?';
-        return `<div class="z-contact-row">
+        return `<div class="z-contact-row" data-id="${ct.id}" style="cursor:pointer">
           <div class="z-contact-avatar">${initials}</div>
           <div class="z-contact-info">
             <div class="z-contact-name">${ct.name || ''}${ct.is_primary ? '<span style="font-size:10px;font-weight:700;color:#3b82f6;background:#eff6ff;padding:1px 7px;border-radius:20px;margin-left:8px;">Principale</span>' : ''}</div>
@@ -338,6 +429,20 @@
           </div>
         </div>`;
       }).join('');
+      el.querySelectorAll('.z-contact-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const ct = data.find(c => c.id === row.dataset.id);
+          if (!ct) return;
+          window._editingContactId = ct.id;
+          $('fc-name').value = ct.name || '';
+          $('fc-role').value = ct.role || '';
+          $('fc-email').value = ct.email || '';
+          $('fc-phone').value = ct.phone || '';
+          const titleEl = document.querySelector('#modal-add-contact .modal-title');
+          if (titleEl) titleEl.textContent = 'Modifica contatto';
+          $('modal-add-contact').classList.add('open');
+        });
+      });
       _renderSidebarContacts(data);
     } catch {
       el.innerHTML = `<div style="padding:20px;color:var(--gray-500);font-size:13px;">Errore nel caricamento contatti.</div>`;
@@ -353,15 +458,30 @@
       <div class="z-sidebar-quick">
         <div class="z-sidebar-quick-title">Contatti</div>
         ${shown.map(ct => `
-          <div class="z-qc-card">
+          <div class="z-qc-card" data-id="${ct.id}" style="cursor:pointer">
             <div class="z-qc-name">${ct.name || ''}</div>
             ${ct.role ? `<div class="z-qc-role">${ct.role}</div>` : ''}
             <div class="z-qc-links">
-              ${ct.email ? `<a href="mailto:${ct.email}" class="z-qc-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>${ct.email}</a>` : ''}
-              ${ct.phone ? `<a href="tel:${ct.phone}" class="z-qc-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6z"/></svg>${ct.phone}</a>` : ''}
+              ${ct.email ? `<a href="mailto:${ct.email}" class="z-qc-link" onclick="event.stopPropagation()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>${ct.email}</a>` : ''}
+              ${ct.phone ? `<a href="tel:${ct.phone}" class="z-qc-link" onclick="event.stopPropagation()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6z"/></svg>${ct.phone}</a>` : ''}
             </div>
           </div>`).join('')}
       </div>`;
+
+    el.querySelectorAll('.z-qc-card').forEach(row => {
+      row.addEventListener('click', () => {
+        const ct = data.find(c => c.id === row.dataset.id);
+        if (!ct) return;
+        window._editingContactId = ct.id;
+        $('fc-name').value = ct.name || '';
+        $('fc-role').value = ct.role || '';
+        $('fc-email').value = ct.email || '';
+        $('fc-phone').value = ct.phone || '';
+        const titleEl = document.querySelector('#modal-add-contact .modal-title');
+        if (titleEl) titleEl.textContent = 'Modifica contatto';
+        $('modal-add-contact').classList.add('open');
+      });
+    });
   }
 
   /* ── ③ Services ─────────────────────────────────────────────── */
@@ -718,6 +838,13 @@
 
   /* ── Add Contact Modal ──────────────────────────────────────── */
   $('cd-btn-add-contact')?.addEventListener('click', () => {
+    window._editingContactId = null;
+    $('fc-name').value = '';
+    $('fc-role').value = '';
+    $('fc-email').value = '';
+    $('fc-phone').value = '';
+    const titleEl = document.querySelector('#modal-add-contact .modal-title');
+    if (titleEl) titleEl.textContent = 'Aggiungi contatto';
     $('modal-add-contact')?.classList.add('open');
   });
 
@@ -725,13 +852,19 @@
     const name = $('fc-name')?.value?.trim();
     if (!name) { UI.toast(I18n.t('cl.form_required') || 'Nome obbligatorio', 'warning'); return; }
     try {
-      await API.Clients.addContact?.(clientId, {
-        name, role: $('fc-role')?.value?.trim() || null,
+      const body = {
+        name, role: $('fc-role')?.value?.trim() || "",
         email: $('fc-email')?.value?.trim() || null,
         phone: $('fc-phone')?.value?.trim() || null,
-      });
+      };
+      if (window._editingContactId) {
+        await API.Clients.updateContact?.(clientId, window._editingContactId, body);
+        UI.toast('Contatto aggiornato', 'success');
+      } else {
+        await API.Clients.addContact?.(clientId, body);
+        UI.toast(I18n.t('cl.contact_added') || 'Contatto aggiunto', 'success');
+      }
       $('modal-add-contact').classList.remove('open');
-      UI.toast(I18n.t('cl.contact_added') || 'Contatto aggiunto', 'success');
       loadContacts();
     } catch (e) { UI.toast(e.message || I18n.t('error.generic'), 'error'); }
   });
