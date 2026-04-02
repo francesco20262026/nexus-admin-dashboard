@@ -141,10 +141,10 @@ async def list_templates(
         res = q.order("name").execute()
         rows = res.data or []
     except Exception as e:
-        # Fallback for pre-migration schemas that don't have new columns
+        # Fallback for pre-migration schemas that don't have new columns nor companies FK
         q_fallback = (
             supabase.table("document_templates")
-            .select("id,name,type,lang,is_default,created_at,companies(name)")
+            .select("id,name,type,lang,is_default,company_id")
             .eq("company_id", target_company)
         )
         if doc_type: q_fallback = q_fallback.eq("type", doc_type)

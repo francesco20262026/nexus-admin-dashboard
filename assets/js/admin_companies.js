@@ -234,10 +234,7 @@
         <!-- Colonna 1: Logo e Nome -->
         <div class="cl-col cl-col-1">
           <div class="cl-row-identity">
-            <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${c.id}" onclick="window.toggleSelection(event, '${c.id}')" style="flex-shrink:0;">
-              <div class="mac-checkbox"></div>
-            </div>
-            <div class="mac-select-btn" data-id="${c.id}" onclick="event.stopPropagation(); window.toggleSelection(event, '${c.id}')" style="flex-shrink:0;">
+            <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${c.id}" onclick="event.stopPropagation(); window.toggleSelection(event, '${c.id}')" style="flex-shrink:0;">
               <div class="mac-checkbox"></div>
             </div>
           ${avatarHtml}
