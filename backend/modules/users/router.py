@@ -73,32 +73,22 @@ def _enrich_users(users_rows: list, perms_rows: list, companies_map: dict) -> li
 
 @router.get("")
 async def list_users(user: CurrentUser = Depends(require_internal)):
-    """Return all users that have permissions on the current active company."""
-    company_id = str(user.active_company_id)
+    """Return all users that have permissions on the current active company (Global if Admin)."""
+    if user.is_admin:
+        users_res = supabase.table("users").select("*").execute()
+        users_rows = users_res.data or []
+        perms_res = supabase.table("user_company_permissions").select("*").execute()
+        perms = perms_res.data or []
+    else:
+        company_id = str(user.active_company_id)
+        perms_res = supabase.table("user_company_permissions").select("*").eq("company_id", company_id).execute()
+        perms = perms_res.data or []
+        user_ids = [p["user_id"] for p in perms]
+        if not user_ids:
+            return []
+        users_res = supabase.table("users").select("*").in_("id", user_ids).execute()
+        users_rows = users_res.data or []
 
-    # 1. Get all permissions for this company
-    perms_res = (
-        supabase.table("user_company_permissions")
-        .select("*")
-        .eq("company_id", company_id)
-        .execute()
-    )
-    perms = perms_res.data or []
-    if not perms:
-        return []
-
-    user_ids = [p["user_id"] for p in perms]
-
-    # 2. Get user rows
-    users_res = (
-        supabase.table("users")
-        .select("*")
-        .in_("id", user_ids)
-        .execute()
-    )
-    users_rows = users_res.data or []
-
-    # 3. Get company names for all company IDs referenced in perms
     all_company_ids = list({p["company_id"] for p in perms if p.get("company_id")})
     companies_map: dict[str, str] = {}
     if all_company_ids:
@@ -254,6 +244,24 @@ async def remove_user_company(
         .eq("user_id", str(user_id)) \
         .eq("company_id", str(company_id)) \
         .execute()
+
+@router.delete("/{user_id}", status_code=204)
+async def delete_user(user_id: str, current_user: CurrentUser = Depends(require_admin)):
+    """Hard delete a user from public.users and auth.users. Requires admin privileges."""
+    try:
+        # 1. Delete company permissions
+        supabase.table("user_company_permissions").delete().eq("user_id", user_id).execute()
+        # 2. Delete from CRM users table
+        supabase.table("users").delete().eq("id", user_id).execute()
+        # 3. Delete from Supabase Auth (admin API)
+        try:
+            supabase.auth.admin.delete_user(user_id)
+        except Exception as auth_e:
+            print(f"Could not delete from auth.users: {auth_e}")
+            pass
+    except Exception as e:
+        print(f"Error during user hard delete: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete user completely")
 
 
 @router.post("/invite")

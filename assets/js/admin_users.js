@@ -82,7 +82,7 @@
     const set = (id,v,m) => { const el=$(id); if(el) el.textContent=v; const em=$(id+'-meta'); if(em&&m!==undefined) em.textContent=m; };
     set('kpi-usr-total',    ALL.length,                                                           'Registrati');
     set('kpi-usr-admin',    ALL.filter(u => u.role === 'admin'    || u.role === 'super_admin').length, 'Con accesso pieno');
-    set('kpi-usr-operator', ALL.filter(u => u.role === 'operator' || u.role === 'member').length, 'Accesso limitato');
+    set('kpi-usr-operator', ALL.filter(u => ['operator', 'member', 'client'].includes(u.role)).length, 'Accesso limitato');
     set('kpi-usr-inactive', ALL.filter(u => u.status === 'invited' || u.status === 'inactive').length, 'Inviti in attesa');
   }
 
@@ -93,7 +93,7 @@
 
     filtered = ALL.filter(u => {
       if (activeTab === 'admin'    && u.role   !== 'admin'    && u.role   !== 'super_admin') return false;
-      if (activeTab === 'operator' && u.role   !== 'operator' && u.role   !== 'member')      return false;
+      if (activeTab === 'operator' && !['operator', 'member', 'client'].includes(u.role)) return false;
       if (activeTab === 'invited'  && u.status !== 'invited') return false;
       if (activeTab === 'inactive' && u.status !== 'inactive') return false;
       if (ro && u.role   !== ro) return false;
@@ -107,7 +107,7 @@
     const max = Math.ceil(filtered.length / PER) || 1;
     if (pg > max) pg = max;
     window.SessionState?.save('users', { pg, tab: activeTab });
-    window.clearSelection && window.clearSelection();
+    
     render();
   }
 
@@ -235,9 +235,10 @@
     }
     const slice = filtered.slice((pg-1)*PER, pg*PER);
     list.innerHTML = slice.map((u,i) => {
-      const isSelected = window.selectedIds.has(u.id);
+      
       const ini  = (u.name||u.email||'?').split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
       const col  = avtColor(u.name||u.email);
+      const isSelected = window.selectedIds && window.selectedIds.has(u.id);
       const role = ROLE_LABELS[u.role] || u.role || 'Utente';
       const isMe = u.id === Auth.user?.id;
 
@@ -248,13 +249,14 @@
       };
       const st = STATUS[u.status] || STATUS.active;
 
-      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${u.id}" style="display:grid; grid-template-columns: 2.5fr 1.5fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;" onclick="document.querySelector('.mac-select-btn', this)?.click()">
+      return `<div class="cl-row fade-in" data-id="${u.id}" style="display:grid; grid-template-columns: 2.5fr 1.5fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;" onclick="location.href='admin_user_detail.html?id=${u.id}'">
         <!-- Colonna 1: Avatar e Nome -->
         <div class="cl-col cl-col-1">
           <div class="cl-row-identity">
             <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${u.id}" onclick="window.toggleSelection(event, '${u.id}')" style="flex-shrink:0;">
               <div class="mac-checkbox"></div>
             </div>
+
           <div class="avatar" style="background:linear-gradient(135deg,${col},${col}bb);width:40px;height:40px;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-weight:800;">${ini}</div>
           <div class="cl-row-identity-body" style="min-width:0;">
             <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -275,19 +277,17 @@
 
         <!-- Colonna 3: Stato -->
         <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:12px; justify-content:flex-end;">
-          <span class="tag-pill" style="color:${st.dot}; border-color:${st.dot}50; background:${st.bg};">
-            ${st.label}
-          </span>
-          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); location.href='admin_user_detail.html?id=${u.id}'" title="Visualizza" style="padding:4px;">
-            <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-          </button>
+          <label class="mac-switch" title="Abilita/Disabilita Utente" onclick="event.stopPropagation()">
+            <input type="checkbox" onchange="window.toggleUserActive('${u.id}', this.checked)" ${u.status === 'active' ? 'checked' : ''}>
+            <span class="mac-slider"></span>
+          </label>
         </div>
       </div>`;
     }).join('');
     const s=(pg-1)*PER+1, e=Math.min(pg*PER,filtered.length);
     if (info) info.textContent = `${s}–${e} di ${filtered.length} utenti`;
     UI.pagination(pag, null, pg, filtered.length, PER, p => { pg=p; render(); window.updateSelectionUI(); });
-    setTimeout(() => { if(window.updateSelectionUI) window.updateSelectionUI(); }, 10);
+    
   }
 
   // Modal
@@ -322,13 +322,22 @@
     catch(e) { UI.toast(e?.message||'Errore','error'); }
   };
   window.deactivateUser = async id => {
-    if (!confirm('Disattivare questo utente?')) return;
-    try { await API.Users.update(id, {status:'inactive'}); ALL=ALL.map(u=>u.id===id?{...u,status:'inactive'}:u); updateKpis(); applyFilters(); UI.toast('Utente disattivato','info'); }
+    try { 
+      await API.Users.update(id, {status:'inactive'}); 
+      ALL=ALL.map(u=>u.id===id?{...u,status:'inactive'}:u); 
+      updateKpis(); applyFilters(); 
+      UI.toast('L\'accesso al gestionale è stato interrotto per questo utente.','info'); 
+    }
     catch(e) { UI.toast(e?.message||'Errore','error'); }
   };
   window.reactivateUser = async id => {
     try { await API.Users.update(id, {status:'active'}); ALL=ALL.map(u=>u.id===id?{...u,status:'active'}:u); updateKpis(); applyFilters(); UI.toast('Utente riattivato','success'); }
     catch(e) { UI.toast(e?.message||'Errore','error'); }
+  };
+
+  window.toggleUserActive = async (id, isActive) => {
+    if (isActive) await window.reactivateUser(id);
+    else await window.deactivateUser(id);
   };
 
   window.onPageReady(async () => {

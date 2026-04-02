@@ -617,80 +617,22 @@
     <div id="comp-list" class="cl-list">
 
       <!-- populated by JS -->
-
     </div>
-
   </div>
 
-
-
-  <!-- Mass Action Bar (Mac Style) -->
-
-  <div id="mac-mass-action-bar" class="mac-mass-action-bar">
-
-    <div class="mac-mass-action-content">
-
-      <div class="mac-mass-action-selected">
-
-        <span id="mac-mass-action-count">0</span> selezionati
-
-      </div>
-
-      <div class="mac-mass-action-divider"></div>
-
-      <div class="mac-mass-action-buttons">
-
-        <button class="mac-mass-action-btn delete" onclick="window.massDelete()" title="Elimina record selezionati">
-
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>
-
-          Elimina
-
-        </button>
-
-      </div>
-
-    <button class="mac-mass-action-close" onclick="window.clearSelection()" title="Annulla selezione">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-    </button>
-
-
-    </div>
-
-  </div>
-
-</main>
-
-</div>
-
-
-
-<!-- Modal: Crea azienda -->
-
-<div class="modal-overlay" id="modal-company"open')">
-
-  <div class="modal onb-form-modal" style="max-width:500px;width:95vw;">
-
+<!-- Modal: Nuova azienda -->
+<div class="modal-overlay" id="modal-company" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="modal onb-form-modal" style="max-width:480px;width:95vw;">
     <div class="modal-header" style="padding:20px 24px 16px;">
-
       <div style="display:flex;align-items:flex-start;gap:12px;">
-
-        <div style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#ccfbf1;color:#0f766e;">
-
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px;height:24px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
-
+        <div style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#dbeafe;color:#2563eb;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px;height:24px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z"/></svg>
         </div>
-
         <div>
-
-          <div class="modal-title" style="font-size:20px;font-weight:800;color:#111827;margin-bottom:2px;">Nuova azienda</div>
-
-          <div style="font-size:12px;color:#6b7280;">Aggiungi un nuovo tenant al sistema.</div>
-
+          <div class="modal-title" style="font-size:20px;font-weight:800;color:#111827;margin-bottom:2px;">Nuovo tenant aziendale</div>
+          <div style="font-size:12px;color:#6b7280;">Crea l'entità radice in cui opereranno fornitori o partner.</div>
         </div>
-
       </div>
-
       <button class="icon-btn" onclick="document.getElementById('modal-company').classList.remove('open')">
 
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
@@ -709,7 +651,7 @@
 
       </div>
 
-      <div style="border-left:2px solid #99f6e4;padding-left:16px;">
+      <div>
 
         <div class="form-grid">
 
@@ -795,7 +737,7 @@
 
       </div>
 
-      <div style="border-left:2px solid #99f6e4;padding-left:16px;">
+      <div>
 
         <div class="form-grid">
 

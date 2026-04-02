@@ -54,7 +54,7 @@
   const filterAssignee = $('onb-filter-assignee');
 const filterDateFrom = $('onb-filter-date-from');
 const filterDateTo   = $('onb-filter-date-to');
-  const tabBar         = $('onb-tab-bar');
+  const tabBar         = $('onb-pipeline-bar');
   const btnRefresh     = $('btn-refresh-onb');
   const btnNew         = $('btn-new-onboarding');
 
@@ -213,6 +213,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       return;
     }
     populateAssigneeFilter();
+    populateSupplierFilter();
     updateKpis();
 
     // Attach Reset filter button
@@ -225,6 +226,8 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
         if (filterDateFrom) filterDateFrom.value = '';
         if (filterDateTo) filterDateTo.value = '';
         if (filterAssignee) filterAssignee.value = '';
+        const filterSupplier = document.getElementById('onb-filter-supplier');
+        if (filterSupplier) filterSupplier.value = '';
         currentPage = 1;
         applyFilters();
       });
@@ -312,20 +315,24 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
     }
   };
 
-  window.massDelete = async () => {
+  window.massDelete = async (force = false) => {
     if (!window.selectedIds.size) return;
-    if (!confirm('Sei sicuro di voler eliminare ' + window.selectedIds.size + ' elementi? Quest\'azione è irreversibile.')) return;
+    if (force) {
+      if (!confirm(`ATTENZIONE: Eliminare DEFINITIVAMENTE ${window.selectedIds.size} pratiche e tutto il loro storico?`)) return;
+    } else {
+      if (!confirm(`Archiviare ${window.selectedIds.size} pratiche (Soft Delete)?`)) return;
+    }
     
-    if (window.UI) window.UI.toast('Eliminazione in corso...', 'info');
+    if (window.UI) window.UI.toast('Operazione in corso...', 'info');
     try {
       for (let id of window.selectedIds) {
-         await API.Onboarding.delete(id);
+         await API.Onboarding.remove(id, force);
       }
-      if (window.UI) window.UI.toast('Eliminazione completata', 'success');
+      if (window.UI) window.UI.toast(force ? 'Eliminazione definitiva completata' : 'Archiviazione completata', 'success');
       window.clearSelection();
       if (window._reloadOnboarding) window._reloadOnboarding();
     } catch(e) {
-      if (window.UI) window.UI.toast('Errore durante l\'eliminazione', 'error');
+      if (window.UI) window.UI.toast('Errore durante l\'operazione', 'error');
     }
   };
 
@@ -415,6 +422,18 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
     }
   }
 
+  /* ── Populate supplier filter ─────────────────────────────────── */
+  function populateSupplierFilter() {
+    const filterSupplier = document.getElementById('onb-filter-supplier');
+    if (filterSupplier) {
+      const names = [...new Set(ALL.map(r => r.companies?.name || 'Nova CRM').filter(Boolean))].sort();
+      const currentVal = filterSupplier.value;
+      filterSupplier.innerHTML = '<option value="">Fornitore ▼</option>' +
+        names.map(n => `<option value="${n}">${n}</option>`).join('');
+      filterSupplier.value = currentVal;
+    }
+  }
+
   /* ── Apply filters ──────────────────────────────────────────── */
   function applyFilters() {
     const text     = (searchEl?.value || '').toLowerCase().trim();
@@ -422,6 +441,8 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
     const assignee = filterAssignee?.value || '';
     const dFrom    = filterDateFrom?.value ? new Date(filterDateFrom.value) : null;
     const dTo      = filterDateTo?.value ? new Date(filterDateTo.value) : null;
+    const filterSupplier = document.getElementById('onb-filter-supplier');
+    const supplier = filterSupplier?.value || '';
     if (dTo) dTo.setHours(23, 59, 59, 999);
 
     filtered = ALL.filter(r => {
@@ -431,12 +452,20 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
         contract_sent:   ['contract_draft', 'contract_sent', 'contract_signed'],
         proforma_issued: ['proforma_draft', 'proforma_issued']
       };
-      if (activeTab !== 'all') {
+      if (activeTab === 'all') {
+        // Hide soft-deleted or converted records from "All" unless specifically searched
+        if (!text && (r.status === 'cancelled' || r.status === 'converted' || r.status === 'converted_to_client')) {
+          return false;
+        }
+      } else {
         const group = TAB_MAP[activeTab];
         if (group ? !group.includes(r.status) : r.status !== activeTab) return false;
       }
       if (priority && r.priority    !== priority) return false;
       if (assignee && r.assigned_to !== assignee) return false;
+      
+      const supName = r.companies?.name || 'Nova CRM';
+      if (supplier && supName !== supplier) return false;
       
       const cDate = r.created_at ? new Date(r.created_at) : null;
       if (dFrom && (!cDate || cDate < dFrom)) return false;
@@ -519,52 +548,63 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       : '';
 
     return `
-    <div class="cl-row" onclick="onbOpenDetail('${r.id}')" style="grid-template-columns: 2.5fr 1.5fr 1.5fr 1fr 1fr 80px; gap: 24px; padding: 10px 24px; min-height: 54px;">
+    <div class="cl-row fade-in" onclick="onbOpenDetail('${r.id}')" style="display: grid; grid-template-columns: 1.6fr 1.2fr 1.4fr 1.2fr 1fr 1fr 100px; gap: 16px; padding: 10px 24px; min-height: 54px; align-items: center; border-bottom: 1px solid var(--border); cursor: pointer;">
       
-      <!-- Soggetto -->
-      <div class="cl-col cl-col-1" style="flex-direction: row; align-items: center; gap: 12px;">
-        <div class="mac-row-select mac-select-btn" data-id="${r.id}" onclick="window.toggleSelection(event, '${r.id}')" title="Seleziona" >
-          <div class="mac-checkbox"></div>
-        </div>
-        <div class="cl-row-identity">
-          <div class="avatar cl-row-avatar" style="background:${sm.color}; color:#ffffff;">${avatarInitial}</div>
-          <div class="cl-row-identity-body">
+      <!-- 1. Ragione Sociale -->
+      <div class="cl-col cl-col-1" style="min-width: 0;">
+        <div class="cl-row-identity" style="display: flex; gap:12px; align-items:center; min-width:0;">
+          <div class="mac-row-select mac-select-btn" data-id="${r.id}" onclick="window.toggleSelection(event, '${r.id}')" title="Seleziona" style="flex-shrink:0;">
+            <div class="mac-checkbox"></div>
+          </div>
+          <div class="avatar cl-row-avatar" style="background:${sm.color}; color:#ffffff; flex-shrink:0;">${avatarInitial}</div>
+          <div class="cl-row-identity-body" style="min-width:0;">
             <div class="cl-row-name truncate" title="${companyLine}">${companyLine}</div>
+            <div class="cl-row-meta" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:2px;">
+              ${email !== 'Senza contatti' ? `<a class="cl-row-chip cl-row-link truncate" href="mailto:${email}" onclick="event.stopPropagation()" style="color:#3b82f6; max-width: 150px;">${email}</a>` : ''}
+              ${r.phone ? `<a class="cl-row-chip cl-row-link" href="tel:${r.phone}" onclick="event.stopPropagation()">${r.phone}</a>` : ''}
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Riferimenti -->
-      <div class="cl-col" style="align-items:flex-start; justify-content:center;">
-        ${email !== 'Senza contatti' ? `<div class="cl-data-val truncate"><a href="mailto:${email}" onclick="event.stopPropagation()" style="color:#3b82f6;">${email}</a></div>` : '<div class="cl-data-lbl">Nessun riferimento</div>'}
-        ${r.phone ? `<div class="cl-data-lbl truncate">${r.phone}</div>` : ''}
+      <!-- 2. Fornitore -->
+      <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center;">
+        <div class="cl-data-val truncate" style="color:var(--gray-700); font-weight:500;">${r.companies?.name || 'Nova CRM'}</div>
       </div>
 
-      <!-- Assegnazione e Dati -->
-      <div class="cl-col" style="justify-content:center;">
+      <!-- 3. Dati Base -->
+      <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center;">
+        <div class="cl-data-val truncate">${r.city || ''}</div>
+        <div class="cl-data-lbl truncate">${r.vat_number ? 'P.IVA '+r.vat_number : ''}</div>
+      </div>
+
+      <!-- 4. Stato / KPI -->
+      <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
+        <div style="margin-bottom:2px;">${statusPill(r.status)}</div>
         ${assignee}
-        ${r.vat_number ? `<div class="cl-data-lbl truncate">P.IVA: ${r.vat_number}</div>` : ''}
       </div>
 
-      <!-- Stato Lifecycle -->
-      <div class="cl-col" style="justify-content:center; align-items:flex-start;">
-        ${statusPill(r.status)}
-      </div>
-
-      <!-- Priorità -->
-      <div class="cl-col" style="justify-content:center; align-items:flex-start;">
+      <!-- 5. Operatività -->
+      <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
         <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;background:${pbg};color:${pco};">
-          ${plbl}
+          ${plbl} Priorità
         </span>
       </div>
 
-      <!-- Azioni -->
-      <div class="cl-col cl-col-actions" style="display:flex; justify-content:flex-end;">
-        <div class="cl-row-actions">
-          <button class="btn btn-ghost" style="padding:4px 8px;font-size:12px;height:30px;" onclick="event.stopPropagation(); onbOpenDetail('${r.id}')">
-            Apri
-          </button>
-        </div>
+      <!-- 6. Attività -->
+      <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
+        <div class="cl-data-lbl">Inseimento</div>
+        <div class="cl-data-val truncate">${r.created_at ? new Date(r.created_at).toLocaleDateString('it-IT') : 'N/D'}</div>
+      </div>
+
+      <!-- 7. Azioni -->
+      <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px;">
+        <button class="icon-btn-header" style="opacity:0.8;" title="Archivia (Soft)" onclick="event.stopPropagation(); window.onbCancel('${r.id}')" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">
+          <span style="font-size:16px; line-height:1;">📦</span>
+        </button>
+        <button class="icon-btn-header" style="opacity:0.8;" title="Elimina Definitivamente" onclick="event.stopPropagation(); window.onbDelete('${r.id}')" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">
+          <span style="font-size:16px; line-height:1;">🗑️</span>
+        </button>
       </div>
 
     </div>`;

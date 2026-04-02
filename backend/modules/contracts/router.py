@@ -23,10 +23,14 @@ class ContractCreate(BaseModel):
     title: str
     template_id: Optional[UUID] = None
     service_id: Optional[UUID] = None   # linked catalog service
-    service_ids: list[UUID] = []        # NEW: multiple services
+    service_ids: list[UUID] = []        # multiple services
     quote_id:   Optional[UUID] = None   # preventivo accettato di origine
     valid_from: Optional[date] = None
     valid_to: Optional[date] = None
+    # Origin tracking (added by contract_templates_extend.sql migration)
+    origin: str = "direct"                        # 'direct' | 'from_quote' | 'supplier_change'
+    source_company_id: Optional[UUID] = None      # old supplier (for supplier_change)
+    supplier_company_id: Optional[UUID] = None    # active supplier at creation time
 
 
 class ContractUpdate(BaseModel):
@@ -39,6 +43,9 @@ class ContractUpdate(BaseModel):
     status: Optional[str] = None
     valid_from: Optional[date] = None
     valid_to: Optional[date] = None
+    origin: Optional[str] = None
+    source_company_id: Optional[UUID] = None
+    supplier_company_id: Optional[UUID] = None
 
 
 # ── Helpers ──────────────────────────────────────────────────
@@ -60,7 +67,7 @@ def _audit(user: CurrentUser, entity_id: str, action: str,
         logger.warning("audit_log write failed for contract %s: %s", entity_id, exc)
 
 
-def _require_contract(contract_id: UUID, company_id: str, select: str = "*") -> dict:
+def _require_contract(contract_id: UUID, user: CurrentUser, select: str = "*") -> dict:
     """
     Fetch a contract asserting it exists within the given company.
     Raises 404 if not found or belongs to another tenant.
@@ -69,13 +76,19 @@ def _require_contract(contract_id: UUID, company_id: str, select: str = "*") -> 
         supabase.table("contracts")
         .select(select)
         .eq("id", str(contract_id))
-        .eq("company_id", company_id)
+        .eq("company_id", str(user.active_company_id))
         .maybe_single()
         .execute()
     )
-    if not res.data:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Contract not found")
-    return res.data
+    if res and getattr(res, "data", None):
+        return res.data
+
+    if user.is_admin:
+        res_any = supabase.table("contracts").select(select).eq("id", str(contract_id)).maybe_single().execute()
+        if res_any and getattr(res_any, "data", None):
+            return res_any.data
+
+    raise HTTPException(status.HTTP_404_NOT_FOUND, "Contract not found")
 
 
 # ── Document Templates (registered BEFORE /{contract_id} to avoid shadowing) ─
@@ -86,29 +99,66 @@ class TemplateCreate(BaseModel):
     type: str = "contract"
     lang: str = "it"
     is_default: bool = False
+    is_active: bool = True
     company_id: Optional[str] = None
+    # Governance fields (added by contract_templates_extend.sql migration)
+    contract_type: Optional[str] = None           # 'service','maintenance','consulting','other'
+    version: Optional[str] = None                 # e.g. '1.0', '2025-v1'
+    supplier_company_id: Optional[str] = None     # FK to companies
+    notes: Optional[str] = None
+    compatible_service_ids: Optional[list] = None # list of UUID strings
 
 class TemplateUpdate(BaseModel):
     name: Optional[str] = None
     content: Optional[str] = None
     is_default: Optional[bool] = None
+    is_active: Optional[bool] = None
+    contract_type: Optional[str] = None
+    version: Optional[str] = None
+    supplier_company_id: Optional[str] = None
+    notes: Optional[str] = None
+    compatible_service_ids: Optional[list] = None
 
 @router.get("/templates/list")
 async def list_templates(
     doc_type: Optional[str] = None,
     company_id: Optional[str] = None,
+    is_active: Optional[bool] = Query(None),
+    contract_type: Optional[str] = Query(None),
     user: CurrentUser = Depends(require_admin),
 ):
     target_company = str(company_id) if company_id else str(user.active_company_id)
-    q = (
-        supabase.table("document_templates")
-        .select("id,name,type,lang,is_default,created_at")
-        .eq("company_id", target_company)
-    )
-    if doc_type:
-        q = q.eq("type", doc_type)
-    res = q.order("name").execute()
-    return res.data or []
+    
+    try:
+        q = (
+            supabase.table("document_templates")
+            .select("id,name,type,lang,is_default,is_active,contract_type,version,supplier_company_id,notes,compatible_service_ids,created_at,companies(name)")
+            .eq("company_id", target_company)
+        )
+        if doc_type: q = q.eq("type", doc_type)
+        if is_active is not None: q = q.eq("is_active", is_active)
+        if contract_type: q = q.eq("contract_type", contract_type)
+        res = q.order("name").execute()
+        rows = res.data or []
+    except Exception as e:
+        # Fallback for pre-migration schemas that don't have new columns
+        q_fallback = (
+            supabase.table("document_templates")
+            .select("id,name,type,lang,is_default,created_at,companies(name)")
+            .eq("company_id", target_company)
+        )
+        if doc_type: q_fallback = q_fallback.eq("type", doc_type)
+        res = q_fallback.order("name").execute()
+        rows = res.data or []
+
+    for r in rows:
+        r.setdefault("is_active", True)
+        r.setdefault("contract_type", None)
+        r.setdefault("version", None)
+        r.setdefault("supplier_company_id", None)
+        r.setdefault("notes", None)
+        r.setdefault("compatible_service_ids", [])
+    return rows
 
 @router.get("/templates/{template_id}")
 async def get_template(
@@ -172,15 +222,20 @@ async def delete_template(
 async def list_contracts(
     client_id: Optional[UUID] = None,
     status_filter: Optional[str] = Query(None, alias="status"),
+    origin: Optional[str] = Query(None),
+    supplier_company_id: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     user: CurrentUser = Depends(get_current_user),
 ):
-    q = (
-        supabase.table("contracts")
-        .select("*, clients(name,email), document_templates(name,type), onboarding!contracts_onboarding_id_fkey(company_name,email)", count="exact")
-        .eq("company_id", str(user.active_company_id))
-    )
+    q = supabase.table("contracts").select("*, clients(name,email), document_templates(name,type,contract_type,version), onboarding!contracts_onboarding_id_fkey(company_name,email)", count="exact")
+    
+    if user.is_admin:
+        if supplier_company_id:
+            q = q.eq("company_id", str(supplier_company_id))
+    else:
+        q = q.eq("company_id", str(user.active_company_id))
+
     if not user.is_admin:
         if not user.client_id:
             return {"data": [], "total": 0, "page": page, "page_size": page_size}
@@ -189,10 +244,26 @@ async def list_contracts(
         q = q.eq("client_id", str(client_id))
     if status_filter:
         q = q.eq("status", status_filter)
+    if origin:
+        try:
+            q = q.eq("origin", origin)
+        except Exception:
+            pass  # column not yet migrated
+    if supplier_company_id:
+        try:
+            q = q.eq("supplier_company_id", supplier_company_id)
+        except Exception:
+            pass
 
     offset = (page - 1) * page_size
     res = q.order("created_at", desc=True).range(offset, offset + page_size - 1).execute()
-    return {"data": res.data or [], "total": res.count or 0, "page": page, "page_size": page_size}
+    rows = res.data or []
+    # Backfill origin for pre-migration rows
+    for r in rows:
+        r.setdefault("origin", "from_quote" if r.get("quote_id") else "direct")
+        r.setdefault("supplier_company_id", None)
+        r.setdefault("source_company_id", None)
+    return {"data": rows, "total": res.count or 0, "page": page, "page_size": page_size}
 
 
 # ── Create ────────────────────────────────────────────────────
@@ -236,7 +307,22 @@ async def create_contract(
         row["valid_from"] = body.valid_from.isoformat()
     if body.valid_to:
         row["valid_to"] = body.valid_to.isoformat()
+    # Origin tracking (stored if columns exist, silently skipped otherwise)
+    _origin = body.origin or ("from_quote" if body.quote_id else "direct")
+    try:
+        row["origin"] = _origin
+        if body.source_company_id:
+            row["source_company_id"] = str(body.source_company_id)
+        if body.supplier_company_id:
+            row["supplier_company_id"] = str(body.supplier_company_id)
+    except Exception:
+        pass
     res = supabase.table("contracts").insert(row).execute()
+    if not res.data:
+        # Retry without extended columns if DB hasn't been migrated yet
+        for k in ("origin", "source_company_id", "supplier_company_id"):
+            row.pop(k, None)
+        res = supabase.table("contracts").insert(row).execute()
     if not res.data:
         logger.error("create_contract: insert returned no data")
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Failed to create contract")
@@ -256,6 +342,15 @@ async def create_contract(
 
     _audit(user, contract["id"], "create", new=contract)
     
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+        event_type="system", title="Contratto creato in bozza",
+        client_id=contract.get("client_id"), onboarding_id=contract.get("onboarding_id"),
+        body=body.title
+    )
+
     # Auto-advance onboarding to contract_draft
     if contract.get("onboarding_id") or contract.get("client_id"):
         from automation import auto_advance_onboarding
@@ -345,6 +440,7 @@ async def upload_manual_contract(
         supabase.table("documents").insert({
             "company_id": company_id,
             "client_id": str(effective_client_id) if effective_client_id else None,
+            "onboarding_id": str(onboarding_id) if (not effective_client_id and onboarding_id) else None,
             "contract_id": contract_id,
             "name": f"{title} (Firmato manualmente)",
             "type": "contract",
@@ -355,6 +451,16 @@ async def upload_manual_contract(
         logger.warning("Failed to create document record for manual contract %s: %s", contract_id, exc)
 
     _audit(user, contract_id, "upload_manual", new={"title": title, "pdf_url": storage_path, "status": "signed"})
+
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+        event_type="contract_signed", title="Contratto caricato e firmato",
+        client_id=str(effective_client_id) if effective_client_id else None,
+        onboarding_id=str(onboarding_id) if onboarding_id else None,
+        body=title
+    )
 
     # Auto advance
     if onboarding_id or effective_client_id:
@@ -396,7 +502,7 @@ async def get_contract(
 
     contract = _require_contract(
         contract_id,
-        str(user.active_company_id),
+        user,
         select="*, clients(name,email), document_templates(name,content), onboarding!contracts_onboarding_id_fkey(company_name,email)",
     )
     if not user.is_admin and str(contract.get("client_id")) != str(user.client_id):
@@ -412,7 +518,7 @@ async def update_contract(
     body: ContractUpdate,
     user: CurrentUser = Depends(require_admin),
 ):
-    old = _require_contract(contract_id, str(user.active_company_id))
+    old = _require_contract(contract_id, user)
 
     updates: dict = {}
     if body.title is not None:
@@ -437,7 +543,7 @@ async def update_contract(
             supabase.table("contracts")
             .update(updates)
             .eq("id", str(contract_id))
-            .eq("company_id", str(user.active_company_id))   # tenant safety
+            .eq("company_id", old.get("company_id", str(user.active_company_id)))   # tenant safety
             .execute()
         )
         if not res.data:
@@ -463,7 +569,7 @@ async def update_contract(
     _audit(user, str(contract_id), "update", old=old, new=updates)
     
     # Return updated contract
-    return _require_contract(contract_id, str(user.active_company_id))
+    return _require_contract(contract_id, user)
 
 
 # ── Delete ────────────────────────────────────────────────────
@@ -473,14 +579,14 @@ async def delete_contract(
     contract_id: UUID,
     user: CurrentUser = Depends(require_admin),
 ):
-    old = _require_contract(contract_id, str(user.active_company_id))
+    old = _require_contract(contract_id, user)
     # Block deletion of contracts that are in-flight or signed
     if old.get("status") in ("sent", "signed", "completed"):
         raise HTTPException(
             status.HTTP_409_CONFLICT,
             f"Cannot delete a contract with status '{old.get('status')}'. Archive or cancel it first.",
         )
-    supabase.table("contracts").delete().eq("id", str(contract_id)).eq("company_id", str(user.active_company_id)).execute()
+    supabase.table("contracts").delete().eq("id", str(contract_id)).eq("company_id", old.get("company_id", str(user.active_company_id))).execute()
     _audit(user, str(contract_id), "delete", old=old)
 
 
@@ -501,7 +607,7 @@ async def compile_contract(
 
     company_id = str(user.active_company_id)
     contract = _require_contract(
-        contract_id, company_id,
+        contract_id, user,
         select="*, clients(*), document_templates(content,name)"
     )
 
@@ -650,7 +756,7 @@ async def send_for_signature(
 
     contract = _require_contract(
         contract_id,
-        str(user.active_company_id),
+        user,
         select="*, clients(name,email), document_templates(content), onboarding!contracts_onboarding_id_fkey(email, company_name, reference_name)",
     )
     if contract.get("status") not in ("draft", "expired"):
@@ -713,6 +819,15 @@ async def send_for_signature(
     _audit(user, str(contract_id), "send_sign",
            old={"status": contract.get("status")},
            new={"status": "sent"})
+
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+        event_type="email_sent", title="Contratto inviato via email",
+        client_id=contract.get("client_id"), onboarding_id=contract.get("onboarding_id"),
+        body=f"Inviato a {recipient_email}"
+    )
 
     # Auto-advance onboarding (non-blocking)
     from automation import auto_advance_onboarding
@@ -791,6 +906,7 @@ def _auto_create_proforma_after_sign(
         "client_id":     str(client_id) if client_id else None,
         "onboarding_id": str(contract["onboarding_id"]) if contract.get("onboarding_id") else None,
         "contract_id":   contract_id,
+        "supplier_company_id": str(contract["supplier_company_id"]) if contract.get("supplier_company_id") else None,
         "is_proforma":   True,
         "status":        "draft",
         "payment_status": "pending",
@@ -854,6 +970,15 @@ async def mark_contract_signed(
            old={"status": contract.get("status")},
            new={"status": "signed", "signed_at": now_iso})
 
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+        event_type="contract_signed", title="Contratto firmato",
+        client_id=contract.get("client_id"), onboarding_id=contract.get("onboarding_id"),
+        body=contract.get("title", "")
+    )
+
     # Auto-advance onboarding
     auto_advance_onboarding(
         company_id=str(user.active_company_id),
@@ -876,6 +1001,79 @@ async def mark_contract_signed(
         logger.warning("mark_contract_signed: auto_proforma failed for %s: %s", contract_id, pf_exc)
 
     return {"message": "Contratto segnato come firmato", "status": "signed", "signed_at": now_iso}
+
+
+# ── Regenerate (supplier change) ──────────────────────────────
+
+class RegenerateRequest(BaseModel):
+    template_id: UUID
+    source_company_id: Optional[UUID] = None  # old supplier
+    supplier_company_id: Optional[UUID] = None  # new supplier
+    title: Optional[str] = None
+
+@router.post("/{contract_id}/regenerate", status_code=status.HTTP_201_CREATED)
+async def regenerate_contract(
+    contract_id: UUID,
+    body: RegenerateRequest,
+    user: CurrentUser = Depends(require_admin),
+):
+    """
+    Creates a new contract for the same client, using a different template
+    (typically from a new supplier company). The original contract is
+    automatically archived. origin is set to 'supplier_change'.
+    """
+    old = _require_contract(contract_id, str(user.active_company_id))
+
+    # Archive the old contract
+    supabase.table("contracts").update({"status": "archived"}).eq(
+        "id", str(contract_id)
+    ).eq("company_id", str(user.active_company_id)).execute()
+    _audit(user, str(contract_id), "archived_for_regeneration", new={"status": "archived"})
+
+    # Build new contract row
+    new_title = body.title or f"{old.get('title', 'Contratto')} (Nuovo fornitore)"
+    new_row: dict = {
+        "title":       new_title,
+        "company_id":  str(user.active_company_id),
+        "status":      "draft",
+        "template_id": str(body.template_id),
+    }
+    for col in ("client_id", "onboarding_id", "quote_id"):
+        if old.get(col):
+            new_row[col] = str(old[col])
+
+    # Origin tracking (graceful — columns may not exist yet)
+    try:
+        new_row["origin"] = "supplier_change"
+        new_row["source_company_id"] = str(body.source_company_id or old.get("supplier_company_id") or "")
+        if body.supplier_company_id:
+            new_row["supplier_company_id"] = str(body.supplier_company_id)
+    except Exception:
+        pass
+
+    res = supabase.table("contracts").insert(new_row).execute()
+    if not res.data:
+        for k in ("origin", "source_company_id", "supplier_company_id"):
+            new_row.pop(k, None)
+        res = supabase.table("contracts").insert(new_row).execute()
+    if not res.data:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Impossibile creare il contratto rigenerato")
+    new_contract = res.data[0]
+
+    # Copy services from old contract
+    cs_res = supabase.table("contract_services").select("service_id").eq(
+        "contract_id", str(contract_id)
+    ).execute()
+    if cs_res.data:
+        new_cs = [{"contract_id": new_contract["id"], "service_id": r["service_id"]} for r in cs_res.data]
+        try:
+            supabase.table("contract_services").insert(new_cs).execute()
+        except Exception as exc:
+            logger.warning("regenerate: contract_services copy failed: %s", exc)
+
+    _audit(user, new_contract["id"], "create", new={"origin": "supplier_change", "regenerated_from": str(contract_id)})
+    return new_contract
+
 
 
 

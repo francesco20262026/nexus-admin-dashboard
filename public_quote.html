@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Accettazione Preventivo | Nova CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/css/dash.css"/>
+  <style>
+    body { background: #f8fafc; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 40px 20px; font-family: 'Inter', sans-serif; }
+    .page-wrapper { max-width: 800px; width: 100%; }
+    .brand-header { text-align: center; margin-bottom: 30px; }
+    .brand-header svg { width: 40px; height: 40px; color: var(--primary); margin-bottom: 10px; }
+    .brand-header h1 { font-size: 24px; font-weight: 700; color: var(--gray-900); }
+    
+    .quote-document { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    
+    .quote-top { display: flex; justify-content: space-between; border-bottom: 1px solid var(--gray-200); padding-bottom: 24px; margin-bottom: 24px; }
+    .q-meta { color: var(--gray-500); font-size: 13px; margin-bottom: 4px; }
+    .q-val { color: var(--gray-900); font-weight: 600; font-size: 15px; }
+    
+    .q-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+    .q-table th { background: var(--gray-50); padding: 12px; text-align: left; font-size: 13px; color: var(--gray-500); border-bottom: 1px solid var(--gray-200); }
+    .q-table td { padding: 16px 12px; border-bottom: 1px solid var(--gray-100); font-size: 14px; color: var(--gray-900); }
+    
+    .q-totals { width: 300px; margin-left: auto; background: var(--gray-50); padding: 20px; border-radius: 8px; }
+    .q-tot-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+    .q-tot-row.grand { font-size: 18px; font-weight: 700; border-top: 1px solid var(--gray-200); padding-top: 12px; margin-top: 4px; }
+    
+    .acceptance-box { margin-top: 40px; padding: 24px; background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center; }
+    .acceptance-box h3 { margin-bottom: 10px; font-size: 18px; }
+    .acceptance-box p { color: var(--gray-500); font-size: 14px; margin-bottom: 20px; }
+    
+    .btn-group { display: flex; gap: 16px; justify-content: center; }
+    .btn-lg { padding: 12px 24px; font-size: 16px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .btn-accept { background: #0a9669; color: #ffffff; border: 1px solid #087a55; }
+    .btn-accept:hover { background: #087a55; }
+    .btn-reject { background: #ffffff; color: #dc2626; border: 1px solid #dc2626; }
+    .btn-reject:hover { background: #fef2f2; }
+    
+    .status-banner { padding: 16px; border-radius: 8px; margin-bottom: 24px; font-weight: 500; display: none; }
+    .status-banner.error { background: #fef2f2; color: #991b1b; border: 1px solid #f87171; display: block; }
+    .status-banner.success { background: #f0fdf4; color: #166534; border: 1px solid #86efac; display: block; }
+
+    #loader { text-align: center; color: var(--gray-500); padding: 40px; }
+    #content-area { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+  <div class="brand-header">
+    <img id="company-logo" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Company Logo" style="max-height: 50px; margin-bottom: 10px; display: none;" onerror="this.style.display='none'">
+  </div>
+  
+  <div id="status-message" class="status-banner"></div>
+
+  <div id="loader">Caricamento preventivo in corso...</div>
+
+  <div id="content-area">
+    <div class="quote-document">
+      <div class="quote-top">
+        <div>
+          <div class="q-meta">Mittente</div>
+          <div class="q-val" id="supplier-name">-</div>
+          <div style="font-size: 13px; color: var(--gray-500); margin-top: 4px;" id="supplier-contact">-</div>
+        </div>
+        <div style="text-align: right;">
+          <div class="q-meta">Preventivo N&deg;</div>
+          <div class="q-val" id="quote-number" style="font-size: 18px; color: var(--primary);">-</div>
+          <div style="font-size: 13px; color: var(--gray-500); margin-top: 8px;">Valido fino al: <strong id="quote-valid">-</strong></div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 30px;">
+        <div class="q-meta">Intestato a</div>
+        <div class="q-val" id="client-name">-</div>
+      </div>
+      
+      <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--gray-900);" id="quote-title">Dettaglio Servizi</h3>
+      
+      <table class="q-table">
+        <thead>
+          <tr>
+            <th>Descrizione</th>
+            <th style="text-align:right">Q.t&agrave;</th>
+            <th style="text-align:right">Prezzo Unit.</th>
+            <th style="text-align:right">IVA</th>
+            <th style="text-align:right">Totale</th>
+          </tr>
+        </thead>
+        <tbody id="quote-lines"></tbody>
+      </table>
+      
+      <div class="q-totals">
+        <div class="q-tot-row">
+          <span>Imponibile:</span>
+          <strong id="tot-net">&euro; 0,00</strong>
+        </div>
+        <div class="q-tot-row">
+          <span>Imposta (IVA):</span>
+          <strong id="tot-vat">&euro; 0,00</strong>
+        </div>
+        <div class="q-tot-row grand">
+          <span>Totale Documento:</span>
+          <span id="tot-grand">&euro; 0,00</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="acceptance-box" id="action-box">
+      <h3>Accetti questo preventivo?</h3>
+      <p>Cliccando su "Accetta Preventivo", confermi di aver preso visione e accettato l'offerta economica proposta.</p>
+      <div class="btn-group">
+        <button class="btn-lg btn-reject" onclick="rejectQuote()">Rifiuta</button>
+        <button class="btn-lg btn-accept" onclick="acceptQuote()">Accetta Preventivo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/public_quote.js"></script>
+</body>
+</html>

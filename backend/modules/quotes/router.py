@@ -132,22 +132,41 @@ class QuoteLineIn(BaseModel):
 
 
 class QuoteCreate(BaseModel):
-    client_id:     Optional[UUID]  = None
-    onboarding_id: Optional[UUID]  = None
-    title:         str
-    valid_until:   Optional[date]  = None
-    notes:         Optional[str]   = None
-    currency:      str             = "EUR"
-    lines:         list[QuoteLineIn] = []
+    client_id:           Optional[UUID]    = None
+    onboarding_id:       Optional[UUID]    = None
+    supplier_company_id: Optional[UUID]    = None
+    management_channel:  str               = "formal_sent"
+    title:               str
+    valid_until:         Optional[date]    = None
+    notes:               Optional[str]     = None
+    currency:            str               = "EUR"
+    lines:               list[QuoteLineIn] = []
+
+    @field_validator("management_channel")
+    @classmethod
+    def validate_channel(cls, v):
+        allowed = {"formal_sent", "verbal", "internal"}
+        if v not in allowed:
+            raise ValueError(f"management_channel must be one of {allowed}")
+        return v
 
 
 class QuoteUpdate(BaseModel):
-    title:         Optional[str]   = None
-    onboarding_id: Optional[UUID]  = None
-    valid_until:   Optional[date]  = None
-    notes:         Optional[str]   = None
-    currency:      Optional[str]   = None
-    lines:         Optional[list[QuoteLineIn]] = None  # if provided, replaces all lines
+    title:               Optional[str]   = None
+    onboarding_id:       Optional[UUID]  = None
+    supplier_company_id: Optional[UUID]  = None
+    management_channel:  Optional[str]   = None
+    valid_until:         Optional[date]  = None
+    notes:               Optional[str]   = None
+    currency:            Optional[str]   = None
+    lines:               Optional[list[QuoteLineIn]] = None
+
+    @field_validator("management_channel")
+    @classmethod
+    def validate_channel(cls, v):
+        if v is not None and v not in {"formal_sent", "verbal", "internal"}:
+            raise ValueError("management_channel errato")
+        return v
 
 
 # ── Helpers ──────────────────────────────────────────────────
@@ -194,18 +213,24 @@ def _audit(user: CurrentUser, entity_id: str, action: str,
         logger.warning("audit_log write failed for quote %s: %s", entity_id, exc)
 
 
-def _require_quote(quote_id: UUID, company_id: str, select: str = "*") -> dict:
+def _require_quote(quote_id: UUID, user: CurrentUser, select: str = "*") -> dict:
     res = (
         supabase.table("quotes")
         .select(select)
         .eq("id", str(quote_id))
-        .eq("company_id", company_id)
+        .eq("company_id", str(user.active_company_id))
         .maybe_single()
         .execute()
     )
-    if not res.data:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Preventivo non trovato")
-    return res.data
+    if res and getattr(res, "data", None):
+        return res.data
+
+    if user.is_admin:
+        res_any = supabase.table("quotes").select(select).eq("id", str(quote_id)).maybe_single().execute()
+        if res_any and getattr(res_any, "data", None):
+            return res_any.data
+
+    raise HTTPException(status.HTTP_404_NOT_FOUND, "Preventivo non trovato")
 
 
 def _compute_totals(lines: list[QuoteLineIn]) -> tuple[float, float, float]:
@@ -245,18 +270,22 @@ def _upsert_lines(quote_id: str, lines: list[QuoteLineIn]) -> None:
 
 @router.get("/")
 async def list_quotes(
-    status_filter:  Optional[str]  = Query(None, alias="status"),
-    client_id:      Optional[str] = None,
-    onboarding_id:  Optional[str] = None,
-    page:           int            = Query(1, ge=1),
-    page_size:      int            = Query(50, ge=1, le=200),
+    status_filter:        Optional[str] = Query(None, alias="status"),
+    client_id:            Optional[str] = None,
+    onboarding_id:        Optional[str] = None,
+    supplier_company_id:  Optional[str] = None,
+    management_channel:   Optional[str] = None,
+    page:                 int           = Query(1, ge=1),
+    page_size:            int           = Query(50, ge=1, le=200),
     user: CurrentUser = Depends(get_current_user),
 ):
-    q = (
-        supabase.table("quotes")
-        .select("*, clients(name, email)", count="exact")
-        .eq("company_id", str(user.active_company_id))
-    )
+    q = supabase.table("quotes").select("*, clients(name, email), onboarding!quotes_onboarding_id_fkey(company_name, reference_name), supplier_company:companies!quotes_supplier_company_id_fkey(name), tenant_company:companies!quotes_company_id_fkey(name)", count="exact")
+
+    if user.is_admin:
+        if supplier_company_id:
+            q = q.eq("company_id", str(supplier_company_id))
+    else:
+        q = q.eq("company_id", str(user.active_company_id))
     if not user.is_admin:
         if not user.client_id and not user.onboarding_id:
             return {"data": [], "total": 0, "page": page, "page_size": page_size}
@@ -269,9 +298,11 @@ async def list_quotes(
         q = q.or_(",".join(or_conds))
 
 
-    if status_filter:   q = q.eq("status", status_filter)
-    if client_id:       q = q.eq("client_id", str(client_id))
-    if onboarding_id:   q = q.eq("onboarding_id", str(onboarding_id))
+    if status_filter:         q = q.eq("status", status_filter)
+    if client_id:             q = q.eq("client_id", str(client_id))
+    if onboarding_id:         q = q.eq("onboarding_id", str(onboarding_id))
+    if supplier_company_id:   q = q.eq("supplier_company_id", str(supplier_company_id))
+    if management_channel:    q = q.eq("management_channel", str(management_channel))
 
     offset = (page - 1) * page_size
     res = q.order("created_at", desc=True).range(offset, offset + page_size - 1).execute()
@@ -282,14 +313,11 @@ async def list_quotes(
 
 @router.get("/{quote_id}")
 async def get_quote(quote_id: UUID, user: CurrentUser = Depends(get_current_user)):
-    res = (
-        supabase.table("quotes")
-        .select("*, quote_lines(*), clients(name, email)")
-        .eq("id", str(quote_id))
-        .eq("company_id", str(user.active_company_id))
-        .maybe_single()
-        .execute()
-    )
+    q = supabase.table("quotes").select("*, quote_lines(*), clients(name, email)").eq("id", str(quote_id))
+    if not user.is_admin:
+        q = q.eq("company_id", str(user.active_company_id))
+
+    res = q.maybe_single().execute()
     if not res.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     
@@ -312,19 +340,49 @@ async def create_quote(
     body: QuoteCreate,
     user: CurrentUser = Depends(require_admin),
 ):
+    # Determine the company_id for this quote
+    # Priority: 1. explicit supplier 2. onboarding's company 3. client's company 4. active session
+    company_id = str(user.active_company_id)
+    if body.supplier_company_id:
+        company_id = str(body.supplier_company_id)
+    elif body.onboarding_id:
+        try:
+            ores = supabase.table("onboarding").select("company_id").eq("id", str(body.onboarding_id)).execute()
+            if ores.data and ores.data[0].get("company_id"):
+                company_id = ores.data[0]["company_id"]
+        except Exception:
+            pass
+    elif body.client_id:
+        try:
+            cres = supabase.table("clients").select("company_id").eq("id", str(body.client_id)).execute()
+            if cres.data and cres.data[0].get("company_id"):
+                company_id = cres.data[0]["company_id"]
+        except Exception:
+            pass
+
+    # Generazione numero preventivo progressivo
+    year = datetime.now(timezone.utc).year
+    q_count = supabase.table("quotes").select("id", count="exact").eq("company_id", company_id).gte("created_at", f"{year}-01-01").execute()
+    count = q_count.count or 0
+    quote_number = f"PREV-{year}-{(count + 1):03d}"
+
     total_net, total_vat, total = _compute_totals(body.lines)
     row = {
-        "company_id":    str(user.active_company_id),
-        "client_id":     str(body.client_id) if body.client_id else None,
-        "onboarding_id": str(body.onboarding_id) if body.onboarding_id else None,
-        "title":         body.title,
-        "status":        "draft",
-        "valid_until":   body.valid_until.isoformat() if body.valid_until else None,
-        "notes":         body.notes,
-        "currency":      body.currency,
-        "total_net":     total_net,
-        "total_vat":     total_vat,
-        "total":         total,
+        "company_id":          company_id,
+        "client_id":           str(body.client_id) if body.client_id else None,
+        "onboarding_id":       str(body.onboarding_id) if body.onboarding_id else None,
+        "supplier_company_id": str(body.supplier_company_id) if body.supplier_company_id else None,
+        "management_channel":  body.management_channel,
+        "number":              quote_number,
+        "created_by":          str(user.user_id),
+        "title":               body.title,
+        "status":              "draft",
+        "valid_until":         body.valid_until.isoformat() if body.valid_until else None,
+        "notes":               body.notes,
+        "currency":            body.currency,
+        "total_net":           total_net,
+        "total_vat":           total_vat,
+        "total":               total,
     }
     res = supabase.table("quotes").insert(row).execute()
     if not res.data:
@@ -333,14 +391,69 @@ async def create_quote(
     _upsert_lines(quote["id"], body.lines)
     _audit(user, quote["id"], "create", new={"title": quote["title"], "client_id": quote["client_id"], "total": total})
     
-    # Auto-advance onboarding to quote_draft
-    if quote.get("onboarding_id") or quote.get("client_id"):
-        from automation import auto_advance_onboarding
-        oid = quote.get("onboarding_id") or _resolve_onboarding_id(quote.get("client_id"))
-        if oid:
-            auto_advance_onboarding(str(user.active_company_id), str(user.user_id), oid, "quote_draft", "Preventivo in bozza generato")
+    # Auto-advance onboarding to quote_draft (= "Preventivo in lavorazione")
+    oid = quote.get("onboarding_id")
+    if not oid and quote.get("client_id"):
+        # Try to find linked onboarding via client record
+        try:
+            cres = supabase.table("clients").select("onboarding_id").eq("id", quote["client_id"]).execute()
+            if cres.data and cres.data[0].get("onboarding_id"):
+                oid = cres.data[0]["onboarding_id"]
+        except Exception:
+            pass
+    if oid:
+        try:
+            from automation import auto_advance_onboarding
+            auto_advance_onboarding(str(user.active_company_id), str(user.user_id), str(oid), "quote_draft", "Preventivo in bozza generato")
+        except Exception as e:
+            logger.warning(f"auto_advance on quote_draft failed: {e}")
             
     return quote
+
+
+@router.post("/{quote_id}/duplicate", status_code=status.HTTP_201_CREATED)
+async def duplicate_quote(quote_id: UUID, user: CurrentUser = Depends(require_admin)):
+    """Duplica un preventivo esistente creandone uno nuovo in bozza."""
+    q_full = _require_quote(quote_id, user, select="*, quote_lines(*)")
+    
+    company_id = q_full.get("company_id") or str(user.active_company_id)
+    year = datetime.now(timezone.utc).year
+    q_count = supabase.table("quotes").select("id", count="exact").eq("company_id", company_id).gte("created_at", f"{year}-01-01").execute()
+    count = q_count.count or 0
+    quote_number = f"PREV-{year}-{(count + 1):03d}"
+    
+    exclude_keys = {"id", "created_at", "updated_at", "accepted_at", "rejected_at", "sent_at", "expired_at", "quote_lines"}
+    new_quote_data = {k: v for k, v in q_full.items() if k not in exclude_keys}
+    
+    new_quote_data["status"] = "draft"
+    new_quote_data["number"] = quote_number
+    new_quote_data["title"] = f"{new_quote_data.get('title', 'Preventivo')} (Copia)"
+    
+    res = supabase.table("quotes").insert(new_quote_data).execute()
+    if not res.data:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Impossibile duplicare il preventivo")
+        
+    new_quote = res.data[0]
+    
+    old_lines = q_full.get("quote_lines", [])
+    if old_lines:
+        line_exclude = {"id", "created_at", "quote_id"}
+        new_lines = []
+        for line in old_lines:
+            new_line = {k: v for k, v in line.items() if k not in line_exclude}
+            new_line["quote_id"] = new_quote["id"]
+            new_lines.append(new_line)
+        supabase.table("quote_lines").insert(new_lines).execute()
+        
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=company_id, actor_user_id=str(user.user_id),
+        event_type="system", title="Preventivo duplicato",
+        client_id=new_quote.get("client_id"), onboarding_id=new_quote.get("onboarding_id"),
+        body=f"Copia del preventivo {str(quote_id)[:8]}"
+    )
+    
+    return new_quote
 
 
 # ── Update ────────────────────────────────────────────────────
@@ -351,7 +464,7 @@ async def update_quote(
     body: QuoteUpdate,
     user: CurrentUser = Depends(require_admin),
 ):
-    old = _require_quote(quote_id, str(user.active_company_id), select="status,title,total")
+    old = _require_quote(quote_id, user, select="status,title,total,company_id")
     if old["status"] in {"accepted", "rejected", "expired"}:
         raise HTTPException(status.HTTP_400_BAD_REQUEST,
                             f"Non è possibile modificare un preventivo nello stato '{old['status']}'")
@@ -359,9 +472,11 @@ async def update_quote(
     updates: dict = {}
     if body.title is not None:         updates["title"]         = body.title
     if body.notes is not None:         updates["notes"]         = body.notes
-    if body.currency is not None:      updates["currency"]      = body.currency
-    if body.valid_until is not None:   updates["valid_until"]   = body.valid_until.isoformat()
-    if body.onboarding_id is not None: updates["onboarding_id"] = str(body.onboarding_id)
+    if body.currency is not None:             updates["currency"]             = body.currency
+    if body.valid_until is not None:          updates["valid_until"]          = body.valid_until.isoformat()
+    if body.onboarding_id is not None:        updates["onboarding_id"]        = str(body.onboarding_id)
+    if body.supplier_company_id is not None:  updates["supplier_company_id"]  = str(body.supplier_company_id)
+    if body.management_channel is not None:   updates["management_channel"]   = body.management_channel
 
     if body.lines is not None:
         net, vat, tot = _compute_totals(body.lines)
@@ -373,7 +488,7 @@ async def update_quote(
             supabase.table("quotes")
             .update(updates)
             .eq("id", str(quote_id))
-            .eq("company_id", str(user.active_company_id))
+            .eq("company_id", old.get("company_id", str(user.active_company_id)))
             .execute()
         )
         if not res.data:
@@ -384,24 +499,12 @@ async def update_quote(
     return old
 
 
-# ── Delete ────────────────────────────────────────────────────
-
-@router.delete("/{quote_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_quote(quote_id: UUID, user: CurrentUser = Depends(require_admin)):
-    q = _require_quote(quote_id, str(user.active_company_id), select="status,title")
-    if q["status"] != "draft":
-        raise HTTPException(status.HTTP_400_BAD_REQUEST,
-                            "Solo i preventivi in bozza possono essere eliminati")
-    supabase.table("quotes").delete().eq("id", str(quote_id)).eq("company_id", str(user.active_company_id)).execute()
-    _audit(user, str(quote_id), "delete", old={"title": q["title"], "status": q["status"]})
-
-
 # ── Status transitions ────────────────────────────────────────
 
 def _transition(quote_id: UUID, user: CurrentUser,
                 allowed_from: set, new_status: str,
                 timestamp_field: Optional[str] = None) -> dict:
-    old = _require_quote(quote_id, str(user.active_company_id), select="status,title,total")
+    old = _require_quote(quote_id, user, select="status,title,total,company_id")
     if old["status"] not in allowed_from:
         raise HTTPException(status.HTTP_400_BAD_REQUEST,
                             f"Transizione non consentita da '{old['status']}' a '{new_status}'")
@@ -412,7 +515,7 @@ def _transition(quote_id: UUID, user: CurrentUser,
         supabase.table("quotes")
         .update(updates)
         .eq("id", str(quote_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", old.get("company_id", str(user.active_company_id)))
         .execute()
     )
     if not res.data:
@@ -437,7 +540,7 @@ async def preflight_quote(
       - missing_fields: list of field names that are missing
       - warnings: human-readable warning messages
     """
-    q = _require_quote(quote_id, str(user.active_company_id),
+    q = _require_quote(quote_id, user,
                        select="client_id, onboarding_id")
 
     warnings: list[str] = []
@@ -508,12 +611,69 @@ async def preflight_quote(
         "warnings": warnings,
     }
 
+async def _trigger_contract_on_quote_acceptance(quote_id: UUID, user: CurrentUser, q: dict) -> bool:
+    """Helper used to auto-generate and optionally send contracts and update onboarding when Quotes are accepted"""
+    client_id = q.get("client_id")
+    onboarding_id = _resolve_onboarding_id(q, str(q.get("company_id", user.active_company_id)))
+    # Allow contract generation for both clients and prospects
+    if not client_id and not onboarding_id:
+        return False
+        
+    res_check = supabase.table("contracts").select("id").eq("quote_id", str(quote_id)).execute()
+    if res_check.data:
+        return False
+
+    q_full = _require_quote(quote_id, user, select="*, quote_lines(service_id)")
+    quote_company = str(q_full["company_id"])
+    
+    row = {
+        "company_id": quote_company,
+        "quote_id":   str(quote_id),
+        "title":      f"Contratto (da {q_full.get('title', 'Preventivo')})",
+        "status":     "draft",
+    }
+    if client_id:
+        row["client_id"] = str(client_id)
+    if onboarding_id:
+        row["onboarding_id"] = str(onboarding_id)
+
+    tpl_res = supabase.table("document_templates").select("id").eq("company_id", quote_company).eq("type", "contract").limit(1).execute()
+    if tpl_res.data:
+        row["template_id"] = tpl_res.data[0]["id"]
+        
+    ctr_res = supabase.table("contracts").insert(row).execute()
+    if ctr_res.data:
+        ctr = ctr_res.data[0]
+        s_ids = {str(ln["service_id"]) for ln in q_full.get("quote_lines", []) if ln.get("service_id")}
+        if s_ids:
+            cs_rows = [{"contract_id": ctr["id"], "service_id": sid} for sid in s_ids]
+            supabase.table("contract_services").insert(cs_rows).execute()
+
+        from modules.activity.router import log_timeline_event
+        log_timeline_event(
+            company_id=quote_company, actor_user_id=str(user.user_id),
+            event_type="system", title="Contratto in bozza generato",
+            client_id=str(client_id) if client_id else None, 
+            onboarding_id=str(onboarding_id) if onboarding_id else None,
+            body=f"Generato automaticamente da accettazione preventivo."
+        )
+
+        if onboarding_id:
+            from automation import auto_advance_onboarding
+            auto_advance_onboarding(quote_company, str(user.user_id), str(onboarding_id), "contract_draft", f"Contratto auto-generato da preventivo {str(quote_id)[:8]}…")
+
+        try:
+            return await _auto_compile_and_send_contract(ctr["id"], quote_company, user, onboarding_id)
+        except Exception as ctr_exc:
+            logger.warning("accept_quote auto-send failed for %s: %s", ctr["id"], ctr_exc)
+            
+    return False
 
 @router.post("/{quote_id}/accept")
 async def accept_quote(quote_id: UUID, user: CurrentUser = Depends(get_current_user)):
     """sent → accepted; auto-advances linked onboarding to quote_accepted, auto-generates contract"""
     # Verify client ownership
-    q_check = _require_quote(quote_id, str(user.active_company_id), select="status,client_id,onboarding_id")
+    q_check = _require_quote(quote_id, user, select="status,client_id,onboarding_id")
     if not user.is_admin:
         is_client_owner = user.client_id and str(q_check.get("client_id")) == str(user.client_id)
         is_onboarding_owner = user.onboarding_id and str(q_check.get("onboarding_id")) == str(user.onboarding_id)
@@ -523,10 +683,22 @@ async def accept_quote(quote_id: UUID, user: CurrentUser = Depends(get_current_u
     from automation import auto_advance_onboarding
     q = _transition(quote_id, user, {"sent", "draft"}, "accepted", "accepted_at")
 
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(q.get("company_id", user.active_company_id)),
+        actor_user_id=str(user.user_id),
+        event_type="quote_accepted",
+        title=f"Preventivo accettato",
+        client_id=q.get("client_id"),
+        onboarding_id=q.get("onboarding_id"),
+        body=f"Il preventivo è stato accettato."
+    )
+
     # Auto-advance linked onboarding (non-blocking) — resolve even if onboarding_id not on quote
-    onboarding_id = _resolve_onboarding_id(q, str(user.active_company_id))
+    onboarding_id = _resolve_onboarding_id(q, str(q.get("company_id", user.active_company_id)))
     auto_advance_onboarding(
-        company_id=str(user.active_company_id),
+        company_id=str(q.get("company_id", user.active_company_id)),
         user_id=str(user.user_id),
         onboarding_id=onboarding_id,
         target_status="quote_accepted",
@@ -534,54 +706,7 @@ async def accept_quote(quote_id: UUID, user: CurrentUser = Depends(get_current_u
     )
 
     # ── Auto-generate Contract ─────────────────────────────────
-    if q.get("client_id"):
-        # Check if contract already exists to prevent duplicates
-        res_check = supabase.table("contracts").select("id").eq("quote_id", str(quote_id)).execute()
-        if not res_check.data:
-            q_full = _require_quote(quote_id, str(user.active_company_id), select="*, quote_lines(service_id)")
-            
-            row = {
-                "company_id": str(user.active_company_id),
-                "client_id":  str(q_full["client_id"]),
-                "quote_id":   str(quote_id),
-                "title":      f"Contratto (da {q_full.get('title', 'Preventivo')})",
-                "status":     "draft",
-            }
-            # Auto-pick a template if available
-            tpl_res = supabase.table("document_templates").select("id").eq("company_id", str(user.active_company_id)).eq("type", "contract").limit(1).execute()
-            if tpl_res.data:
-                row["template_id"] = tpl_res.data[0]["id"]
-                
-            ctr_res = supabase.table("contracts").insert(row).execute()
-            if ctr_res.data:
-                ctr = ctr_res.data[0]
-                s_ids = {str(ln["service_id"]) for ln in q_full.get("quote_lines", []) if ln.get("service_id")}
-                if s_ids:
-                    cs_rows = [{"contract_id": ctr["id"], "service_id": sid} for sid in s_ids]
-                    supabase.table("contract_services").insert(cs_rows).execute()
-
-                # ── Auto-advance onboarding to contract_draft ─────────────────────
-                auto_advance_onboarding(
-                    company_id=str(user.active_company_id),
-                    user_id=str(user.user_id),
-                    onboarding_id=onboarding_id,
-                    target_status="contract_draft",
-                    reason=f"Contratto creato automaticamente da preventivo {str(quote_id)[:8]}…",
-                )
-
-                # ── Auto-compile + Auto-send contract ─────────────────────────────
-                try:
-                    contract_auto_sent = await _auto_compile_and_send_contract(
-                        ctr["id"], str(user.active_company_id), user, onboarding_id
-                    )
-                except Exception as ctr_exc:
-                    contract_auto_sent = False
-                    logger.warning(
-                        "accept_quote: contract auto-send failed for %s (contract stays in draft): %s",
-                        ctr["id"], ctr_exc
-                    )
-    else:
-        contract_auto_sent = False
+    contract_auto_sent = await _trigger_contract_on_quote_acceptance(quote_id, user, q)
 
     contract_msg = "Contratto inviato automaticamente." if contract_auto_sent else "Contratto creato in bozza — invialo manualmente."
     return {
@@ -599,7 +724,7 @@ async def send_quote_notify(quote_id: UUID, user: CurrentUser = Depends(require_
     from integrations.email_service import send_templated_email
     from config import settings
 
-    q_full = _require_quote(quote_id, str(user.active_company_id), select="*, clients(id, name, email), onboarding!quotes_onboarding_id_fkey(id, email, company_name, reference_name)")
+    q_full = _require_quote(quote_id, user, select="*, clients(id, name, email), onboarding!quotes_onboarding_id_fkey(id, email, company_name, reference_name)")
     if q_full["status"] != "draft":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Impossibile inviare: il preventivo è nello stato '{q_full['status']}'")
 
@@ -630,55 +755,12 @@ async def send_quote_notify(quote_id: UUID, user: CurrentUser = Depends(require_
     try:
         frontend_url = getattr(settings, "FRONTEND_URL", "https://crm.delocanova.com")
         
-        # --- MAGIC LINK GENERATION ---
-        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-        correct_redirect = f"{frontend_url}/client_quote_detail.html?id={quote_id}"
-
-        def _fix_redirect(link: str) -> str:
-            """Supabase strips path from redirect_to in generate_link — fix manually."""
-            parsed = urlparse(link)
-            params = parse_qs(parsed.query, keep_blank_values=True)
-            params["redirect_to"] = [correct_redirect]
-            return urlunparse(parsed._replace(query=urlencode({k: v[0] for k, v in params.items()})))
-
-        try:
-            link_res = supabase.auth.admin.generate_link({
-                "type": "invite",
-                "email": recipient_email,
-            })
-        except Exception:
-            # User already exists in Supabase auth
-            link_res = supabase.auth.admin.generate_link({
-                "type": "magiclink",
-                "email": recipient_email,
-            })
-        action_link = _fix_redirect(link_res.properties.action_link)
-        invited_user_id = str(link_res.user.id) if link_res.user else None
-
-        # Upsert pending user if we just invited them so they can log in
-        if invited_user_id:
-            try:
-                supabase.table("users").upsert({
-                    "id": invited_user_id,
-                    "email": recipient_email,
-                    "name": client_name,
-                    "is_active": False,
-                }, on_conflict="id").execute()
-                # We need user_company_permissions to let them into this company
-                supabase.table("user_company_permissions").upsert({
-                    "user_id": invited_user_id,
-                    "company_id": str(user.active_company_id),
-                    "role": "client",
-                    "client_id": client_info.get("id"),
-                    "onboarding_id": onb_info.get("id"),
-                    "is_default": True,
-                }, on_conflict="user_id,company_id").execute()
-            except Exception as ue:
-                logger.warning(f"send_quote: could not upsert pending user {recipient_email}: {ue}")
+        # --- PUBLIC URL GENERATION ---
+        action_link = f"{frontend_url}/public_quote.html?token={quote_id}"
         # ----------------------------
 
         await send_templated_email(
-            company_id=str(user.active_company_id),
+            company_id=str(q_full.get("company_id", user.active_company_id)),
             to_email=recipient_email,
             template_type="quote_send",
             lang="it",
@@ -701,12 +783,21 @@ async def send_quote_notify(quote_id: UUID, user: CurrentUser = Depends(require_
 
     q = _transition(quote_id, user, {"draft"}, "sent", "sent_at")
     
-    onboarding_id = _resolve_onboarding_id(q, str(user.active_company_id))
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(q.get("company_id", user.active_company_id)), actor_user_id=str(user.user_id),
+        event_type="quote_sent", title=f"Preventivo inviato via email",
+        client_id=q.get("client_id"), onboarding_id=q.get("onboarding_id"),
+        body=f"Inviato a {recipient_email}"
+    )
+    
+    onboarding_id = _resolve_onboarding_id(q, str(q.get("company_id", user.active_company_id)))
     auto_advance_onboarding(
-        company_id=str(user.active_company_id),
+        company_id=str(q.get("company_id", user.active_company_id)),
         user_id=str(user.user_id),
         onboarding_id=onboarding_id,
-        target_status="quote_sent",
+        trigger_event="quote_sent",
         reason=f"Preventivo {str(quote_id)[:8]}… inviato via email",
     )
     return {"message": "Preventivo inviato con successo", "status": q.get("status"), "sent_at": q.get("sent_at")}
@@ -717,7 +808,7 @@ async def send_quote_notify(quote_id: UUID, user: CurrentUser = Depends(require_
 async def reject_quote(quote_id: UUID, user: CurrentUser = Depends(get_current_user)):
     """sent → rejected"""
     # Verify client ownership
-    q = _require_quote(quote_id, str(user.active_company_id), select="status,client_id,onboarding_id")
+    q = _require_quote(quote_id, user, select="status,client_id,onboarding_id")
     if not user.is_admin:
         is_client_owner = user.client_id and str(q.get("client_id")) == str(user.client_id)
         is_onboarding_owner = user.onboarding_id and str(q.get("onboarding_id")) == str(user.onboarding_id)
@@ -725,7 +816,47 @@ async def reject_quote(quote_id: UUID, user: CurrentUser = Depends(get_current_u
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Non hai accesso a questo preventivo")
 
     q = _transition(quote_id, user, {"sent"}, "rejected", "rejected_at")
+
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(q.get("company_id", user.active_company_id)), actor_user_id=str(user.user_id),
+        event_type="quote_rejected", title=f"Preventivo rifiutato",
+        client_id=q.get("client_id"), onboarding_id=q.get("onboarding_id")
+    )
+
     return {"message": "Preventivo rifiutato", "status": q.get("status")}
+
+
+@router.post("/{quote_id}/accept-verbal")
+async def accept_verbal_quote(quote_id: UUID, user: CurrentUser = Depends(require_admin)):
+    # Force management_channel to verbal
+    old = _require_quote(quote_id, user, select="company_id")
+    supabase.table("quotes").update({
+        "management_channel": "verbal"
+    }).eq("id", str(quote_id)).eq("company_id", str(old.get("company_id", user.active_company_id))).execute()
+
+    q = _transition(quote_id, user, {"draft", "sent"}, "accepted", "accepted_at")
+    
+    # Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(q.get("company_id", user.active_company_id)), actor_user_id=str(user.user_id),
+        event_type="quote_accepted", title="Preventivo accettato (Gestione a voce)",
+        client_id=q.get("client_id"), onboarding_id=q.get("onboarding_id"),
+        body=f"Il preventivo {q.get('number') or q.get('title')} è stato confermato verbalmente."
+    )
+    
+    # Auto-advance
+    onbid = _resolve_onboarding_id(q, str(q.get("company_id", user.active_company_id)))
+    if onbid:
+        from automation import auto_advance_onboarding
+        auto_advance_onboarding(str(q.get("company_id", user.active_company_id)), str(user.user_id), onbid, "quote_accepted", "Preventivo accettato verbalmente")
+        
+    contract_auto_sent = await _trigger_contract_on_quote_acceptance(quote_id, user, q)
+    contract_msg = "Contratto inviato automaticamente." if contract_auto_sent else "Contratto creato in bozza — invialo manualmente."
+
+    return {"message": f"Preventivo accettato verbalmente. {contract_msg}", "status": "accepted"}
 
 
 @router.post("/{quote_id}/expire")
@@ -733,6 +864,45 @@ async def expire_quote(quote_id: UUID, user: CurrentUser = Depends(require_admin
     """draft | sent → expired"""
     q = _transition(quote_id, user, {"draft", "sent"}, "expired", "expired_at")
     return {"message": "Preventivo scaduto", "status": q.get("status")}
+
+@router.delete("/{quote_id}")
+async def delete_quote(quote_id: UUID, user: CurrentUser = Depends(require_admin)):
+    """Elimina un preventivo e, se non ne restano altri attivi, retrocede lo stato della pratica."""
+    try:
+        q = _require_quote(quote_id, user)
+        onboarding_id = q.get("onboarding_id")
+        client_id = q.get("client_id")
+        company_id = q.get("company_id")
+
+        # 1. Delete lines first
+        supabase.table("quote_lines").delete().eq("quote_id", str(quote_id)).execute()
+        
+        # 2. Delete the quote itself
+        supabase.table("quotes").delete().eq("id", str(quote_id)).eq("company_id", company_id).execute()
+
+        # 3. Check if onboarding still has other active quotes → if not, revert status
+        if onboarding_id:
+            remaining = (
+                supabase.table("quotes")
+                .select("id")
+                .eq("onboarding_id", str(onboarding_id))
+                .eq("company_id", company_id)
+                .in_("status", ["draft", "sent"])
+                .execute()
+            )
+            if not remaining.data:
+                # No active quotes left → revert to "quote" (Preventivo in lavorazione)
+                onb = supabase.table("onboarding").select("status").eq("id", str(onboarding_id)).single().execute()
+                if onb.data and onb.data.get("status") == "quote_sent":
+                    supabase.table("onboarding").update({"status": "quote"}).eq("id", str(onboarding_id)).execute()
+                    logger.info(f"Onboarding {onboarding_id} reverted to 'quote' after quote deletion")
+
+        return {"message": "Preventivo eliminato"}
+    except Exception as e:
+        logger.error(f"Error deleting quote {quote_id} - {str(e)}", exc_info=True)
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Errore interno: {str(e)}")
+
+
 
 
 # ── Summary for dashboard / onboarding ───────────────────────
@@ -748,3 +918,114 @@ async def client_quotes_summary(client_id: UUID, user: CurrentUser = Depends(req
         .execute()
     )
     return res.data or []
+
+
+# ── Public Endpoints (No Auth) ───────────────────────────────────
+
+@router.get("/public/{token}")
+async def get_public_quote(token: UUID):
+    """Fetch quote details for the public tokenless acceptance page."""
+    res = (
+        supabase.table("quotes")
+        .select("*, quote_lines(*), companies!quotes_company_id_fkey(name, address, vat_number, logo_url), clients(name, company_name), onboarding!quotes_onboarding_id_fkey(company_name, reference_name)")
+        .eq("id", str(token))
+        .single()
+        .execute()
+    )
+    if not res.data:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Preventivo non trovato")
+        
+    return res.data
+
+
+@router.post("/public/{token}/accept")
+async def accept_public_quote(token: UUID):
+    """Mark a quote as accepted from the public page."""
+    from datetime import datetime, timezone
+    
+    res = supabase.table("quotes").select("*").eq("id", str(token)).single().execute()
+    if not res.data:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Preventivo non trovato")
+    q = res.data
+    
+    if q["status"] not in ["sent", "draft"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Questo preventivo non può più essere accettato.")
+        
+    now = datetime.now(timezone.utc).isoformat()
+    
+    update_res = supabase.table("quotes").update({
+        "status": "accepted",
+        "accepted_at": now,
+        "management_channel": "client_portal"
+    }).eq("id", str(token)).execute()
+    
+    if not update_res.data:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Errore salvataggio")
+        
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=q.get("company_id"), 
+        actor_user_id=None,
+        event_type="quote_accepted", 
+        title="Preventivo accettato online",
+        client_id=q.get("client_id"), 
+        onboarding_id=q.get("onboarding_id"),
+        body=f"Il preventivo {q.get('number') or q.get('title')} è stato accettato online via link pubblico."
+    )
+    
+    # Auto-advance onboarding if linked
+    onbid = q.get("onboarding_id") or None
+    if not onbid and q.get("client_id"):
+        cres = supabase.table("clients").select("onboarding_id").eq("id", q["client_id"]).execute()
+        if cres.data and cres.data[0].get("onboarding_id"):
+            onbid = cres.data[0]["onboarding_id"]
+            
+    if onbid:
+        from automation import auto_advance_onboarding
+        admin = supabase.table("users").select("id").limit(1).execute()
+        system_user = admin.data[0]["id"] if admin.data else None
+        if system_user:
+            try:
+                auto_advance_onboarding(
+                    q["company_id"], system_user, str(onbid), 
+                    "quote_accepted", "Preventivo accettato online dal prospect"
+                )
+            except Exception as e:
+                logger.error(f"Auto-advance failed on public quote: {e}")
+
+    return {"message": "Preventivo accettato"}
+
+
+@router.post("/public/{token}/reject")
+async def reject_public_quote(token: UUID):
+    """Mark a quote as rejected from the public page."""
+    from datetime import datetime, timezone
+    
+    res = supabase.table("quotes").select("*").eq("id", str(token)).single().execute()
+    if not res.data:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Preventivo non trovato")
+    q = res.data
+    
+    if q["status"] not in ["sent", "draft"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Questo preventivo non può più essere rifiutato.")
+        
+    now = datetime.now(timezone.utc).isoformat()
+    
+    update_res = supabase.table("quotes").update({
+        "status": "rejected",
+        "rejected_at": now
+    }).eq("id", str(token)).execute()
+    
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=q.get("company_id"), 
+        actor_user_id=None,
+        event_type="quote_rejected", 
+        title="Preventivo rifiutato online",
+        client_id=q.get("client_id"), 
+        onboarding_id=q.get("onboarding_id"),
+        body=f"Il preventivo {q.get('number') or q.get('title')} è stato declinato dal cliente tramite link pubblico."
+    )
+    
+    return {"message": "Preventivo rifiutato"}

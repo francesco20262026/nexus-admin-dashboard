@@ -142,7 +142,8 @@
 /* Selected states (row wrapper or direct header checkbox) */
 .mac-select-btn.selected .mac-checkbox,
 .mac-row-select.selected .mac-checkbox,
-.mac-checkbox.selected {
+.mac-checkbox.selected,
+.cl-row.selected .mac-checkbox {
   background: #007aff;
   border-color: #007aff;
 }
@@ -159,7 +160,8 @@
 }
 .mac-select-btn.selected .mac-checkbox::after,
 .mac-row-select.selected .mac-checkbox::after,
-.mac-checkbox.selected::after {
+.mac-checkbox.selected::after,
+.cl-row.selected .mac-checkbox::after {
   opacity: 1;
 }
 /* Remove explicit SVG if we are using ::after checkmark */

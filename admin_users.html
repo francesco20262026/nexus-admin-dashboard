@@ -194,41 +194,19 @@
 </div>
 </div>
 
-<!-- Mass Action Bar (Mac Style) -->
-<div id="mac-mass-action-bar" class="mac-mass-action-bar">
-  <div class="mac-mass-action-content">
-    <div class="mac-mass-action-selected">
-      <span id="mac-mass-action-count">0</span> selezionati
-    </div>
-    <div class="mac-mass-action-divider"></div>
-    <div class="mac-mass-action-buttons">
-      <button class="mac-mass-action-btn delete" onclick="window.massDelete()" title="Elimina record selezionati">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>
-        Elimina
-      </button>
-    </div>
-
-    <button class="mac-mass-action-close" onclick="window.clearSelection()" title="Annulla selezione">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-    </button>
-
-  </div>
-</div>
-</main>
-</div>
-<!-- Modal: Invita utente -->
-<div class="modal-overlay" id="modal-user" open')"="">
-<div class="modal onb-form-modal" style="max-width:500px;width:95vw;">
-<div class="modal-header" style="padding:20px 24px 16px;">
-<div style="display:flex;align-items:flex-start;gap:12px;">
-<div style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#ede9fe;color:#6d28d9;">
-<svg fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-</div>
-<div>
-<div class="modal-title" id="modal-usr-title" style="font-size:20px;font-weight:800;color:#111827;margin-bottom:2px;">Invita utente</div>
-<div style="font-size:12px;color:#6b7280;">Aggiungi un nuovo membro al team.</div>
-</div>
-</div>
+<!-- Modal: Nuovo utente -->
+<div class="modal-overlay" id="modal-user" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="modal onb-form-modal" style="max-width:480px;width:95vw;">
+    <div class="modal-header" style="padding:20px 24px 16px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#dbeafe;color:#2563eb;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px;height:24px"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+        </div>
+        <div>
+          <div class="modal-title" style="font-size:20px;font-weight:800;color:#111827;margin-bottom:2px;">Nuovo Utente</div>
+          <div style="font-size:12px;color:#6b7280;">Invita un nuovo utente e assegnagli i permessi adatti.</div>
+        </div>
+      </div>
 <button class="icon-btn" onclick="document.getElementById('modal-user').classList.remove('open')">
 <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 </button>

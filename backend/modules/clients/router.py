@@ -561,12 +561,39 @@ async def delete_client(
         }
 
     # Hard delete (force=True, no unpaid invoices)
-    supabase.table("clients").delete().eq("id", str(client_id)).eq("company_id", company_id).execute()
-    _audit(user, str(client_id), "hard_delete", old=old)
+    cid = str(client_id)
+    cascade_tables = [
+        ("activity_logs", "client_id"),
+        ("reminders", "client_id"),
+        ("documents", "client_id"),
+        ("invoices", "client_id"),
+        ("contracts", "client_id"),
+        ("quotes", "client_id"),
+        ("contacts", "client_id"),
+        ("audit_logs", "entity_id")
+    ]
+    for tbl, col in cascade_tables:
+        try:
+            supabase.table(tbl).delete().eq(col, cid).execute()
+        except Exception as e:
+            logger.warning(f"Cascade delete failed for {tbl}.{col} = {cid}: {e}")
+
+    try:
+        supabase.table("clients").delete().eq("id", cid).execute()
+    except Exception as e:
+        logger.error(f"Error hard deleting client {cid}: {e}")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Errore durante l'eliminazione definitiva: {e}")
+        
+    # L'audit trigger potrebbe fallire se la tabella entity viene cancellata prima, quindi catturiamo errori
+    try:
+        _audit(user, cid, "hard_delete", old=old)
+    except Exception:
+        pass
+
     return {
         "deleted": True,
         "archived": False,
-        "message": "Cliente eliminato definitivamente.",
+        "message": "Cliente e tutto lo storico eliminati definitivamente.",
     }
 
 
@@ -615,13 +642,13 @@ async def list_contacts(
     user: CurrentUser = Depends(get_current_user),
 ):
     # Verify the parent client is accessible to this user/tenant first
-    _require_client(client_id, user)
+    client_data = _require_client(client_id, user)
 
     res = (
         supabase.table("client_contacts")
         .select("*")
         .eq("client_id", str(client_id))
-        .eq("company_id", str(user.active_company_id))  # tenant safety
+        .eq("company_id", client_data["company_id"])  # tenant safety
         .order("is_primary", desc=True)
         .execute()
     )
@@ -717,12 +744,12 @@ async def client_services(
     client_id: UUID,
     user: CurrentUser = Depends(get_current_user),
 ):
-    _require_client(client_id, user)
+    client_data = _require_client(client_id, user)
     res = (
         supabase.table("client_services")
         .select("*, services_catalog(name,billing_cycle)")
         .eq("client_id", str(client_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", client_data["company_id"])
         .execute()
     )
     return res.data or []
@@ -733,12 +760,12 @@ async def client_invoices(
     client_id: UUID,
     user: CurrentUser = Depends(get_current_user),
 ):
-    _require_client(client_id, user)
+    client_data = _require_client(client_id, user)
     res = (
         supabase.table("invoices")
         .select("*")
         .eq("client_id", str(client_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", client_data["company_id"])
         .order("due_date", desc=True)
         .execute()
     )
@@ -750,12 +777,12 @@ async def client_contracts(
     client_id: UUID,
     user: CurrentUser = Depends(get_current_user),
 ):
-    _require_client(client_id, user)
+    client_data = _require_client(client_id, user)
     res = (
         supabase.table("contracts")
         .select("*")
         .eq("client_id", str(client_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", client_data["company_id"])
         .execute()
     )
     return res.data or []
@@ -766,12 +793,12 @@ async def client_documents(
     client_id: UUID,
     user: CurrentUser = Depends(get_current_user),
 ):
-    _require_client(client_id, user)
+    client_data = _require_client(client_id, user)
     res = (
         supabase.table("documents")
         .select("*")
         .eq("client_id", str(client_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", client_data["company_id"])
         .execute()
     )
     return res.data or []

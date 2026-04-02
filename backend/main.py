@@ -25,6 +25,7 @@ from modules.onboarding.router  import router as onboarding_router
 from modules.quotes.router      import router as quotes_router
 from modules.users.router       import router as users_router
 from modules.companies.router   import router as companies_router
+from modules.copilot.router     import router as copilot_router
 from modules.activity.router    import client_router as activity_client_router
 from modules.activity.router    import onboarding_router as activity_onboarding_router
 from modules.activity.router    import global_router as activity_global_router
@@ -118,6 +119,7 @@ app.include_router(onboarding_router,  prefix="/api")
 app.include_router(quotes_router,      prefix="/api")
 app.include_router(users_router,       prefix="/api")
 app.include_router(companies_router,   prefix="/api")
+app.include_router(copilot_router,     prefix="/api")
 app.include_router(activity_client_router,     prefix="/api")
 app.include_router(activity_onboarding_router, prefix="/api")
 app.include_router(activity_global_router,     prefix="/api")

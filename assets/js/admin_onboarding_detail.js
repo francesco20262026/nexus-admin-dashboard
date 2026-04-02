@@ -59,10 +59,10 @@
     const ed = $('cd-link-docs'); if (ed) ed.href = `admin_documents.html?onboarding_id=${safe}`;
     const er = $('cd-link-renewals'); if (er) er.href = `admin_renewals.html?onboarding_id=${safe}`;
     // Quick-create links with client pre-selected
-    const eq = $('cd-link-new-quote'); if (eq) eq.href = `admin_quotes.html?new=1&onboarding_id=${safe}`;
-    const eqc = $('cd-link-new-quote-card'); if (eqc) eqc.href = `admin_quotes.html?new=1&onboarding_id=${safe}`;
-    const einv = $('cd-link-new-invoice'); if (einv) einv.href = `admin_invoices.html?new=1&onboarding_id=${safe}`;
-    const epro = $('cd-link-new-proforma'); if (epro) epro.href = `admin_invoices.html?new=1&type=proforma&onboarding_id=${safe}`;
+    const eqc = $('cd-link-new-quote-card'); if (eqc) eqc.href = `admin_quotes.html?new=1&onboarding=${safe}`;
+    const btnQ = $('cd-btn-new-quote'); if (btnQ) btnQ.onclick = () => location.href = `admin_quotes.html?new=1&onboarding=${safe}`;
+    const einv = $('cd-link-new-invoice'); if (einv) einv.href = `admin_invoices.html?new=1&onboarding=${safe}`;
+    const epro = $('cd-link-new-proforma'); if (epro) epro.href = `admin_invoices.html?new=1&type=proforma&onboarding=${safe}`;
   }
 
   /* ── Load main client ────────────────────────────────────────── */
@@ -476,6 +476,9 @@
               ${ct.phone ? `<a href="tel:${ct.phone}" class="z-contact-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6z"/></svg>${ct.phone}</a>` : ''}
             </div>
           </div>
+          <button class="btn btn-ghost btn-xs text-danger" style="margin-left:auto;padding:6px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteContact(event, '${ct.id}')" title="Elimina">
+            <span style="font-size:16px;line-height:1;">🗑️</span>
+          </button>
         </div>`;
       }).join('');
       el.querySelectorAll('.z-contact-row').forEach(row => {
@@ -540,7 +543,7 @@
     if (!el) return;
     el.innerHTML = UI.skeletonCardList(2);
     try {
-      const res = [];
+      const res = await API.Services.subscriptions({ onboarding_id: onboardingId });
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
       const chip = $('chip-services');
       if (chip) chip.textContent = data.length;
@@ -553,11 +556,16 @@
       el.innerHTML = data.map(s => `
         <div class="list-card">
           <div class="list-card-header">
-            <div class="list-card-title">${s.service_name || s.name || 0}</div>
-            ${UI.pill(s.status)}
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="list-card-title">${s.services_catalog?.name || s.service_name || s.name || 0}</div>
+              ${UI.pill(s.status)}
+            </div>
+            <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteService(event, '${s.id}')" title="Elimina">
+              <span style="font-size:16px;line-height:1;">🗑️</span>
+            </button>
           </div>
           <div class="list-card-body">
-            <div class="list-card-meta">${I18n.t('cl.f_cycle') || 'Ciclo'}: ${s.billing_cycle || 0}</div>
+            <div class="list-card-meta">${I18n.t('cl.f_cycle') || 'Ciclo'}: ${s.services_catalog?.billing_cycle || s.billing_cycle || 0}</div>
             <div class="list-card-meta">${I18n.t('cl.f_start_date') || 'Inizio'}: ${s.start_date ? UI.date(s.start_date) : 0}</div>
           </div>
         </div>`).join('');
@@ -586,8 +594,13 @@
       el.innerHTML = data.map(c => `
         <div class="list-card">
           <div class="list-card-header">
-            <div class="list-card-title">${c.title || I18n.t('nav.contracts') || 'Contratto'}</div>
-            ${UI.pill(c.status)}
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="list-card-title">${c.title || I18n.t('nav.contracts') || 'Contratto'}</div>
+              ${UI.pill(c.status)}
+            </div>
+            <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteContract(event, '${c.id}')" title="Elimina">
+              <span style="font-size:16px;line-height:1;">🗑️</span>
+            </button>
           </div>
           <div class="list-card-body">
             <div class="list-card-meta">${I18n.t('cl.created_at') || 'Creato'}: ${UI.date(c.created_at)}</div>
@@ -605,7 +618,7 @@
     if (!el) return;
     el.innerHTML = UI.skeletonCardList(2);
     try {
-      const res = [];
+      const res = await API.Documents.list({ onboarding_id: onboardingId });
       const data = Array.isArray(res) ? res : (res?.data || res?.items || []);
       const chip = $('chip-docs');
       if (chip) chip.textContent = data.length;
@@ -616,8 +629,13 @@
       el.innerHTML = data.map(d => `
         <div class="list-card">
           <div class="list-card-header">
-            <div class="list-card-title">${d.name || d.filename || 0}</div>
-            ${UI.pill(d.status || 'active')}
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="list-card-title">${d.name || d.filename || 0}</div>
+              ${UI.pill(d.status || 'active')}
+            </div>
+            <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteDocument(event, '${d.id}')" title="Elimina">
+              <span style="font-size:16px;line-height:1;">🗑️</span>
+            </button>
           </div>
           <div class="list-card-body">
             ${d.size ? `<div class="list-card-meta">${Math.round(d.size / 1000)} KB</div>` : ''}
@@ -653,7 +671,14 @@
           <td class="z-rt-date">${q.created_at ? UI.date(q.created_at) : ''}</td>
           <td class="z-rt-amt">${UI.currency(q.total_amount || q.total || 0, q.currency)}</td>
           <td>${UI.pill(q.status)}</td>
-          <td><a href="admin_quotes.html?id=${q.id}" class="z-rt-link">Apri →</a></td>
+          <td>
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+              <a href="admin_quotes.html?id=${q.id}" class="z-rt-link">Apri →</a>
+              <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteQuote(event, '${q.id}')" title="Elimina">
+                <span style="font-size:16px;line-height:1;">🗑️</span>
+              </button>
+            </div>
+          </td>
         </tr>`).join('')}</tbody>
       </table>`;
     } catch {
@@ -687,7 +712,14 @@
           <td class="z-rt-date">${i.issue_date ? UI.date(i.issue_date) : ''}</td>
           <td class="z-rt-date">${i.due_date ? UI.date(i.due_date) : ''}</td>
           <td class="z-rt-amt">${UI.currency(i.total_amount || i.total, i.currency)}</td>
-          <td>${UI.pill(i.status)}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              ${UI.pill(i.status)}
+              <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteInvoice(event, '${i.id}')" title="Elimina">
+                <span style="font-size:16px;line-height:1;">🗑️</span>
+              </button>
+            </div>
+          </td>
         </tr>`).join('')}</tbody>
       </table>`;
     } catch {
@@ -952,6 +984,44 @@
       const btn = $('modal-quote-save'); if (btn) btn.disabled = false;
     }
   });
+
+  /* ── Line-level Deletions ───────────────────────────────────── */
+  window.deleteContact = async (event, id) => {
+    event.stopPropagation();
+    if (!confirm(I18n.t('cl.confirm_delete_contact') || 'Eliminare il contatto?')) return;
+    try { await window.API.del(`/onboarding/${onboardingId}/contacts/${id}`); UI.toast('Contatto eliminato', 'success'); loadContacts(); }
+    catch(e) { UI.toast(e.message, 'error'); }
+  };
+  window.deleteService = async (event, id) => {
+    event.stopPropagation();
+    if (!confirm('Eliminare il servizio/abbonamento?')) return;
+    try { await window.API.del(`/services/subscriptions/${id}`); UI.toast('Servizio eliminato', 'success'); loadServices(); loadRenewals(); }
+    catch(e) { UI.toast(e.message, 'error'); }
+  };
+  window.deleteContract = async (event, id) => {
+    event.stopPropagation();
+    if (!confirm('Eliminare il contratto?')) return;
+    try { await window.API.del(`/contracts/${id}`); UI.toast('Contratto eliminato', 'success'); loadContracts(); }
+    catch(e) { UI.toast(e.message, 'error'); }
+  };
+  window.deleteDocument = async (event, id) => {
+    event.stopPropagation();
+    if (!confirm('Eliminare il documento?')) return;
+    try { await window.API.del(`/documents/${id}`); UI.toast('Documento eliminato', 'success'); loadDocuments(); }
+    catch(e) { UI.toast(e.message, 'error'); }
+  };
+  window.deleteQuote = async (event, id) => {
+    event.stopPropagation();
+    if (!confirm('Eliminare il preventivo?')) return;
+    try { await window.API.del(`/quotes/${id}`); UI.toast('Preventivo eliminato', 'success'); loadQuotes(); }
+    catch(e) { UI.toast(e.message, 'error'); }
+  };
+  window.deleteInvoice = async (event, id) => {
+    event.stopPropagation();
+    if (!confirm('Eliminare la fattura?')) return;
+    try { await window.API.del(`/invoices/${id}`); UI.toast('Fattura eliminata', 'success'); loadInvoices(); }
+    catch(e) { UI.toast(e.message, 'error'); }
+  };
 
   /* ── Contract Modal (Upload Signed) ─────────────────────────── */
   $('cd-btn-add-contract')?.addEventListener('click', () => {

@@ -9,15 +9,17 @@
   let pg         = saved.pg  || 1;
   let activeTab  = saved.tab || 'all';
   const PER      = 15;
+  let currentSortDir = 'desc';
 
   const $ = id => document.getElementById(id);
   const list   = $('q-list');
-  const pipelineBar = $('q-pipeline-bar');
-  const search = $('q-search');
-  const fClient= $('q-filter-client');
+  const search   = $('q-search');
+  const fClient  = $('q-filter-client');
+  const fChannel = $('q-filter-channel');
   const info   = $('q-info');
   const pag    = $('q-pagination');
   const modal  = $('modal-quote');
+  const pipelineBar = $('q-pipeline-bar');
 
   // ── Cached reference data ─────────────────────────────────
   let _clients  = [];
@@ -50,7 +52,7 @@
     pipelineBar.querySelectorAll('.cl-status-pill').forEach(x => x.classList.remove('active'));
     b.classList.add('active'); activeTab = b.dataset.tab; pg = 1; applyFilters();
   });
-  [search, fClient].forEach(el => {
+  [search, fClient, fChannel].forEach(el => {
     el?.addEventListener('input',  debounce(() => { pg = 1; applyFilters(); }, 200));
     el?.addEventListener('change', () => { pg = 1; applyFilters(); });
   });
@@ -68,8 +70,13 @@
     try {
       const res = await API.Quotes.list({});
       ALL = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
-      ALL = ALL.map(q => ({ ...q, client_name: q.clients?.name || q.client_name || '' }));
+      ALL = ALL.map(q => ({ 
+        ...q, 
+        client_name: q.clients?.name || q.onboarding?.company_name || q.client_name || '',
+        supplier_name: q.supplier_company?.name || q.tenant_company?.name || 'Nova CRM'
+      }));
       populateClientFilter();
+      populateSupplierFilter();
     } catch (e) {
       ALL = [];
       list.innerHTML = UI.errorState('Impossibile caricare i preventivi.', 'window._reloadQuotes()');
@@ -79,11 +86,21 @@
   }
 
   function populateClientFilter() {
-    if (!fClient) return;
-    const prev  = fClient.value;
+    const fClientEl = document.getElementById('q-filter-client');
+    if (!fClientEl) return;
+    const prev  = fClientEl.value;
     const names = [...new Set(ALL.map(q => q.client_name).filter(Boolean))].sort();
-    fClient.innerHTML = `<option value="">Tutti i clienti</option>` + names.map(n => `<option value="${n}">${n}</option>`).join('');
-    if (prev) fClient.value = prev;
+    fClientEl.innerHTML = `<option value="">Cliente ▼</option>` + names.map(n => `<option value="${n}">${n}</option>`).join('');
+    if (prev) fClientEl.value = prev;
+  }
+
+  function populateSupplierFilter() {
+    const fSupplierEl = document.getElementById('q-filter-supplier');
+    if (!fSupplierEl) return;
+    const prev  = fSupplierEl.value;
+    const names = [...new Set(ALL.map(q => q.supplier_name).filter(Boolean))].sort();
+    fSupplierEl.innerHTML = `<option value="">Fornitore ▼</option>` + names.map(n => `<option value="${n}">${n}</option>`).join('');
+    if (prev) fSupplierEl.value = prev;
   }
 
   // ── KPIs ──────────────────────────────────────────────────
@@ -106,21 +123,74 @@
   }
 
   // ── Filter ────────────────────────────────────────────────
+  window.applyFilters = applyFilters;
+  
+  window.toggleSort = (col) => {
+    if (col === 'price') {
+      currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+      const el = document.getElementById('sort-icon-price');
+      if (el) {
+        el.style.transform = currentSortDir === 'desc' ? 'rotate(180deg)' : 'none';
+      }
+      applyFilters();
+    }
+  };
+
   function applyFilters() {
     const q  = (search?.value || '').toLowerCase().trim();
-    const cl = fClient?.value || '';
+    const fClientEl = document.getElementById('q-filter-client');
+    const cl = fClientEl ? fClientEl.value : '';
+    const dateFilter = document.getElementById('q-filter-date')?.value || '';
+    const statusFilter = document.getElementById('q-filter-status')?.value || '';
+    const now = new Date();
+
+    const fSupplierEl = document.getElementById('q-filter-supplier');
+    const sup = fSupplierEl ? fSupplierEl.value : '';
+
     filtered = ALL.filter(item => {
       if (activeTab !== 'all' && item.status !== activeTab) return false;
+      if (statusFilter && item.status !== statusFilter) return false;
       if (cl && item.client_name !== cl) return false;
+      if (sup && item.supplier_name !== sup) return false;
+
+      if (dateFilter) {
+          const cDate = item.created_at ? new Date(item.created_at) : null;
+          if (!cDate) return false;
+          const diffDays = Math.floor((now - cDate)/(1000*60*60*24));
+          if (dateFilter === '7d' && diffDays > 7) return false;
+          if (dateFilter === '30d' && diffDays > 30) return false;
+          if (dateFilter === 'this_month' && (cDate.getMonth() !== now.getMonth() || cDate.getFullYear() !== now.getFullYear())) return false;
+      }
+      
       if (q) {
         const hay = [item.title, item.client_name, item.notes].filter(Boolean).join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
+
+    // Handle sort by price
+    filtered.sort((a, b) => {
+      const vA = parseFloat(a.total) || 0;
+      const vB = parseFloat(b.total) || 0;
+      return currentSortDir === 'desc' ? vB - vA : vA - vB;
+    });
+
     const max = Math.ceil(filtered.length / PER) || 1;
     if (pg > max) pg = max;
     window.SessionState?.save('quotes', { pg, tab: activeTab });
+    
+    // Update Totals based on filtered rows
+    const visibleTotal = filtered.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
+    const elValue = document.getElementById('kpi-q-value');
+    if (elValue) elValue.textContent = UI.currency(visibleTotal);
+    
+    // Check if label needs to be updated (Totale in vista)
+    const badgeLabel = elValue?.parentNode;
+    if (badgeLabel && badgeLabel.childNodes[0] && badgeLabel.childNodes[0].nodeType === 3) {
+      badgeLabel.childNodes[0].nodeValue = 'Totale Lista ';
+    }
+
     render();
   }
 
@@ -142,51 +212,80 @@
       const onbStr = q.onboarding_id
         ? `<span style="font-size:11px; font-weight:600; color:var(--brand-500);">Onboarding #${q.onboarding_id.slice(0,5)}</span>`
         : '';
+        
+      const numberStr = q.number ? `<span style="font-size:12px; font-weight:700; color:var(--brand-600); margin-right:6px;">${q.number}</span>` : '';
+      const channelLabel = q.management_channel === 'verbal' ? 'A Voce' : (q.management_channel === 'internal' ? 'Interno' : 'Email');
+      const channelStr = `<span style="font-size:11px; padding:2px 6px; border-radius:4px; background:var(--gray-100); color:var(--gray-600);">${channelLabel}</span>`;
       
       const statusPill = `<span class="pill ${si.cls}" style="font-size:11px; padding:2px 8px; border-radius:12px;">${si.label}</span>`;
 
       // Context-sensitive action buttons
       let actions = '';
-      if (q.status === 'draft') {
-        actions = `<button class="btn btn-primary" style="font-size:12px;padding:5px 12px;" onclick="event.stopPropagation();window.sendQuote('${q.id}')">📤 Invia</button>`;
-      } else if (q.status === 'sent') {
-        actions = `
-          <button class="btn btn-primary" style="font-size:12px;padding:5px 12px;background:#16a34a;border:none;" onclick="event.stopPropagation();window.acceptQuote('${q.id}')">✓ Accetta</button>
-          <button class="btn btn-ghost btn-ghost-danger" style="font-size:12px;padding:5px 12px;line-height:1;" onclick="event.stopPropagation();window.rejectQuote('${q.id}')">✗ Rifiuta</button>`;
+      
+      // Accetta a voce switch (Show if draft/sent or already accepted)
+      if (q.status === 'draft' || q.status === 'sent' || q.status === 'accepted') {
+        const isAcc = q.status === 'accepted';
+        actions += `
+          <div title="${isAcc ? 'Accettato a voce' : 'Accetta a voce'}" style="width:36px; height:20px; border-radius:20px; background:${isAcc?'#34c759':'#e5e5ea'}; position:relative; cursor:${isAcc?'default':'pointer'}; transition:.3s; margin-right:4px;" onclick="event.stopPropagation(); ${isAcc ? '' : `if(confirm('Accettare il preventivo a voce?')) window.acceptVerbalQuote('${q.id}')`}">
+            <div style="width:16px; height:16px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px; transform:${isAcc?'translateX(16px)':'none'}; transition:.3s; box-shadow:0 1px 2px rgba(0,0,0,.2);"></div>
+          </div>
+        `;
       }
 
-      return `<div class="cl-row fade-in" data-id="${q.id}" onclick="window.editQuote('${q.id}')" style="cursor:pointer; display:grid; grid-template-columns: 2.5fr 1.5fr 1fr 140px; align-items:center; gap:24px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s;">
+      if (q.status === 'draft' && q.management_channel === 'formal_sent') {
+        actions += `<div title="Invia Formale" style="cursor:pointer; font-size:16px; margin-right:4px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="event.stopPropagation();window.sendQuote('${q.id}')">📤</div>`;
+      } else if (q.status === 'sent' && q.management_channel === 'formal_sent') {
+        actions += `<div title="Rifiuta" style="cursor:pointer; font-size:16px; margin-right:4px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="event.stopPropagation();window.rejectQuote('${q.id}')">⛔</div>`;
+      }
+      
+      actions += `<div title="Duplica Preventivo" style="cursor:pointer; font-size:16px; margin-right:4px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="event.stopPropagation();window.duplicateQuote('${q.id}')">📄</div>`;
+      actions += `<div title="Elimina" style="cursor:pointer; font-size:16px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="window.deleteQuote(event, '${q.id}')">🗑️</div>`;
+
+      return `<div class="cl-row fade-in" data-id="${q.id}" onclick="window.editQuote('${q.id}')" style="cursor:pointer; display:grid; grid-template-columns: 1.8fr 1.5fr 1.5fr 1.2fr 1.2fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s;">
         
-        <!-- Colonna 1: Titolo e Cliente -->
-        <div class="cl-col cl-col-1">
-          <div class="cl-row-identity">
+        <!-- Colonna 1: Cliente -->
+        <div class="cl-col cl-col-1" style="min-width:0;">
+          <div class="cl-row-identity" style="display:flex; gap:12px; align-items:center; min-width:0;">
             <div class="mac-select-btn" data-id="${q.id}" onclick="window.toggleSelection(event, '${q.id}')" title="Seleziona" style="flex-shrink:0;">
               <div class="mac-checkbox"></div>
             </div>
-            <div class="cl-row-identity-body" style="padding-left:0; min-width:0;">
-              <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${q.title}</div>
+            
+            <div class="avatar cl-row-avatar" style="flex-shrink:0; background:var(--brand-600); color:#fff;">${(q.client_name || q.onboarding?.company_name || 'C').slice(0,2).toUpperCase()}</div>
+
+            <div class="cl-row-identity-body" style="min-width:0;">
+              <div class="cl-row-name truncate" style="font-size:14px; font-weight:600; color:var(--gray-900);" title="${(q.client_name || q.onboarding?.company_name || 'Nessun cliente').replace(/"/g, '&quot;')}">${q.client_name || q.onboarding?.company_name || 'Nessun cliente'}</div>
               <div class="cl-row-meta" style="display:flex; gap:8px; align-items:center; margin-top:2px;">
-                <span class="cl-row-chip" style="font-size:12px; color:var(--gray-500);">🏢 ${q.client_name || ''}</span>
-                ${onbStr ? `<span class="cl-row-chip">${onbStr}</span>` : ''}
+                 ${onbStr ? `<span class="cl-row-chip">${onbStr}</span>` : ''}
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Colonna 2: Date -->
+        <!-- Colonna 2: Fornitore -->
+        <div class="cl-col truncate" style="min-width:0; font-size:13px; font-weight:500; color:var(--gray-700);" title="${(q.supplier_name||'—').replace(/"/g, '&quot;')}">
+          ${q.supplier_name || '—'}
+        </div>
+
+        <!-- Colonna 3: Preventivo -->
+        <div class="cl-col" style="min-width:0;">
+          <div class="cl-data-val truncate" style="font-size:13px; font-weight:600; color:var(--gray-900);" title="${(q.title||'').replace(/"/g, '&quot;')}">${numberStr} ${q.title||''}</div>
+          <div style="margin-top:2px;">${channelStr}</div>
+        </div>
+
+        <!-- Colonna 3: Date -->
         <div class="cl-col" style="min-width:0;">
           <div class="cl-data-val" style="font-size:13px; color:var(--gray-700);">${dateStr}</div>
           ${acceptedInfo}
         </div>
 
-        <!-- Colonna 3: Importo e Stato -->
-        <div class="cl-col" style="min-width:0;">
+        <!-- Colonna 4: Importo e Stato -->
+        <div class="cl-col" style="min-width:0; display:flex; flex-direction:column; align-items:flex-start;">
           <div class="cl-data-val" style="font-size:14px; font-weight:700; color:var(--gray-900);">${UI.currency(q.total || 0)}</div>
           <div style="margin-top:2px;">${statusPill}</div>
         </div>
 
-        <!-- Colonna 4: Azioni -->
-        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
+        <!-- Colonna 5: Azioni -->
+        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:6px;">
           ${actions}
         </div>
       </div>`;
@@ -273,12 +372,25 @@
     if (window.UI) window.UI.toast('Eliminazione in corso...', 'info');
     try {
       for (let id of window.selectedIds) {
-         await API.Quotes.delete(id);
+         await API.Quotes.remove(id);
       }
       if (window.UI) window.UI.toast('Eliminazione completata', 'success');
       window.clearSelection();
       load();
     } catch(e) {
+      if (window.UI) window.UI.toast('Errore durante l\'eliminazione', 'error');
+    }
+  };
+
+  window.deleteQuote = async (e, id) => {
+    e.stopPropagation();
+    if (!confirm('Sei sicuro di voler eliminare questo preventivo? Quest\'azione è irreversibile.')) return;
+    if (window.UI) window.UI.toast('Eliminazione in corso...', 'info');
+    try {
+      await API.Quotes.remove(id);
+      if (window.UI) window.UI.toast('Preventivo eliminato', 'success');
+      load();
+    } catch(err) {
       if (window.UI) window.UI.toast('Errore durante l\'eliminazione', 'error');
     }
   };
@@ -290,8 +402,12 @@
     if (!container) return;
     const idx = container.querySelectorAll('.q-line-row').length;
 
-    const serviceOptions = _services.map(s =>
-      `<option value="${s.id}" data-price="${s.price||0}" data-name="${s.name||''}">${s.name}</option>`
+    const supplierId = $('q-supplier-company') ? $('q-supplier-company').value : null;
+    let filteredSource = _services.filter(s => s.is_active !== false && s.visible_in_quotes !== false);
+    filteredSource = filteredSource.filter(s => supplierId ? String(s.company_id) === String(supplierId) : true);
+
+    const serviceOptions = filteredSource.map(s =>
+      `<option value="${s.id}" data-price="${s.price||0}" data-name="${s.name||''}">${s.name} - €${s.price||0}</option>`
     ).join('');
 
     const row = document.createElement('div');
@@ -398,18 +514,28 @@
 
     // Reset fields
     ['q-title','q-valid-until','q-notes'].forEach(id => { const el=$(id); if(el) el.value=''; });
+    if ($('q-supplier-company')) $('q-supplier-company').value = '';
+    if ($('q-management-channel')) $('q-management-channel').value = 'formal_sent';
     recalcTotals();
     modal.classList.add('open');
 
     try {
-      const [clientsRes, servicesRes, onbRes] = await Promise.all([
+      const [clientsRes, servicesRes, onbRes, companiesRes] = await Promise.all([
         API.Clients.list().catch(() => []),
-        API.Services.catalog(true).catch(() => []),
+        API.Services.catalog(true, true).catch(() => []),
         API.Onboarding.list().catch(() => []),
+        API.Companies.list().catch(() => []),
       ]);
       _clients  = Array.isArray(clientsRes)  ? clientsRes  : (clientsRes?.items  ?? clientsRes?.data  ?? []);
       _services = Array.isArray(servicesRes) ? servicesRes : (servicesRes?.items ?? servicesRes?.data ?? []);
       const onbs    = Array.isArray(onbRes)     ? onbRes     : (onbRes?.items    ?? onbRes?.data    ?? []);
+      const comps   = Array.isArray(companiesRes)? companiesRes : (companiesRes?.items ?? companiesRes?.data ?? []);
+
+      const supplierSel = $('q-supplier-company');
+      if (supplierSel) {
+        supplierSel.innerHTML = '<option value="">Predefinita</option>' +
+          comps.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      }
 
       if (clientSel) {
         clientSel.innerHTML = '<option value="">Seleziona cliente</option>' +
@@ -435,6 +561,8 @@
         if ($('q-notes'))       $('q-notes').value       = q.notes || '';
         if (clientSel)          clientSel.value          = q.client_id || '';
         if (onbSel)             onbSel.value             = q.onboarding_id || '';
+        if ($('q-supplier-company')) $('q-supplier-company').value = q.supplier_company_id || '';
+        if ($('q-management-channel')) $('q-management-channel').value = q.management_channel || 'formal_sent';
         // Load lines
         const lines = q.quote_lines || [];
         lines.forEach(ln => addLineRow(ln));
@@ -448,6 +576,62 @@
         // Start with one empty line
         addLineRow();
       }
+
+      // Setup Service Multiselect & Supplier filtering
+      const supplierSelNode = $('q-supplier-company');
+      const sMulti = $('q-services-multiselect');
+      
+      const populateServicesMultiSelect = () => {
+        if (!sMulti) return;
+        const supplierId = supplierSelNode ? supplierSelNode.value : '';
+        const filteredServices = _services.filter(s => {
+          if (!supplierId) return true;
+          return String(s.company_id) === String(supplierId);
+        });
+        sMulti.innerHTML = filteredServices.map(s =>
+          `<option value="${s.id}" data-price="${s.price||0}" data-name="${s.name||''}">${s.name} - €${s.price||0}</option>`
+        ).join('');
+      };
+
+      if (supplierSelNode && !supplierSelNode.hasListener) {
+        supplierSelNode.hasListener = true;
+        supplierSelNode.addEventListener('change', populateServicesMultiSelect);
+      }
+      populateServicesMultiSelect();
+
+      if (sMulti && !sMulti.hasListener) {
+        sMulti.hasListener = true;
+        sMulti.addEventListener('change', () => {
+          const selectedOptions = Array.from(sMulti.selectedOptions);
+          selectedOptions.forEach(opt => {
+             let hasLine = false;
+             document.querySelectorAll('.q-line-service').forEach(sel => {
+               if (sel.value === opt.value) hasLine = true;
+             });
+             if (!hasLine) {
+               addLineRow({
+                 service_id: opt.value,
+                 description: opt.dataset.name,
+                 unit_price: parseFloat(opt.dataset.price) || 0
+               });
+             }
+          });
+          // Also remove lines for options that were unselected from the multiselect
+          document.querySelectorAll('.q-line-row').forEach(row => {
+            const rowSvcNode = row.querySelector('.q-line-service');
+            if (rowSvcNode && rowSvcNode.value) {
+              const isSelected = selectedOptions.some(opt => opt.value === rowSvcNode.value);
+              // if it exists in the multiselect options but is NOT selected, remove it
+              const optExists = Array.from(sMulti.options).some(o => o.value === rowSvcNode.value);
+              if (optExists && !isSelected) {
+                row.remove();
+                if (typeof recalcTotals === 'function') recalcTotals();
+              }
+            }
+          });
+        });
+      }
+
     } catch (e) {
       UI.toast('Errore nel caricamento dei dati', 'error');
     }
@@ -459,6 +643,9 @@
     const clientId     = $('q-client')?.value;
     const onboardingId = $('q-onboarding-id')?.value;
     const title        = $('q-title')?.value?.trim();
+    const managementChannel = $('q-management-channel')?.value || 'formal_sent';
+    const supplierCompanyId = $('q-supplier-company')?.value || null;
+
     if ((!clientId && !onboardingId) || !title) { UI.toast('Titolo e (Cliente OPPURE Onboarding) sono obbligatori', 'warning'); return; }
 
     const lines       = readLines();
@@ -469,6 +656,8 @@
     const body = {
       client_id:     clientId || undefined,
       onboarding_id: onboardingId || undefined,
+      supplier_company_id: supplierCompanyId || undefined,
+      management_channel: managementChannel,
       title,
       valid_until:   validUntil || undefined,
       notes:         notes || undefined,
@@ -545,6 +734,15 @@
     } catch(e) { UI.toast(e?.message||'Errore','error'); }
   };
 
+  window.acceptVerbalQuote = async id => {
+    if (!confirm('Segnare il preventivo come accettato verbalmente? Potrai generare o collegare un contratto in seguito dalla pagina di dettaglio.')) return;
+    try {
+      await API.Quotes.acceptVerbal(id);
+      ALL = ALL.map(q => q.id===id ? {...q, status:'accepted', accepted_at:new Date().toISOString()} : q);
+      updateKpis(); applyFilters(); UI.toast('✓ Preventivo accettato a voce', 'success');
+    } catch(e) { UI.toast(e?.message||'Errore','error'); }
+  };
+
   window.rejectQuote = async id => {
     if (!confirm('Segnare il preventivo come rifiutato?')) return;
     try {
@@ -561,6 +759,15 @@
       ALL = ALL.map(q => q.id===id ? {...q, status:'expired'} : q);
       updateKpis(); applyFilters(); UI.toast('Preventivo scaduto','info');
     } catch(e) { UI.toast(e?.message||'Errore','error'); }
+  };
+  
+  window.duplicateQuote = async id => {
+    if (!confirm('Vuoi davvero duplicare questo preventivo? Verrà generata una copia esatta in bozza.')) return;
+    try {
+      await API.Quotes.duplicate(id);
+      UI.toast('Preventivo duplicato correttamente.', 'success');
+      await load();
+    } catch(e) { UI.toast(e?.message || 'Errore. Impossibile duplicare', 'error'); }
   };
 
   window.deleteQuote = async id => {

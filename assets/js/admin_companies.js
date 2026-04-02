@@ -211,7 +211,7 @@
 
     const activeId = API.getCompanyId?.() || null;
     list.innerHTML = filtered.map((c,i) => {
-      const isSelected = window.selectedIds.has(c.id);
+      const isSelected = window.selectedIds && window.selectedIds.has(c.id);
       const [c1, c2] = pal(c.name);
       const ini = initials(c.name);
       const isEnabled = c.is_active !== false;
@@ -230,11 +230,14 @@
 
       const disabledStyle = isEnabled ? '' : 'opacity:.5;';
 
-      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${c.id}" onclick="document.querySelector('.mac-select-btn', this)?.click()" style="display:grid; grid-template-columns: 2.5fr 2fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer; ${disabledStyle}">
+      return `<div class="cl-row fade-in" data-id="${c.id}" onclick="window.goDetail('${c.id}')" style="display:grid; grid-template-columns: 2.5fr 2fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer; ${disabledStyle}">
         <!-- Colonna 1: Logo e Nome -->
         <div class="cl-col cl-col-1">
           <div class="cl-row-identity">
             <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${c.id}" onclick="window.toggleSelection(event, '${c.id}')" style="flex-shrink:0;">
+              <div class="mac-checkbox"></div>
+            </div>
+            <div class="mac-select-btn" data-id="${c.id}" onclick="event.stopPropagation(); window.toggleSelection(event, '${c.id}')" style="flex-shrink:0;">
               <div class="mac-checkbox"></div>
             </div>
           ${avatarHtml}
@@ -251,16 +254,28 @@
         </div>
 
         <!-- Colonna 3: Stato -->
-        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
-          ${!isEnabled ? '<span class="tag-pill" style="color:var(--color-danger); border-color:var(--color-danger);">Disabilitata</span>' : '<span class="tag-pill" style="color:var(--color-success); border-color:var(--color-success);">Attiva</span>'}
-          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); goDetail('${c.id}')" title="Visualizza" style="padding:4px;">
-            <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-          </button>
+        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:12px; justify-content:flex-end;">
+          <label class="mac-switch" title="Abilita/Disabilita Azienda" onclick="event.stopPropagation()">
+            <input type="checkbox" onchange="window.toggleCompanyActive('${c.id}', this.checked)" ${isEnabled ? 'checked' : ''}>
+            <span class="mac-slider"></span>
+          </label>
         </div>
       </div>`;
     }).join('');
-    setTimeout(() => { if(window.updateSelectionUI) window.updateSelectionUI(); }, 10);
+    
   }
+
+  
+  window.toggleCompanyActive = async (id, isActive) => {
+    try {
+      await API.patch(`/companies/${id}/set-active`, { is_active: isActive });
+      UI.toast(isActive ? 'Azienda attivata' : 'Azienda disabilitata', 'success');
+    } catch(e) {
+      UI.toast(e.message, 'error');
+      // Reload strictly instead of passing e directly
+      setTimeout(() => location.reload(), 1000);
+    }
+  };
 
   window.goDetail = id => { location.href = `admin_company_detail.html?id=${id}`; };
 

@@ -6849,7 +6849,7 @@ input[type="text"].cl-filter-select {
 .mac-mass-action-content { display: flex; align-items: center; gap: 12px; width: 100%; }
 .mac-mass-action-selected { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); white-space: nowrap; }
 .mac-mass-action-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.2); flex-shrink: 0; }
-.mac-mass-action-buttons { display: flex; gap: 8px; flex: 1; }
+.mac-mass-action-buttons { display: flex; align-items: center; gap: 8px; flex: 1; margin-left: 12px; }
 .mac-mass-action-btn {
   background: rgba(255,255,255,0.12);
   border: 1px solid rgba(255,255,255,0.15);
@@ -6885,3 +6885,52 @@ input[type="text"].cl-filter-select {
 .sidebar-nav .nav-item.active svg { color: #fff !important; }
 /* ====== End mac-style detail page components ====== */
 .sidebar-footer { display: none !important; }
+
+
+/* Mac Switch injected */
+.mac-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.mac-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.mac-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: .2s;
+  border-radius: 20px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+.mac-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.mac-switch input:checked + .mac-slider {
+  background-color: #10b981;
+}
+.mac-switch input:checked + .mac-slider:before {
+  transform: translateX(16px);
+}
+.mac-switch input:disabled + .mac-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

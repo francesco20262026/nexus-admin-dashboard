@@ -617,4 +617,16 @@
     }
   });
 
+  /* ──────────────────────────────────────────────────────────
+     13. AI COPILOT LAUNCHER
+  ────────────────────────────────────────────────────────── */
+  window.addEventListener('DOMContentLoaded', () => {
+    // Only load the Copilot if the user is authenticated and navigating the admin dashboard
+    if (localStorage.getItem('nexus_token')) {
+      const coScript = document.createElement('script');
+      coScript.src = 'assets/js/copilot.js';
+      document.body.appendChild(coScript);
+    }
+  });
+
 })();

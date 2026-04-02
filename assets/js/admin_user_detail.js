@@ -239,6 +239,24 @@
     finally { if (btn) btn.disabled = false; }
   });
 
+  // ── Delete User ───────────────────────────────────────────
+  const btnDeleteUser = document.getElementById('btn-delete-user');
+  if (btnDeleteUser) {
+    btnDeleteUser.addEventListener('click', async () => {
+      if (!confirm('ATTENZIONE: vuoi davvero eliminare questo utente in modo permanente? \\n\\nQuesta azione è IRREVERSIBILE e lo disconnetterà anche da Supabase Auth.')) return;
+      btnDeleteUser.disabled = true;
+      btnDeleteUser.textContent = 'Eliminazione...';
+      try {
+        await API.del(`/users/${USER_ID}`);
+        window.location.href = 'admin_users.html?v=147';
+      } catch (e) {
+        UI.toast(e?.message || "Errore eliminazione", "error");
+        btnDeleteUser.disabled = false;
+        btnDeleteUser.textContent = 'Elimina utente';
+      }
+    });
+  }
+
   // ── Init ──────────────────────────────────────────────────
   window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');

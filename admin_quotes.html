@@ -148,21 +148,48 @@
 </div>
 
 <!-- MAC HEADER ROW -->
-<div class="mac-header-row" style="display: grid; grid-template-columns: 2.5fr 1.5fr 1fr 140px; align-items:center; gap:24px; padding: 12px 24px; border-bottom: 1px solid var(--border); background: #f9fafb; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-top-left-radius: 12px; border-top-right-radius: 12px; user-select: none;">
+<div class="mac-header-row" style="display: grid; grid-template-columns: 1.8fr 1.5fr 1.5fr 1.2fr 1.2fr 140px; align-items:center; gap:16px; padding: 12px 24px; border-bottom: 1px solid var(--border); background: #f9fafb; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-top-left-radius: 12px; border-top-right-radius: 12px; user-select: none;">
   <div class="cl-col-identity">
     <div class="mac-select-btn" id="btn-select-all" onclick="window.toggleSelectAll()" title="Seleziona tutti" style="flex-shrink:0;">
       <div class="mac-checkbox"></div>
     </div>
-    <span class="cl-col-header">Preventivo e Cliente</span>
+    <select class="mac-header-select cl-col-header" id="q-filter-client" title="Filtra per cliente" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px; max-width: 150px; text-overflow: ellipsis;" onchange="window.applyFilters()">
+      <option value="">Cliente ▼</option>
+    </select>
   </div>
   <div style="display:flex; align-items:center;">
-    <span class="cl-col-header">Date</span>
+    <select class="mac-header-select cl-col-header" id="q-filter-supplier" title="Filtra per fornitore" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px; max-width: 150px; text-overflow: ellipsis;" onchange="window.applyFilters()">
+      <option value="">Fornitore ▼</option>
+    </select>
   </div>
   <div style="display:flex; align-items:center;">
-    <span class="cl-col-header">Importo e Stato</span>
+    <span class="cl-col-header truncate">Preventivo</span>
+  </div>
+  <div style="display:flex; align-items:center;">
+    <select class="mac-header-select" id="q-filter-date" title="Filtra per periodo" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px;" onchange="window.applyFilters()">
+      <option value="">Date ▼</option>
+      <option value="7d">Ultimi 7 gg</option>
+      <option value="30d">Ultimi 30 gg</option>
+      <option value="this_month">Questo mese</option>
+    </select>
+  </div>
+  <div style="display:flex; align-items:center;">
+    <span class="truncate" onclick="window.toggleSort('price')" style="cursor:pointer; display:flex; align-items:center;" title="Ordina per importo">
+        Importo &nbsp;
+        <svg id="sort-icon-price" fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg" style="transition: transform 0.2s; flex-shrink:0;"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </span>
+    <span style="margin: 0 8px;">|</span>
+    <select class="mac-header-select" id="q-filter-status" title="Filtra per stato" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px;" onchange="window.applyFilters()">
+      <option value="">Stato ▼</option>
+      <option value="draft">Bozza</option>
+      <option value="sent">Inviato</option>
+      <option value="accepted">Accettato</option>
+      <option value="rejected">Rifiutato</option>
+      <option value="expired">Scaduto</option>
+    </select>
   </div>
   <div style="display:flex; align-items:center; justify-content:flex-end;">
-    <span class="cl-col-header">Azioni</span>
+    <span class="cl-col-header truncate">Azioni</span>
   </div>
 </div>
 <div class="cl-list" id="q-list"></div>
@@ -218,6 +245,10 @@
 <select class="form-input" id="q-client"><option value="">Seleziona cliente</option></select>
 </div>
 <div class="form-group form-grid--full">
+<label class="form-label">Fornitore</label>
+<select class="form-input" id="q-supplier-company"><option value="">Seleziona fornitore</option></select>
+</div>
+<div class="form-group form-grid--full">
 <label class="form-label">Titolo preventivo *</label>
 <input class="form-input" id="q-title" placeholder="es. Attivazione Hosting + Email 2026" type="text"/>
 </div>
@@ -244,9 +275,13 @@
         Voci del preventivo
 
       </div>
-<div>
+<div style="margin-bottom:16px;">
+<label class="form-label">Servizi dal Catalogo (Selezione Multipla)</label>
+<select class="form-input" id="q-services-multiselect" multiple style="min-height:120px; padding:8px;"></select>
+<div style="font-size:11px;color:var(--gray-500);margin-top:4px;">Per selezionare più voci, tieni premuto Ctrl (Cmd su Mac). I servizi selezionati verranno inseriti qui sotto. Attenzione: cambiando fornitore i servizi non compatibili verranno rimossi.</div>
+</div>
 <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
-<button class="btn btn-secondary btn-sm" id="btn-add-line" style="background:#fff;" type="button">+ Aggiungi voce</button>
+<button class="btn btn-secondary btn-sm" id="btn-add-line" style="background:#fff;" type="button">+ Aggiungi riga manuale</button>
 </div>
 <div id="q-lines-container">
 <!-- lines injected by JS -->

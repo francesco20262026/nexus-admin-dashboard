@@ -160,7 +160,7 @@
   </div>
 
   <!-- ② Filter bar + list -->
-  <div class="card" style="margin-top:0;">
+  <div class="card" style="margin-top:0; overflow: visible;">
     <!-- Filter row: search → matching onboarding structure -->
     <div class="cl-filter-row">
       <div class="cl-filter-search-wrap">
@@ -179,22 +179,63 @@
 
 
     <!-- Table Header (with Select All) -->
-    <div class="cl-col-header-row">
-      <div class="cl-col-identity" style="flex:1">
-        <div class="mac-select-btn" id="btn-select-all" onclick="window.toggleSelectAll()" title="Seleziona tutti" style="flex-shrink:0;">
+    <div class="mac-header-row" style="display: grid; grid-template-columns: 1.6fr 1.2fr 1.4fr 1.2fr 1fr 1fr 100px; align-items:center; gap:16px; padding: 12px 24px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-top-left-radius: 12px; border-top-right-radius: 12px; user-select: none;">
+      <div class="cl-col-identity" style="display: flex; gap: 12px; align-items: center; min-width: 0;">
+        <div id="btn-select-all" class="mac-select-btn" title="Seleziona tutti" onclick="event.stopPropagation(); window.toggleSelectAll()" style="flex-shrink:0;">
           <div class="mac-checkbox"></div>
         </div>
-        <div class="cl-col-header" style="flex:1">Ragione Sociale</div>
+        <div style="display:flex; align-items:center; gap:4px; cursor:pointer; min-width:0; flex:1;" onclick="window.toggleSort('name')" title="Ordina per Ragione Sociale">
+          <span class="truncate">Ragione Sociale</span>
+          <svg id="sort-icon-name" fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg" style="transition: transform 0.2s; flex-shrink:0;"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </div>
       </div>
-      <div class="cl-col-header" style="flex:0.8">Dati Base</div>
-      <div class="cl-col-header" style="flex:0.8">Stato / KPI</div>
-      <div class="cl-col-header" style="flex:1">Operatività</div>
-      <div class="cl-col-header" style="flex:0.6">Attività</div>
-      <div class="cl-col-header" style="width:100px; text-align:right;">Azioni</div>
+      
+      <div class="cl-col" style="flex-direction: row; align-items: center;">
+        <select class="mac-header-select cl-col-header" id="cl-filter-supplier" title="Filtra per fornitore" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px; width:100%; text-overflow: ellipsis;" onchange="window.applyFilters()">
+          <option value="">Fornitore ▼</option>
+        </select>
+      </div>
+
+      <div class="cl-col cl-col-2" style="flex-direction: row; align-items: center;">
+        <span>Dati Base</span>
+      </div>
+
+      <div class="cl-col cl-col-3" style="flex-direction: row; align-items: center;">
+        <select class="mac-header-select" id="cl-filter-status" title="Filtra per stato" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px;" onchange="window.applyFilters()">
+          <option value="">Stato ▼</option>
+          <option value="active">Attivo</option>
+          <option value="suspended">Sospeso</option>
+          <option value="ceased">Cessato</option>
+        </select>
+      </div>
+
+      <div class="cl-col cl-col-4" style="flex-direction: row; align-items: center;">
+        <select class="mac-header-select" id="cl-filter-operativity" title="Filtra per operatività" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px;" onchange="window.applyFilters()">
+          <option value="">Operatività ▼</option>
+          <option value="with_services">Con servizi attivi</option>
+          <option value="no_services">Nessun servizio</option>
+        </select>
+      </div>
+
+      <div class="cl-col cl-col-5" style="flex-direction: row; align-items: center;">
+        <select class="mac-header-select" id="cl-filter-activity" title="Filtra per attività" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px;" onchange="window.applyFilters()">
+          <option value="">Attività ▼</option>
+          <option value="24h">Ultime 24h</option>
+          <option value="7d">Ultimi 7 gg</option>
+          <option value="30d">Ultimi 30 gg</option>
+        </select>
+        <span onclick="window.toggleSort('date')" style="cursor:pointer; display:flex; align-items:center;">
+          <svg id="sort-icon-date" fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg" style="transition: transform 0.2s; flex-shrink:0;"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </span>
+      </div>
+
+      <div class="cl-col cl-col-actions" style="width: 100%; text-align: right; justify-content: flex-end;">
+        <span>Azioni</span>
+      </div>
     </div>
 
     <!-- List (populated by admin_clients.js) -->
-    <div id="cl-list" class="cl-list"></div>
+    <div id="cl-list" class="cl-list" style="overflow: visible;"></div>
 
     <!-- Footer -->
     <div class="table-footer" style="padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
@@ -202,6 +243,19 @@
       <div id="cl-pagination" style="display:flex;gap:4px;"></div>
     </div>
   </div>
+
+<!-- ======= MAC MASS ACTION BAR ======= -->
+<div id="mac-mass-action-bar" class="mac-mass-action-bar">
+  <div class="mac-mass-action-selected" id="mac-selected-count">0 selezionati</div>
+  <div class="mac-mass-action-buttons">
+    <button class="mac-mass-action-btn" onclick="window.massSyncWindoc()" style="color:#0a84ff;">Push Windoc</button>
+    <button class="mac-mass-action-btn" onclick="window.massDelete(false)" style="color:#f59e0b;">Archivia (Soft)</button>
+    <button class="mac-mass-action-btn" onclick="window.massDelete(true)" style="color:#dc2626;font-weight:600;">Elimina Def.</button>
+  </div>
+  <button class="mac-mass-action-close" onclick="window.toggleSelectAll()" aria-label="Annulla selezione">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg>
+  </button>
+</div>
 
 </main>
 </div><!-- end .shell -->
@@ -361,17 +415,7 @@
   </div>
 </div>
 
-<!-- ======= MAC MASS ACTION BAR ======= -->
-<div id="mac-mass-action-bar" class="mac-mass-action-bar">
-  <div class="mac-mass-action-selected" id="mac-selected-count">0 selezionati</div>
-  <div class="mac-mass-action-buttons">
-    <button class="mac-mass-action-btn" onclick="window.massSyncWindoc()" style="color:#0a84ff;">Push Windoc</button>
-    <button class="mac-mass-action-btn" onclick="window.massDelete()" style="color:#ff453a;">Elimina</button>
-  </div>
-  <button class="mac-mass-action-close" onclick="window.toggleSelectAll()" aria-label="Annulla selezione">
-    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg>
-  </button>
-</div>
+
 
 <div id="toast-container" class="toast-container"></div>
 

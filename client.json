@@ -1,0 +1,23 @@
+[
+  {
+    "id": "f2a518f0-54ff-47af-a6b7-ffb484145025",
+    "company_id": "15a52e6b-36a1-4b00-9496-6a277e9492ea",
+    "name": "Test Client",
+    "email": "test@example.com",
+    "phone": null,
+    "city": null,
+    "address": null,
+    "vat_number": null,
+    "pec": null,
+    "dest_code": null,
+    "lang": "it",
+    "status": "ceased",
+    "windoc_id": null,
+    "notes": null,
+    "created_at": "2026-03-26T18:19:24.235768+00:00",
+    "updated_at": "2026-04-01T17:03:04.567169+00:00",
+    "company_name": "Test Client",
+    "iban": null,
+    "windoc_sync_at": null
+  }
+]

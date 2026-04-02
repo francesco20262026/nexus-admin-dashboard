@@ -69,6 +69,28 @@ def _create_activity(company_id: str, actor_user_id: str, body: ActivityCreate,
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Impossibile creare l'attivita")
     return res.data[0]
 
+def log_timeline_event(
+    company_id: str,
+    actor_user_id: str,
+    event_type: str,
+    title: str,
+    client_id: Optional[str] = None,
+    onboarding_id: Optional[str] = None,
+    body: Optional[str] = None,
+    metadata: Optional[dict] = None
+) -> None:
+    """Safely log a timeline event without raising HTTP exceptions if it fails."""
+    try:
+        activity_body = ActivityCreate(
+            event_type=event_type,
+            title=title,
+            body=body,
+            metadata=metadata
+        )
+        _create_activity(company_id, actor_user_id, activity_body, client_id=client_id, onboarding_id=onboarding_id)
+    except Exception as exc:
+        logger.warning(f"Failed to log timeline event ({event_type}): {exc}")
+
 
 # ── Client endpoints ──────────────────────────────────────────
 

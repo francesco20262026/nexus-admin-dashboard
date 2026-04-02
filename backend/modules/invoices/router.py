@@ -32,6 +32,8 @@ _INVOICE_STATUSES = {"draft", "sent", "paid", "overdue", "cancelled"}
 class InvoiceCreate(BaseModel):
     client_id:      UUID
     onboarding_id:  Optional[UUID]   = None   # link to onboarding workflow
+    contract_id:    Optional[UUID]   = None   # link to origin contract
+    supplier_company_id: Optional[UUID] = None # emitting company
     is_proforma:    bool             = False
     number:         Optional[str]    = None
     invoice_number: Optional[str]    = None    # frontend alias
@@ -58,6 +60,8 @@ class InvoiceUpdate(BaseModel):
     payment_method: Optional[str]   = None
     payment_status: Optional[str]   = None
     onboarding_id:  Optional[UUID]  = None
+    contract_id:    Optional[UUID]  = None
+    supplier_company_id: Optional[UUID] = None
     due_date:       Optional[date]  = None
     notes:          Optional[str]   = None
     number:         Optional[str]   = None
@@ -137,18 +141,24 @@ def _audit(user: CurrentUser, entity_id: str, action: str,
         logger.warning("audit_log write failed for invoice %s: %s", entity_id, exc)
 
 
-def _require_invoice(invoice_id: UUID, company_id: str, select: str = "*") -> dict:
+def _require_invoice(invoice_id: UUID, user: CurrentUser, select: str = "*") -> dict:
     res = (
         supabase.table("invoices")
         .select(select)
         .eq("id", str(invoice_id))
-        .eq("company_id", company_id)
+        .eq("company_id", str(user.active_company_id))
         .maybe_single()
         .execute()
     )
-    if not res.data:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Fattura non trovata")
-    return res.data
+    if res and getattr(res, "data", None):
+        return res.data
+
+    if user.is_admin:
+        res_any = supabase.table("invoices").select(select).eq("id", str(invoice_id)).maybe_single().execute()
+        if res_any and getattr(res_any, "data", None):
+            return res_any.data
+
+    raise HTTPException(status.HTTP_404_NOT_FOUND, "Fattura non trovata")
 
 
 # ── List ─────────────────────────────────────────────────────
@@ -160,17 +170,21 @@ async def list_invoices(
     is_proforma:      Optional[bool] = Query(None),
     client_id:        Optional[str] = None,
     onboarding_id:    Optional[str] = None,
+    supplier_company_id: Optional[str] = None,
     from_date:        Optional[date] = None,
     to_date:          Optional[date] = None,
     page:             int = Query(1, ge=1),
     page_size:        int = Query(50, ge=1, le=200),
     user: CurrentUser = Depends(get_current_user),
 ):
-    q = (
-        supabase.table("invoices")
-        .select("*, clients(name, email)", count="exact")
-        .eq("company_id", str(user.active_company_id))
-    )
+    q = supabase.table("invoices").select("*, clients(name, email), contracts(id, title), companies!invoices_supplier_company_id_fkey(name)", count="exact")
+
+    if user.is_admin:
+        if supplier_company_id:
+            q = q.eq("company_id", str(supplier_company_id))
+    else:
+        q = q.eq("company_id", str(user.active_company_id))
+
     if not user.is_admin:
         if not user.client_id:
             return {"data": [], "total": 0, "page": page, "page_size": page_size}
@@ -206,6 +220,8 @@ async def create_invoice(
         "client_id":      str(body.client_id),
         "company_id":     str(user.active_company_id),
         "onboarding_id":  str(body.onboarding_id) if body.onboarding_id else None,
+        "contract_id":    str(body.contract_id) if body.contract_id else None,
+        "supplier_company_id": str(body.supplier_company_id) if body.supplier_company_id else None,
         "is_proforma":    body.is_proforma,
         "status":         "draft",
         "payment_status": "not_paid",
@@ -244,6 +260,17 @@ async def create_invoice(
         "total": inv.get("total"),
         "client_id": inv.get("client_id"),
     })
+
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    doc_type = "Proforma" if inv.get("is_proforma") else "Fattura"
+    log_timeline_event(
+        company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+        event_type="invoice_issued", title=f"{doc_type} creata in bozza",
+        client_id=inv.get("client_id"), onboarding_id=inv.get("onboarding_id"),
+        body=inv.get("number") or str(inv["id"])[:8]
+    )
+
     return inv
 
 
@@ -384,6 +411,15 @@ async def generate_proforma(
         new_inv_id = res_inv.data[0]["id"]
         _audit(user, new_inv_id, "proforma_generated", new={"document_url": file_url})
         
+        # Log to Timeline
+        from modules.activity.router import log_timeline_event
+        log_timeline_event(
+            company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+            event_type="invoice_issued", title="Proforma PDF generata",
+            client_id=client_data.get("id"), onboarding_id=str(onboarding_id),
+            body=invoice_number
+        )
+        
         # 9. Update status on Onboarding (as requested in Phase 3/4 flow)
         supabase.table("onboarding").update({
             "status": "proforma_generated"
@@ -474,12 +510,16 @@ async def update_invoice(
     body: InvoiceUpdate,
     user: CurrentUser = Depends(require_admin),
 ):
-    old = _require_invoice(invoice_id, str(user.active_company_id), select="status,payment_status")
+    old = _require_invoice(invoice_id, user, select="status,payment_status")
     updates = body.model_dump(exclude_none=True)
     if not updates:
         return old
-    if "onboarding_id" in updates:
+    if "onboarding_id" in updates and updates["onboarding_id"]:
         updates["onboarding_id"] = str(updates["onboarding_id"])
+    if "contract_id" in updates and updates["contract_id"]:
+        updates["contract_id"] = str(updates["contract_id"])
+    if "supplier_company_id" in updates and updates["supplier_company_id"]:
+        updates["supplier_company_id"] = str(updates["supplier_company_id"])
 
     res = (
         supabase.table("invoices")
@@ -502,7 +542,7 @@ async def mark_paid(
     body: MarkPaidRequest,
     user: CurrentUser = Depends(require_admin),
 ):
-    old = _require_invoice(invoice_id, str(user.active_company_id), select="status,payment_status,total,currency")
+    old = _require_invoice(invoice_id, user, select="status,payment_status,total,currency")
     paid_at = body.paid_at.isoformat() if body.paid_at else datetime.now(timezone.utc).isoformat()
 
     res = (
@@ -535,7 +575,17 @@ async def mark_paid(
            new={"status": "paid", "payment_status": "paid", "paid_at": paid_at})
            
     # Sincronizza automaticamente con Winddoc se è una Proforma pagata
-    inv_full = _require_invoice(invoice_id, str(user.active_company_id), select="is_proforma,onboarding_id,client_id")
+    inv_full = _require_invoice(invoice_id, user, select="is_proforma,onboarding_id,client_id")
+    
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+        event_type="payment_confirmed", title="Pagamento registrato manualmente",
+        client_id=inv_full.get("client_id"), onboarding_id=inv_full.get("onboarding_id"),
+        body=f"Importo: {old.get('total')} {old.get('currency', 'EUR')}"
+    )
+
     is_proforma = inv_full.get("is_proforma", False)
     if is_proforma:
         # Sync invoice to Windoc (background, non-blocking)
@@ -592,7 +642,7 @@ async def review_payment(
     proof_uploaded → under_review → paid (or back to not_paid / cancelled)
     When set to 'paid', also marks invoice status as 'paid'.
     """
-    old = _require_invoice(invoice_id, str(user.active_company_id), select="payment_status,status,total,currency")
+    old = _require_invoice(invoice_id, user, select="payment_status,status,total,currency")
 
     updates: dict = {"payment_status": body.payment_status}
     if body.payment_status == "paid":
@@ -655,6 +705,76 @@ async def review_payment(
     return res.data[0]
 
 
+@router.post("/{invoice_id}/confirm-and-sync")
+async def confirm_payment_and_sync(
+    invoice_id: UUID,
+    body: ReviewPaymentRequest,
+    user: CurrentUser = Depends(require_admin),
+):
+    """
+    Sincrono: Conferma il pagamento (imposta su 'paid') e chiama SUBITO Windoc.
+    Se Windoc fallisce, il pagamento RESTA confermato ma la fattura non ha windoc_id.
+    L'utente potrà riprovare la sync.
+    Restituisce lo stato dell'operazione Windoc affinché la UI lo mostri subito.
+    """
+    if body.payment_status != "paid":
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Questo endpoint è solo per la conferma del pagamento (paid).")
+        
+    old = _require_invoice(invoice_id, user, select="payment_status,status,total,currency,is_proforma,client_id,onboarding_id")
+
+    # 1. Segna come pagata
+    updates = {
+        "payment_status": "paid",
+        "status": "paid",
+        "paid_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    res = (
+        supabase.table("invoices")
+        .update(updates)
+        .eq("id", str(invoice_id))
+        .eq("company_id", str(user.active_company_id))
+        .execute()
+    )
+    if not res.data:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Errore aggiornamento stato pagamento")
+
+    # Scrivi log pagamento
+    try:
+        supabase.table("payment_logs").insert({
+            "invoice_id": str(invoice_id),
+            "company_id": str(user.active_company_id),
+            "amount":     old.get("total"),
+            "currency":   old.get("currency", "EUR"),
+            "paid_at":    updates["paid_at"],
+            "notes":      body.notes,
+            "created_by": str(user.user_id),
+        }).execute()
+    except Exception as exc:
+        logger.warning("payment_logs insert failed: %s", exc)
+
+    _audit(user, str(invoice_id), "payment_confirmed",
+           old={"payment_status": old.get("payment_status")},
+           new=updates)
+
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+        event_type="payment_confirmed", title="Pagamento confermato (e sincronizzato automaticamente con Windoc se Proforma)",
+        client_id=old.get("client_id"), onboarding_id=old.get("onboarding_id"),
+        body=f"Importo: {old.get('total')} {old.get('currency', 'EUR')}"
+    )
+
+    # 2. Sincronizza con Windoc in modo sincrono se proforma
+    windoc_res = {"success": False, "message": "Non è una proforma"}
+    if old.get("is_proforma"):
+        windoc_res = await sync_invoice_to_windoc(supabase, str(invoice_id), str(user.active_company_id))
+
+    return {
+        "invoice": res.data[0],
+        "windoc": windoc_res
+    }
 
 # ── Submit Payment Proof (client or admin) ────────────────────
 
@@ -669,8 +789,8 @@ async def submit_payment_proof(
     Sets payment_status → 'proof_uploaded'.
     Admin can also call this to attach a proof reference.
     """
-    inv = _require_invoice(invoice_id, str(user.active_company_id),
-                           select="client_id,payment_status,status")
+    inv = _require_invoice(invoice_id, user,
+                           select="client_id,onboarding_id,payment_status,status")
 
     if not user.is_admin and str(user.client_id) != str(inv.get("client_id")):
         raise HTTPException(status.HTTP_403_FORBIDDEN)
@@ -699,6 +819,14 @@ async def submit_payment_proof(
     _audit(user, str(invoice_id), "update",
            old={"payment_status": inv.get("payment_status")},
            new={"payment_status": "proof_uploaded"})
+           
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+        event_type="payment_proof_uploaded", title="Ricevuta di pagamento allegata / caricata al portale",
+        client_id=inv.get("client_id"), onboarding_id=inv.get("onboarding_id")
+    )
     return {
         "message": "Prova di pagamento registrata. Un operatore verificherà a breve.",
         "payment_status": "proof_uploaded",
@@ -714,7 +842,7 @@ async def mark_pending_payment(
 ):
     """Client declares they sent the bank transfer (no file attached)."""
     inv = _require_invoice(invoice_id, str(user.active_company_id),
-                           select="client_id,payment_status")
+                           select="client_id,onboarding_id,payment_status")
 
     if not user.is_admin and str(user.client_id) != str(inv.get("client_id")):
         raise HTTPException(status.HTTP_403_FORBIDDEN)
@@ -732,6 +860,15 @@ async def mark_pending_payment(
     _audit(user, str(invoice_id), "update",
            old={"payment_status": inv.get("payment_status")},
            new={"payment_status": "proof_uploaded"})
+
+    # Log to Timeline
+    from modules.activity.router import log_timeline_event
+    log_timeline_event(
+        company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+        event_type="payment_proof_uploaded", title="Il cliente ha dichiarato di aver pagato",
+        client_id=inv.get("client_id"), onboarding_id=inv.get("onboarding_id")
+    )
+
     return {"message": "Segnalato pagamento. In attesa di verifica.", "payment_status": "proof_uploaded"}
 
 

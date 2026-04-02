@@ -83,6 +83,15 @@
     if(servSect) servSect.style.display = 'block';
     if(servList) servList.innerHTML = '<div style="font-size:13px;color:#6b7280;text-align:center;">Caricamento servizi...</div>';
     
+    // Carica contratti per questo cliente
+    const contSelect = $('inv-contract-id');
+    if (contSelect) {
+      API.get(`/contracts?client_id=${cid}`).then(res => {
+         const arr = res.data || res.items || [];
+         contSelect.innerHTML = '<option value="">Nessun contratto</option>' + arr.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+      }).catch(e => contSelect.innerHTML = '<option value="">Nessun contratto</option>');
+    }
+
     try {
       const res = await API.Services.subscriptions({ client_id: cid });
       let subs = Array.isArray(res) ? res : (res?.items || res?.data || []);
@@ -147,11 +156,11 @@
     const set = (id, v) => { const el=$(id); if(el) el.textContent=v; };
     set('kpi-inv-all',            ALL.length);
     set('kpi-inv-proforma',       ALL.filter(i => i.is_proforma).length);
-    set('kpi-inv-invoices',       ALL.filter(i => !i.is_proforma).length);
-    set('kpi-inv-not_paid',       ALL.filter(i => i.payment_status === 'not_paid').length);
-    set('kpi-inv-proof_uploaded', ALL.filter(i => i.payment_status === 'proof_uploaded').length);
+    set('kpi-inv-not_paid',       ALL.filter(i => i.payment_status === 'not_paid' && !i.windoc_id).length);
     set('kpi-inv-under_review',   ALL.filter(i => i.payment_status === 'under_review').length);
-    set('kpi-inv-paid',           ALL.filter(i => i.payment_status === 'paid').length);
+    set('kpi-inv-ready_for_sync', ALL.filter(i => i.payment_status === 'paid' && !i.windoc_id && i.is_proforma).length);
+    set('kpi-inv-windoc',         ALL.filter(i => i.windoc_id || !i.is_proforma).length);
+    set('kpi-inv-sync_error',     0);
   }
 
   function applyFilters() {
@@ -162,11 +171,11 @@
 
     filtered = ALL.filter(i => {
       if (activeTab === 'proforma'       && !i.is_proforma)                                return false;
-      if (activeTab === 'invoices'       && i.is_proforma)                                 return false;
-      if (activeTab === 'not_paid'       && i.payment_status !== 'not_paid')               return false;
-      if (activeTab === 'proof_uploaded' && i.payment_status !== 'proof_uploaded')         return false;
+      if (activeTab === 'not_paid'       && (i.payment_status !== 'not_paid' || i.windoc_id)) return false;
       if (activeTab === 'under_review'   && i.payment_status !== 'under_review')           return false;
-      if (activeTab === 'paid'           && i.payment_status !== 'paid')                   return false;
+      if (activeTab === 'ready_for_sync' && !(i.payment_status === 'paid' && !i.windoc_id && i.is_proforma)) return false;
+      if (activeTab === 'windoc'         && (!i.windoc_id && i.is_proforma))               return false;
+      if (activeTab === 'sync_error')                                                      return false;
       if (cl && i.client_name !== cl) return false;
       if (df && i.issue_date && i.issue_date < df) return false;
       if (dt && i.issue_date && i.issue_date > dt) return false;
@@ -318,14 +327,13 @@
       const isSelected = window.selectedIds.has(i.id);
       const ps      = i.payment_status || 'not_paid';
       const psInfo  = PAYMENT_STATUS[ps] || PAYMENT_STATUS.not_paid;
-      const pfLabel = i.is_proforma ? `<span style="font-size:10px;background:var(--brand-100,#ede9fe);color:var(--brand-700,#6d28d9);padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:.3px;">PROFORMA</span>` : '';
+      const pfLabel = i.is_proforma ? `<span style="font-size:10px;background:var(--brand-100,#ede9fe);color:var(--brand-700,#6d28d9);padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:.3px;">PROFORMA CRM</span>` : '<span style="font-size:10px;background:var(--gray-100);color:var(--gray-700);padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:.3px;">FATTURA</span>';
       const pmLabel = i.payment_method ? `<span style="font-size:11px;color:var(--gray-500);">· ${PAYMENT_METHOD_LABEL[i.payment_method]||i.payment_method}</span>` : '';
-      const windocBadge = i.windoc_id ? `<span style="font-size:10px;background:var(--gray-100);color:var(--gray-600);padding:2px 6px;border-radius:4px;font-weight:600;">W</span>` : '';
       const proofBadge = ps === 'proof_uploaded' ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:4px;font-weight:700;">📎 Prova inviata</span>` : '';
 
       const statusPill = `<span class="pill ${psInfo.cls}">${psInfo.label}</span>`;
 
-      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${i.id}" onclick="window.location.href='admin_invoice_detail.html?id=${i.id}';" style="display:grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;">
+      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${i.id}" onclick="if(event.target.closest('button, .mac-select-btn, a')) return; window.location.href='admin_invoice_detail.html?id=${i.id}';" style="display:grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;">
         <!-- Colonna 1: Info e Cliente -->
         <div class="cl-col cl-col-1">
           <div class="cl-row-identity">
@@ -334,33 +342,40 @@
             </div>
           <div style="flex:1; min-width:0;">
             <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              ${i.number ? `#${i.number}` : (i.is_proforma ? 'Proforma' : 'Fattura')} ${i.client_name || ''}
+              ${i.number ? `#${i.number}` : ''} ${i.client_name || ''}
             </div>
             <div class="cl-row-meta" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:4px;">
               ${pfLabel}
-              ${windocBadge}
+              <span style="font-size:11px;color:var(--gray-500);">${i.contracts?.title ? `<span style="color:#6366f1;font-weight:600;">C: ${i.contracts.title}</span>` : 'Nessun contratto'}</span>
+              ${i.companies?.name ? `<span style="font-size:11px;color:var(--gray-500);">· Emit: ${i.companies.name}</span>` : ''}
               ${proofBadge}
-              ${i.payment_proof_url ? `<span style="font-size:11px;color:var(--brand-600); font-weight:600;">📎 Prova allegata</span>` : ''}
+              ${i.payment_proof_url && ps !== 'proof_uploaded' ? `<span style="font-size:11px;color:var(--brand-600); font-weight:600;">📎 Prova allegata</span>` : ''}
             </div>
           </div>
         </div>
 
         </div>
-        <!-- Colonna 2: Date Scadenza e Pagamento -->
+        <!-- Colonna 2: Date Ems/Scad -->
         <div class="cl-col" style="min-width:0;">
-          <div style="font-size:12px; color:var(--gray-600);">Scadenza: <span style="font-weight:600;">${i.due_date ? UI.date(i.due_date) : ''}</span></div>
-          ${i.paid_at ? `<div style="font-size:12px; color:var(--gray-600); margin-top:2px;">Pagata: <span style="font-weight:600;">${UI.date(i.paid_at)}</span></div>` : ''}
+          <div style="font-size:12px; color:var(--gray-600);">Ems: <span style="font-weight:600;">${i.issue_date ? UI.date(i.issue_date) : '-'}</span></div>
+          <div style="font-size:12px; color:var(--gray-600); margin-top:2px;">Scad: <span style="font-weight:600; ${i.due_date && new Date(i.due_date) < new Date() && ps !== 'paid' ? 'color:#ef4444;' : ''}">${i.due_date ? UI.date(i.due_date) : '-'}</span></div>
         </div>
 
-        <!-- Colonna 3: Stato e Metodo Pagamento -->
-        <div class="cl-col" style="min-width:0;">
-          <div style="margin-bottom:4px;">${statusPill}</div>
-          ${pmLabel ? `<div style="font-size:12px; color:var(--gray-500);">${pmLabel}</div>` : ''}
+        <!-- Colonna 3: Stato e Windoc -->
+        <div class="cl-col" style="min-width:0; display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; align-items:center; gap:6px;">${statusPill} ${pmLabel}</div>
+          <div style="font-size:11px; font-weight:600;">
+            ${i.windoc_id ? `<span style="color:#059669;">✅ Windoc generata</span>` : `<span style="color:var(--gray-400);">Non sincronizzata</span>`}
+          </div>
         </div>
 
         <!-- Colonna 4: Importo Totale -->
-        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; justify-content:flex-end;">
+        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
           <span class="tag-pill" style="font-size:14px; font-weight:700;">${UI.currency(i.total || i.amount || 0)}</span>
+          <div style="display:flex; gap:6px;">
+            ${i.is_proforma && ps !== 'paid' ? `<button class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;" onclick="window.confirmAndSync('${i.id}')">Conferma & Windoc</button>` : ''}
+            <button class="icon-btn" onclick="window.location.href='admin_invoice_detail.html?id=${i.id}'" title="Apri dettaglio"><svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -405,20 +420,30 @@
 
     if (cl)  cl.innerHTML  = '<option value="">Caricamento…</option>';
     if (onb) onb.innerHTML = '<option value="">Nessuno</option>';
+    const supp = $('inv-supplier-company-id');
+    if (supp) supp.innerHTML = '<option value="">(Stessa azienda attuale)</option>';
+    const cont = $('inv-contract-id');
+    if (cont) cont.innerHTML = '<option value="">Nessun contratto</option>';
+
     modal.classList.add('open');
     try {
-      const [clientsRes, onbRes] = await Promise.all([
+      const [clientsRes, onbRes, compRes] = await Promise.all([
         API.Clients.list().catch(() => []),
         API.Onboarding.list().catch(() => []),
+        API.get('/companies/mine').catch(() => []).then(r => r.data || r || []), // Fallback to try fetch companies
       ]);
       const clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes?.items ?? clientsRes?.data ?? []);
       const onbs    = Array.isArray(onbRes)     ? onbRes     : (onbRes?.items    ?? onbRes?.data    ?? []);
+      const comps   = Array.isArray(compRes)    ? compRes    : [];
 
       if (cl) cl.innerHTML = '<option value="">Seleziona cliente</option>' +
         clients.map(c => `<option value="${c.id}">${c.name || c.email}</option>`).join('');
 
+      if (supp) {
+        supp.innerHTML = '<option value="">(Stessa azienda attuale)</option>' + comps.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      }
+
       if (onb) {
-        // Show company_name (the prospect name) not reference_name/status
         onb.innerHTML = '<option value="">Nessuno</option>' +
           onbs
             .filter(o => !['attivo','abbandonato','annullato','cancelled'].includes(o.status))
@@ -429,12 +454,12 @@
             .join('');
       }
 
-      // Pre-select from preset if provided
-      if (preset?.client_id     && cl) { cl.value  = preset.client_id; cl.dispatchEvent(new Event('change')); }
+      if (preset?.client_id && cl) { cl.value = preset.client_id; cl.dispatchEvent(new Event('change')); }
       if (preset?.onboarding_id && onb) onb.value = preset.onboarding_id;
 
       const due = $('inv-due');
       if (due) { const d = new Date(); d.setDate(d.getDate() + 30); due.value = d.toISOString().split('T')[0]; }
+      const nxt = $('inv-recurrence-next');
       if (nxt) { const d = new Date(); d.setDate(d.getDate() + 30); nxt.value = d.toISOString().split('T')[0]; }
     } catch (e) { UI.toast('Errore caricamento dati modal', 'error'); }
   }
@@ -445,6 +470,8 @@
     const isProforma  = $('inv-is-proforma')?.value === '1';
     const method      = $('inv-payment-method')?.value || null;
     const onboardingId = $('inv-onboarding-id')?.value || null;
+    const contractId   = $('inv-contract-id')?.value || null;
+    const supCompId    = $('inv-supplier-company-id')?.value || null;
     const btn = $('btn-save-invoice'); if (btn) btn.disabled = true;
     
     // Raccolta Dati Servizi/Ricorrenza
@@ -462,6 +489,8 @@
       is_proforma:  isProforma,
       payment_method:  method      || undefined,
       onboarding_id:   onboardingId || undefined,
+      contract_id:     contractId || undefined,
+      supplier_company_id: supCompId || undefined,
       service_ids:     serviceIds.length ? serviceIds : undefined
     };
 
@@ -474,7 +503,7 @@
     }
 
     try {
-      await API.Invoices.create(payload);
+      await API.Invoices.create({ body: payload, lines: [] });
       UI.toast(isProforma ? 'Proforma (e ricorrenza) creata' : 'Fattura creata', 'success');
       modal?.classList.remove('open');
       await load();
@@ -500,6 +529,21 @@
       ALL = ALL.map(i => i.id===id ? {...i, payment_status: newStatus, ...(newStatus==='paid'?{status:'paid',paid_at:new Date().toISOString()}:{})} : i);
       updateKpis(); applyFilters(); UI.toast('Stato pagamento aggiornato','success');
     } catch(e) { UI.toast(e?.message||'Errore','error'); }
+  };
+
+  window.confirmAndSync = async id => {
+    if (!confirm('Vuoi confermare il pagamento e generare la fattura Windoc in un clic?')) return;
+    try {
+      UI.toast('Conferma e sincronizzazione in corso...', 'info');
+      const res = await API.post(`/invoices/${id}/confirm-and-sync`, { payment_status: 'paid' });
+      const wd = res.windoc || {};
+      if (wd.success) {
+        UI.toast('Fattura Windoc generata con successo!', 'success');
+      } else {
+        UI.toast('Pagamento confermato, ma errore Windoc: ' + (wd.message||'Sconosciuto'), 'warning');
+      }
+      await load();
+    } catch(e) { UI.toast(e?.message||'Errore durante l\'operazione', 'error'); }
   };
 
   window.sendReminder = async id => {

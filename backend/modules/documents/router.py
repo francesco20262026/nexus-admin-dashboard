@@ -74,6 +74,7 @@ def _require_document(document_id: UUID, company_id: str, select: str = "*") -> 
 @router.get("/")
 async def list_documents(
     client_id: Optional[UUID] = None,
+    onboarding_id: Optional[UUID] = None,
     contract_id: Optional[UUID] = None,
     doc_status: Optional[str] = None,
     page: int = Query(1, ge=1),
@@ -82,15 +83,24 @@ async def list_documents(
 ):
     q = (
         supabase.table("documents")
-        .select("id,name,type,status,created_at,client_id,contract_id,clients(name)", count="exact")
+        .select("id,name,type,status,created_at,client_id,onboarding_id,contract_id,clients(name),onboarding(company_name)", count="exact")
         .eq("company_id", str(user.active_company_id))
     )
     if not user.is_admin:
-        if not user.client_id:
+        if user.client_id:
+            or_conds = [f"client_id.eq.{user.client_id}"]
+            if user.onboarding_id:
+                or_conds.append(f"onboarding_id.eq.{user.onboarding_id}")
+            q = q.or_(",".join(or_conds))
+        elif user.onboarding_id:
+            q = q.eq("onboarding_id", str(user.onboarding_id))
+        else:
             return {"data": [], "total": 0, "page": page, "page_size": page_size}
-        q = q.eq("client_id", str(user.client_id))
+
     if client_id:
         q = q.eq("client_id", str(client_id))
+    if onboarding_id:
+        q = q.eq("onboarding_id", str(onboarding_id))
     if contract_id:
         q = q.eq("contract_id", str(contract_id))
     if doc_status:
@@ -105,7 +115,8 @@ async def list_documents(
 
 @router.post("/upload", status_code=status.HTTP_201_CREATED)
 async def upload_document(
-    client_id: UUID = Form(...),
+    client_id: Optional[UUID] = Form(None),
+    onboarding_id: Optional[UUID] = Form(None),
     name: str = Form(...),
     doc_type: Optional[str] = Form(None),
     contract_id: Optional[UUID] = Form(None),
@@ -114,7 +125,9 @@ async def upload_document(
 ):
     """Upload a document to Supabase Storage and record metadata."""
     company_id    = str(user.active_company_id)
-    client_id_str = str(client_id)
+    
+    if not client_id and not onboarding_id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Richiesto client_id o onboarding_id")
 
     file_bytes = await file.read()
     if len(file_bytes) > MAX_FILE_SIZE:
@@ -124,7 +137,9 @@ async def upload_document(
     safe_name    = _safe_filename(file.filename or "upload")
     # Include microseconds to avoid collisions on rapid re-upload of same filename
     ts           = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
-    storage_path = f"{company_id}/{client_id_str}/{ts}_{safe_name}"
+    # Store based on available ID
+    entity_id_str = str(client_id) if client_id else str(onboarding_id)
+    storage_path = f"{company_id}/{entity_id_str}/{ts}_{safe_name}"
 
     try:
         supabase.storage.from_(BUCKET).upload(
@@ -138,7 +153,8 @@ async def upload_document(
 
     row = {
         "company_id":   company_id,
-        "client_id":    client_id_str,
+        "client_id":    str(client_id) if client_id else None,
+        "onboarding_id": str(onboarding_id) if onboarding_id else None,
         "contract_id":  str(contract_id) if contract_id else None,
         "name":         name,
         "type":         doc_type,

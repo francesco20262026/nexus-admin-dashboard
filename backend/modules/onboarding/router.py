@@ -430,17 +430,14 @@ async def update_onboarding(
 @router.delete("/{onboarding_id}", status_code=status.HTTP_200_OK)
 async def delete_onboarding(
     onboarding_id: str,
-    force: bool = False,    # ?force=true → hard delete even if has history (admin explicit)
+    force: bool = False,
     user: CurrentUser = Depends(require_admin),
 ):
     """
     Smart deletion of an onboarding record.
-
-    - If status == 'cancelled': always blocked
-    - If record has history (quotes, contracts, audit logs): soft delete
-      (status → 'cancelled', data preserved)
-    - If record has no history AND force=False: soft delete (safe default)
-    - If force=True AND no active client: hard delete with cascade cleanup
+    - If status == 'converted_to_client': always blocked
+    - If force=False: soft delete (status -> 'cancelled')
+    - If force=True: hard delete (completely removed from DB)
     """
     company_id = str(user.active_company_id)
     record = _require_onboarding(onboarding_id, user)
@@ -451,67 +448,52 @@ async def delete_onboarding(
             "Impossibile eliminare una pratica già convertita a cliente."
         )
 
-    # If already terminal (abandoned/cancelled) AND force=True → always hard delete.
-    # This is the path hit by the UI "Elimina pratica" button on terminal records.
-    if force and record.get("status") in {"abandoned", "cancelled"}:
-        supabase.table("onboarding").delete().eq(
-            "id", str(onboarding_id)
-        ).eq("company_id", company_id).execute()
-        _audit(company_id, str(user.user_id), str(onboarding_id), "hard_delete",
-               new={"reason": "terminal_forced"})
+    if force:
+        # Hard delete directly + Cascade
+        oid = str(onboarding_id)
+        cascade_tables = [
+            ("activity_logs", "onboarding_id"),
+            ("reminders", "onboarding_id"),
+            ("documents", "onboarding_id"),
+            ("contracts", "onboarding_id"),
+            ("quotes", "onboarding_id"),
+            ("client_contacts", "onboarding_id"),
+            ("audit_logs", "entity_id")
+        ]
+        for tbl, col in cascade_tables:
+            try:
+                supabase.table(tbl).delete().eq(col, oid).execute()
+            except Exception as e:
+                logger.warning(f"Cascade delete failed for {tbl}.{col} = {oid}: {e}")
+
+        try:
+            supabase.table("onboarding").delete().eq("id", oid).execute()
+        except Exception as e:
+            logger.error(f"Error hard deleting onboarding {oid}: {e}")
+            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Errore durante l'eliminazione definitiva: {e}")
+            
+        try:
+            _audit(company_id, str(user.user_id), oid, "hard_delete", new={"reason": "forced_by_user"})
+        except Exception:
+            pass
+            
         return {
             "deleted": True,
             "archived": False,
-            "message": "Pratica eliminata definitivamente.",
+            "message": "Pratica e tutto lo storico eliminati definitivamente.",
         }
 
-    # Check for history: quotes or audit logs referencing this onboarding
-    has_history = False
-    try:
-        q_res = supabase.table("quotes").select("id").eq(
-            "onboarding_id", str(onboarding_id)
-        ).limit(1).execute()
-        if q_res.data:
-            has_history = True
-    except Exception:
-        pass
-
-    if not has_history:
-        try:
-            a_res = supabase.table("audit_logs").select("id").eq(
-                "entity_type", "onboarding"
-            ).eq("entity_id", str(onboarding_id)).limit(1).execute()
-            if a_res.data:
-                has_history = True
-        except Exception:
-            pass
-
-    if has_history or not force:
-        # Soft delete: cancel but preserve all data
-        supabase.table("onboarding").update({
-            "status": "cancelled",
-        }).eq("id", str(onboarding_id)).eq("company_id", company_id).execute()
-        _audit(company_id, str(user.user_id), str(onboarding_id), "soft_delete", new={
-            "status": "cancelled",
-            "has_history": has_history,
-            "forced": force,
-        })
-        return {
-            "deleted": False,
-            "archived": True,
-            "message": "Pratica archiviata (status=cancelled). I dati storici sono conservati.",
-            "has_history": has_history,
-        }
-
-    # Hard delete (force=True, no history)
-    supabase.table("onboarding").delete().eq(
-        "id", str(onboarding_id)
-    ).eq("company_id", company_id).execute()
-    _audit(company_id, str(user.user_id), str(onboarding_id), "hard_delete")
+    # Soft delete (force=False)
+    supabase.table("onboarding").update({
+        "status": "cancelled",
+    }).eq("id", str(onboarding_id)).eq("company_id", company_id).execute()
+    
+    _audit(company_id, str(user.user_id), str(onboarding_id), "soft_delete", new={"status": "cancelled"})
     return {
-        "deleted": True,
-        "archived": False,
-        "message": "Pratica eliminata definitivamente.",
+        "deleted": False,
+        "archived": True,
+        "message": "Pratica archiviata (status=cancelled). I dati storici sono conservati.",
+        "has_history": True,
     }
 
 
@@ -639,6 +621,16 @@ async def convert_onboarding(
         }).eq('onboarding_id', str(onboarding_id)).eq('company_id', company_id).execute()
     except Exception as exc:
         logger.warning('convert: contacts migration failed: %s', exc)
+
+    # 3c. Re-parent related relational entities
+    for table in ["client_services", "quotes", "documents", "contracts", "activity_log", "invoices"]:
+        try:
+            supabase.table(table).update({
+                "client_id": client_id,
+                "onboarding_id": None
+            }).eq("onboarding_id", str(onboarding_id)).eq("company_id", company_id).execute()
+        except Exception as exc:
+            logger.warning("convert: failed to reparent %s for onboarding %s: %s", table, onboarding_id, exc)
 
     # 4. Audit
     _audit(company_id, str(user.user_id), str(onboarding_id), "convert", new={

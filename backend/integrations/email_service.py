@@ -37,7 +37,7 @@ DEFAULT_TEMPLATES = {
                     Scadenza: {expiry_date}<br>
                     Importo Totale: &euro; {total_amount}
                 </div>
-                <p>Ti invitiamo ad accedere al tuo Portale Clienti per visionarlo in dettaglio e accettarlo digitalmente.</p>
+                <p>Ti invitiamo a cliccare sul link sottostante per visionarlo in dettaglio e accettarlo digitalmente in un click, senza necessità di registrazione.</p>
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="{client_portal_url}" style="background-color: #0a9669; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block;">
                         👉 Apri e Valuta il Preventivo
@@ -262,9 +262,33 @@ async def send_templated_email(
     except Exception as e:
         logger.warning(f"Could not load email integration config for company {company_id}: {e}")
 
+    # Fallback to defaults based on company name
     if not from_email:
-        smtp_sender = settings.smtp_email or "noreply@delocanova.com"
-        from_email = f"{company_name} <{smtp_sender}>"
+        from_email = settings.smtp_email or "noreply@delocanova.com"
+        
+    # Override generic config to prioritize verified Brevo sender domains
+    c_name_upper = company_name.upper() if company_name else ""
+    if "IT SERVICES" in c_name_upper or "IMPIEGANDO" in c_name_upper:
+        raw_email = "service@impiegando.com"
+        display_name = "IT SERVICES & HUMAN JOB TALENT SRL"
+    elif "DELOCA" in c_name_upper:
+        raw_email = "service@delocanova.com"
+        display_name = "DELOCA NOVA SYSTEMS SRL"
+    else:
+        raw_email = from_email
+        display_name = company_name
+
+    # Check if the currently chosen from_email string lacks a Display Name (e.g. "email@domain.com")
+    if "<" in from_email:
+        # If it already has "<", it is formatted (e.g. "Name <email@a.com>")
+        pass
+    else:
+        # No formatting, so wrap it!
+        # If the from_email matches our settings.from_email, we override with our custom domain overrides
+        if from_email == (settings.from_email or None) or from_email == (settings.smtp_email or None):
+            from_email = f"{display_name} <{raw_email}>"
+        else:
+            from_email = f"{display_name} <{from_email}>"
 
     success = send_email_smtp_core(
         to_email=to_email,

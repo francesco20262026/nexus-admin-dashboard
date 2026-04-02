@@ -253,6 +253,7 @@ const API = {
     create:          (body)           => API.post('/companies', body),
     update:          (id, body)       => API.put(`/companies/${id}`, body),
     remove:          (id)             => API.del(`/companies/${id}`),
+    delete:          (id)             => API.del(`/companies/${id}`),
     integrations:    (id)             => API.get(`/companies/${id}/integrations`),
     saveIntegration: (id, type, cfg)  => API.put(`/companies/${id}/integrations/${type}`, { config: cfg }),
   },
@@ -262,7 +263,8 @@ const API = {
     get:           (id)       => API.get(`/clients/${id}`),
     create:        (body)     => API.post('/clients/', body),
     update:        (id, body) => API.put(`/clients/${id}`, body),
-    remove:        (id)       => API.del(`/clients/${id}`),
+    remove:        (id, force = false) => API.del(`/clients/${id}${force ? '?force=true' : ''}`),
+    delete:        (id, force = false) => API.del(`/clients/${id}${force ? '?force=true' : ''}`),
     contacts:      (id)       => API.get(`/clients/${id}/contacts`),
     addContact:    (id, body) => API.post(`/clients/${id}/contacts`, body),
     updateContact: (id, cid, body) => API.put(`/clients/${id}/contacts/${cid}`, body),
@@ -296,6 +298,8 @@ const API = {
     createService: (body)              => API.post('/services/catalog', body),
     updateService: (id, body)          => API.put(`/services/catalog/${id}`, body),
     deleteService: (id)                => API.del(`/services/catalog/${id}`),
+    duplicate:     (id)                => API.post(`/services/catalog/${id}/duplicate`, {}),
+    usages:        (id)                => API.get(`/services/catalog/${id}/usages`),
     // Aliases standard CRUD
     create:        (body)              => API.post('/services/catalog', body),
     update:        (id, body)          => API.put(`/services/catalog/${id}`, body),
@@ -319,6 +323,8 @@ const API = {
     createTemplate:   (body) => API.post('/contracts/templates', body),
     updateTemplate:   (id, body) => API.put(`/contracts/templates/${id}`, body),
     deleteTemplate:   (id)   => API.del(`/contracts/templates/${id}`),
+    regenerate:       (id, body) => API.post(`/contracts/${id}/regenerate`, body),
+    markSigned:       (id)   => API.post(`/contracts/${id}/mark-signed`, {}),
   },
 
   Documents: {
@@ -352,6 +358,7 @@ const API = {
     create:   (body)      => API.post('/onboarding/', body),
     update:   (id, body)  => API.put(`/onboarding/${id}`, body),
     remove:   (id, force = false) => API.del(`/onboarding/${id}${force ? '?force=true' : ''}`),
+    delete:   (id, force = false) => API.del(`/onboarding/${id}${force ? '?force=true' : ''}`),
     convert:  (id)        => API.post(`/onboarding/${id}/convert`, {}),  // promotes to Client
     cancel:   (id)        => API.post(`/onboarding/${id}/cancel`, {}),
     invite:   (id, body)  => API.post(`/onboarding/${id}/invite`, body),
@@ -369,11 +376,14 @@ const API = {
     create:        (body)       => API.post('/quotes/', body),
     update:        (id, body)   => API.put(`/quotes/${id}`, body),
     remove:        (id)         => API.del(`/quotes/${id}`),
+    delete:        (id)         => API.del(`/quotes/${id}`),
     send:          (id)         => API.post(`/quotes/${id}/send`, {}),
     accept:        (id)         => API.post(`/quotes/${id}/accept`, {}),
+    acceptVerbal:  (id)         => API.post(`/quotes/${id}/accept-verbal`, {}),
     reject:        (id)         => API.post(`/quotes/${id}/reject`, {}),
     expire:        (id)         => API.post(`/quotes/${id}/expire`, {}),
     preflight:     (id)         => API.get(`/quotes/${id}/preflight`),
+    duplicate:     (id)         => API.post(`/quotes/${id}/duplicate`, {}),
     clientSummary: (clientId)   => API.get(`/quotes/client/${clientId}/summary`),
   },
 
