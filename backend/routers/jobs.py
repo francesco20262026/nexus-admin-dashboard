@@ -1,4 +1,4 @@
-﻿"""
+"""
 routers/jobs.py — Manual job trigger endpoints for Nova CRM.
 These endpoints allow admins to trigger scheduled jobs on-demand
 (e.g., for testing in staging). Moved here from main.py.
@@ -23,3 +23,10 @@ async def trigger_renewal_alerts(user: CurrentUser = Depends(get_current_user)):
     from jobs.renewal_alerts import run_renewal_alerts
     await run_renewal_alerts(company_id=str(user.active_company_id))
     return {"status": "ok", "message": "Job renewal_alerts avviato per la tua azienda."}
+
+@router.post("/trigger-gdrive-poller", dependencies=[Depends(require_admin)])
+async def trigger_gdrive_poller():
+    """Manually trigger the GDrive PDF poller job."""
+    from jobs.gdrive_pdf_poller import run_gdrive_pdf_poller
+    await run_gdrive_pdf_poller()
+    return {"status": "ok", "message": "Scansione GDrive avviata manualmente."}

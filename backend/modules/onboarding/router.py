@@ -75,6 +75,7 @@ class OnboardingCreate(BaseModel):
     email:           str = ""                    # email — REQUIRED BY UI, default for old cache
     phone:           Optional[str] = None
     vat_number:      Optional[str] = None
+    fiscal_code:     Optional[str] = None
     pec:             Optional[str] = None
     dest_code:       Optional[str] = None
     address:         Optional[str] = None
@@ -131,6 +132,7 @@ class OnboardingUpdate(BaseModel):
     email:           Optional[str] = None
     phone:           Optional[str] = None
     vat_number:      Optional[str] = None
+    fiscal_code:     Optional[str] = None
     pec:             Optional[str] = None
     dest_code:       Optional[str] = None
     address:         Optional[str] = None
@@ -571,6 +573,7 @@ async def convert_onboarding(
         "email":        record.get("email"),
         "phone":        record.get("phone"),
         "vat_number":   record.get("vat_number"),
+        "tax_code":     record.get("fiscal_code") or record.get("vat_number"), # Map to tax_code in Clients
         "pec":          record.get("pec"),
         "dest_code":    record.get("dest_code"),
         "address":      record.get("address"),

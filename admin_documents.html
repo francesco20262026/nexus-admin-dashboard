@@ -108,9 +108,6 @@
 <button class="cl-status-pill" data-tab="internal">
 <span data-i18n="doc.kpi_internal">Interni</span> <span class="badge" id="kpi-doc-internal">0</span>
 </button>
-<button class="cl-status-pill" data-tab="signing">
-<span data-i18n="doc.kpi_signing">In firma</span> <span class="badge" id="kpi-doc-signing">0</span>
-</button>
 </div>
 <!-- Quick-filter badges -->
 <div class="cl-quick-badges"></div>
@@ -122,38 +119,33 @@
       <span class="cl-filter-search-icon"><svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
       <input autocomplete="off" class="cl-search-input" id="doc-search" placeholder="Cerca documento…" type="text"/>
     </div>
-    
-    
     <button class="cl-filter-reset-btn" onclick="const row = this.closest('.cl-filter-row'); if(row) { row.querySelectorAll('input:not([type=hidden]), select').forEach(el =&gt; { el.value = ''; el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); }); }" onmouseout="this.style.background='transparent'; this.style.color='var(--gray-500)';" onmouseover="this.style.background='#f1f5f9'; this.style.color='#111827';" style="margin-left:auto; display:flex; align-items:center; gap:6px; background:transparent; border:none; color:var(--gray-500); font-size:12px; font-weight:600; cursor:pointer; padding:4px 8px; border-radius:6px; transition:all 0.15s;">
       <svg fill="none" height="14" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       Reset
     </button>
   </div>
 
-  <!-- Mac-style Header Row -->
-  <div class="mac-header-row" style="display: grid; grid-template-columns: 2.5fr 1.5fr 1fr 140px; padding: 12px 24px; border-bottom: 1px solid var(--border); background-color: var(--gray-50); gap: 16px;">
-    <!-- Colonna 1: File -->
+  <!-- Mac-style Header Row — 5 columns: Cliente | Fornitore | File | Stato | Azioni -->
+  <div class="mac-header-row" id="doc-grid-header" style="display:grid; grid-template-columns:2fr 1.5fr 2fr 120px 110px; align-items:center; padding:12px 24px; border-bottom:1px solid var(--border); background:#f9fafb; gap:16px; user-select:none;">
     <div class="cl-col-identity">
-      <div class="mac-select-btn" id="mass-select-all" onclick="window.toggleSelectAll(this)" style="flex-shrink:0;">
-        <div class="mac-checkbox"></div>
-      </div>
-      <div style="font-size: 11px; font-weight: 800; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">File</div>
+      <div class="mac-select-btn" id="mass-select-all" onclick="window.toggleSelectAll(this)" style="flex-shrink:0;"><div class="mac-checkbox"></div></div>
+      <div style="font-size:11px;font-weight:800;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Cliente</div>
     </div>
-    <!-- Colonna 2: Cliente -->
-    <div style="display: flex; align-items: center;">
-      <div style="font-size: 11px; font-weight: 800; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Cliente collegato</div>
+    <div style="display:flex;align-items:center;">
+      <div style="font-size:11px;font-weight:800;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Fornitore</div>
     </div>
-    <!-- Colonna 3: Visibilità / Stato -->
-    <div style="display: flex; align-items: center;">
-      <div style="font-size: 11px; font-weight: 800; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Stato / Visibilità</div>
+    <div style="display:flex;align-items:center;">
+      <div style="font-size:11px;font-weight:800;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">File</div>
     </div>
-    <!-- Colonna 4: Azioni -->
-    <div style="display: flex; align-items: center; justify-content: flex-end;">
-      <div style="font-size: 11px; font-weight: 800; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Azioni</div>
+    <div style="display:flex;align-items:center;">
+      <div style="font-size:11px;font-weight:800;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Stato</div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:flex-end;">
+      <div style="font-size:11px;font-weight:800;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Azioni</div>
     </div>
   </div>
 
-  <!-- Filters -->
+  <!-- List -->
   <div class="cl-list" id="doc-list" style="display:flex;flex-direction:column;">
     <div class="list-card skeleton-list-card"><div class="list-card-header"><div class="skeleton-title skeleton"></div><div class="skeleton-badge skeleton"></div></div><div class="list-card-body"><div class="skeleton-text short skeleton"></div><div class="skeleton-text skeleton"></div></div></div>
   </div>
@@ -162,6 +154,7 @@
     <span id="doc-info" style="font-size:13px;color:var(--gray-500);"></span>
     <div id="doc-pagination" style="display:flex;gap:4px;"></div>
   </div>
+</div>
 </div>
 
 <!-- Mass Action Bar (Mac Style) -->

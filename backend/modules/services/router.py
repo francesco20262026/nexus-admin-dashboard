@@ -67,6 +67,7 @@ class ServiceUpdate(BaseModel):
     visible_in_onboarding:    Optional[bool]  = None
     notes:                    Optional[str]   = None
     template_vars:            Optional[dict]  = None  # per-service contract clause overrides
+    company_id:               Optional[str]   = None  # fornitore override
 
     @field_validator("billing_cycle")
     @classmethod
@@ -141,7 +142,7 @@ def _require_subscription(sub_id: UUID, company_id: str) -> dict:
 _EXTENDED_COLS = {"internal_code", "standard_duration_months", "renewal_rule",
                   "visible_in_quotes", "visible_in_onboarding", "notes"}
 
-_BASE_COLS = {"name", "description", "category", "price", "billing_cycle",
+_BASE_COLS = {"name", "description", "price", "billing_cycle",
               "currency", "is_active", "template_vars", "company_id"}
 
 
@@ -173,6 +174,7 @@ def _catalog_update(service_id: str, company_id: Optional[str], updates: dict):
             q = q.eq("company_id", company_id)
         return q.execute()
     except Exception as e:
+        logger.exception(f"Error updating service {service_id}: {e}")
         err_msg = str(e)
         if "42703" in err_msg or "column" in err_msg.lower():
             base_updates = {k: v for k, v in updates.items() if k in _BASE_COLS}
@@ -258,7 +260,7 @@ async def update_catalog_service(
 ):
     _require_catalog_service(service_id, None)  # Admins can edit any service
 
-    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    updates = {k: v for k, v in body.model_dump().items() if v is not None and v != ""}
     if not updates:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Nessun campo da aggiornare fornito")
 
@@ -476,3 +478,24 @@ async def delete_subscription(
     supabase.table("client_services").delete().eq("id", str(sub_id)).eq(
         "company_id", str(user.active_company_id)
     ).execute()
+
+
+@router.post("/subscriptions/{sub_id}/duplicate", status_code=status.HTTP_201_CREATED)
+async def duplicate_subscription(
+    sub_id: UUID,
+    user: CurrentUser = Depends(require_admin),
+):
+    """Duplicate a client subscription row, resetting dates and keeping association."""
+    original = _require_subscription(sub_id, str(user.active_company_id))
+    exclude_keys = {"id", "created_at", "updated_at"}
+    new_row = {k: v for k, v in original.items() if k not in exclude_keys}
+    # Reset dates so the user can set new ones
+    new_row["start_date"] = None
+    new_row["end_date"] = None
+    new_row["status"] = "active"
+    new_row["notes"] = f"(Copia) {new_row.get('notes') or ''}".strip()
+    res = supabase.table("client_services").insert(new_row).execute()
+    if not res.data:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Errore nella duplicazione")
+    return res.data[0]
+

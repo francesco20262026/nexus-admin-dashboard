@@ -27,6 +27,7 @@ class DocumentUpdate(BaseModel):
     name: Optional[str] = None
     type: Optional[str] = None
     status: Optional[str] = None
+    visibility: Optional[str] = None  # 'internal' | 'shared'
 
 
 # ── Helpers ──────────────────────────────────────────────────
@@ -81,9 +82,21 @@ async def list_documents(
     page_size: int = Query(50, ge=1, le=200),
     user: CurrentUser = Depends(get_current_user),
 ):
+    # Determine if visibility column exists (cached per process restart)
+    _VIS_COLS = "id,name,type,status,visibility,created_at,client_id,onboarding_id,contract_id,storage_path,clients(id,name),companies!documents_company_id_fkey(id,name)"
+    _NO_VIS_COLS = "id,name,type,status,created_at,client_id,onboarding_id,contract_id,storage_path,clients(id,name),companies!documents_company_id_fkey(id,name)"
+    _has_vis = getattr(list_documents, "_has_vis", None)
+    if _has_vis is None:
+        try:
+            supabase.table("documents").select("id,visibility").limit(0).execute()
+            list_documents._has_vis = True
+        except Exception:
+            list_documents._has_vis = False
+    select_cols = _VIS_COLS if list_documents._has_vis else _NO_VIS_COLS
+
     q = (
         supabase.table("documents")
-        .select("id,name,type,status,created_at,client_id,onboarding_id,contract_id,clients(name),onboarding(company_name)", count="exact")
+        .select(select_cols, count="exact")
         .eq("company_id", str(user.active_company_id))
     )
     if not user.is_admin:
@@ -107,8 +120,22 @@ async def list_documents(
         q = q.eq("status", doc_status)
 
     offset = (page - 1) * page_size
-    res = q.order("created_at", desc=True).range(offset, offset + page_size - 1).execute()
-    return {"data": res.data or [], "total": res.count or 0, "page": page, "page_size": page_size}
+    try:
+        res = q.order("created_at", desc=True).range(offset, offset + page_size - 1).execute()
+    except Exception as exc:
+        logger.error(f"Failed to list documents: {exc}")
+        # Rilanciamo una 500 esplicita, così FastAPI la wrappa bene e i CORS headers partono.
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Database error: {exc}")
+    items = []
+    for d in (res.data or []):
+        items.append({
+            **{k: v for k, v in d.items() if k not in ('clients', 'companies')},
+            "client_name":  (d.get("clients") or {}).get("name") or "",
+            "client_id":    d.get("client_id") or (d.get("clients") or {}).get("id") or "",
+            "company_name": (d.get("companies") or {}).get("name") or "",
+            "visibility":   d.get("visibility") or "internal",
+        })
+    return {"data": items, "total": res.count or 0, "page": page, "page_size": page_size}
 
 
 # ── Upload ────────────────────────────────────────────────────
@@ -172,6 +199,24 @@ async def upload_document(
 
     doc = res.data[0]
     _audit(user, doc["id"], "upload", new={"name": name, "storage_path": storage_path})
+
+    try:
+        from modules.activity.router import log_timeline_event
+        log_timeline_event(
+            company_id=str(company_id),
+            user_id=str(user.user_id),
+            event_type="document_uploaded",
+            title="Documento caricato",
+            client_id=str(client_id) if client_id else None,
+            onboarding_id=str(onboarding_id) if onboarding_id else None,
+            body=f"Caricato nuovo documento: {name}"
+        )
+    except Exception as e:
+        import traceback
+        with open("timeline_error_debug.txt", "w") as f:
+            f.write(traceback.format_exc())
+        logger.error("Failed to log timeline event for document upload: %s", e)
+
     return doc
 
 

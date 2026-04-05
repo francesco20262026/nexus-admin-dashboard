@@ -89,14 +89,39 @@
 </aside>
 <script src="components/header.js?v=147"></script>
 <main class="main">
-<div class="page-header">
-<div>
-<h1 class="page-title" data-i18n="inv.title">Fatture</h1>
-</div>
-<div class="page-header-actions" id="page-actions"></div>
+<div class="page-header" style="align-items:flex-start; padding-bottom:0px; border-bottom:1px solid var(--border); margin-bottom:0;">
+  <div>
+    <h1 class="page-title" data-i18n="inv.title" style="margin-bottom:22px;">Fatture</h1>
+    <!-- ERP MAIN TABS -->
+    <div id="inv-main-tabs" style="display:flex; gap:24px; position:relative; top:1px;">
+      <button class="main-tab" data-direction="outbound" style="background:none; border:none; border-bottom:2px solid transparent; padding-bottom:12px; font-weight:600; font-size:14px; color:#6b7280; cursor:pointer; transition:all 0.2s;">In Uscita</button>
+      <button class="main-tab" data-direction="inbound" style="background:none; border:none; border-bottom:2px solid transparent; padding-bottom:12px; font-weight:600; font-size:14px; color:#6b7280; cursor:pointer; transition:all 0.2s;">In Ingresso <span style="font-size:10px;color:var(--gray-400);font-weight:500;">(Acquisti)</span></button>
+      <a href="admin_suppliers.html?v=152" class="main-tab" style="text-decoration:none; background:none; border:none; border-bottom:2px solid transparent; padding-bottom:12px; font-weight:600; font-size:14px; color:#6b7280; cursor:pointer; transition:all 0.2s;">Fornitori</a>
+      <a href="admin_categories.html?v=152" class="main-tab" style="text-decoration:none; background:none; border:none; border-bottom:2px solid transparent; padding-bottom:12px; font-weight:600; font-size:14px; color:#6b7280; cursor:pointer; transition:all 0.2s;">Categorie</a>
+      <button class="main-tab" data-direction="report" style="background:none; border:none; border-bottom:2px solid transparent; padding-bottom:12px; font-weight:600; font-size:14px; color:#6b7280; cursor:pointer; transition:all 0.2s;">Report Analitico</button>
+    </div>
+    <script>
+      (function(){
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const reqTab = params.get('tab');
+          let saved = sessionStorage.getItem('crm_sess_invoices');
+          if (saved) saved = JSON.parse(saved);
+          const dir = reqTab === 'inbound' ? 'inbound' : (saved?.dir || 'outbound');
+          const t = document.querySelector('#inv-main-tabs button[data-direction="' + dir + '"]');
+          if (t) {
+            t.classList.add('active');
+            t.style.borderBottomColor = '#0a84ff';
+            t.style.color = '#111827';
+          }
+        } catch(e){}
+      })();
+    </script>
+  </div>
+  <div class="page-header-actions" id="page-actions" style="padding-top:10px;"></div>
 </div>
 <!-- ① Compact Status Tabs + Quick Filters -->
-<div class="cl-tab-filter-bar" id="inv-pipeline-bar">
+<div class="cl-tab-filter-bar" id="inv-pipeline-bar" style="border-top:none; margin-top:20px;">
 <!-- Status pills -->
 <div class="cl-status-pills">
 <button class="cl-status-pill active" data-tab="all">
@@ -138,10 +163,31 @@
       <span class="cl-filter-search-icon"><svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
       <input class="cl-search-input" id="inv-search" placeholder="Cerca fattura, cliente, note…" type="text"/>
     </div>
-    
-    
-    
-    
+    <select class="cl-filter-select" id="inv-filter-client" style="min-width:130px; font-size:13px;">
+      <option value="">Tutti i clienti</option>
+    </select>
+    <select class="cl-filter-select" id="inv-filter-category" style="min-width:140px; font-size:13px;">
+      <option value="">Tutte le categorie</option>
+    </select>
+    <select class="cl-filter-select" id="inv-filter-mese" style="min-width:110px; font-size:13px;">
+      <option value="">Tutti i mesi</option>
+      <option value="01">Gennaio</option>
+      <option value="02">Febbraio</option>
+      <option value="03">Marzo</option>
+      <option value="04">Aprile</option>
+      <option value="05">Maggio</option>
+      <option value="06">Giugno</option>
+      <option value="07">Luglio</option>
+      <option value="08">Agosto</option>
+      <option value="09">Settembre</option>
+      <option value="10">Ottobre</option>
+      <option value="11">Novembre</option>
+      <option value="12">Dicembre</option>
+    </select>
+    <select class="cl-filter-select" id="inv-filter-anno" style="min-width:90px; font-size:12px;">
+      <option value="">Tutti gli anni</option>
+    </select>
+
 
     <button class="cl-filter-reset-btn" onclick="const row = this.closest('.cl-filter-row'); if(row) { row.querySelectorAll('input:not([type=hidden]), select').forEach(el =&gt; { el.value = ''; el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); }); }" onmouseout="this.style.background='transparent'; this.style.color='var(--gray-500)';" onmouseover="this.style.background='#f1f5f9'; this.style.color='#111827';" style="margin-left:auto; display:flex; align-items:center; gap:6px; background:transparent; border:none; color:var(--gray-500); font-size:12px; font-weight:600; cursor:pointer; padding:4px 8px; border-radius:6px; transition:all 0.15s;">
       <svg fill="none" height="14" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -149,30 +195,87 @@
     </button>
   </div>
 
-  <!-- Mac-style Header Row -->
-  <div class="mac-header-row" style="display: grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 140px; padding: 12px 24px; border-bottom: 1px solid var(--border); background-color: var(--gray-50); gap: 16px;">
-    <!-- Colonna 1: Info e Cliente (con checkbox) -->
-    <div class="cl-col-identity">
-      <div class="mac-select-btn" id="mass-select-all" onclick="window.toggleSelectAll(this)" style="flex-shrink:0;">
+  <!-- Mac-style Header Row (Modern Grid) -->
+  <div class="mac-header-row" id="inv-header-row" style="display: grid; grid-template-columns: 2fr 1fr 1.4fr 1fr 140px 1fr 90px 70px 90px 120px; align-items:center; gap:16px; padding: 12px 24px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-top-left-radius: 12px; border-top-right-radius: 12px; user-select: none;">
+    <div class="cl-col-identity" style="display: flex; gap: 12px; align-items: center; min-width: 0;">
+      <div id="mass-select-all" class="mac-select-btn" title="Seleziona tutti" onclick="event.stopPropagation(); window.toggleSelectAll(this)" style="flex-shrink:0;">
         <div class="mac-checkbox"></div>
       </div>
-      <div style="font-size: 11px; font-weight: 800; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Fattura / Proforma</div>
+      <div style="display:flex; align-items:center; gap:4px; font-weight:800; cursor:pointer; min-width:0; flex:1;" class="inv-col-hdr" data-sort="client_name" title="Ordina per Cliente">
+        <span class="truncate" id="inv-col-identity-hdr">Cliente</span>
+        <svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" style="flex-shrink:0;"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </div>
     </div>
-    <!-- Colonna 2: Date Scadenza e Pagamento -->
-    <div style="display: flex; align-items: center;">
-      <div style="font-size: 11px; font-weight: 800; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Scadenze</div>
+    
+    <div style="display:flex; align-items:center; gap:4px; font-weight:800; cursor:pointer;" class="inv-col-hdr" data-sort="supplier_name" title="Ordina per Fornitore">
+      <span class="truncate" id="inv-col-opposite-hdr">Emittente</span>
     </div>
-    <!-- Colonna 3: Stato e Metodo Pagamento -->
-    <div style="display: flex; align-items: center;">
-      <div style="font-size: 11px; font-weight: 800; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Stato Pagamento</div>
+
+    <div style="display:flex; align-items:center; gap:4px; font-weight:800; cursor:pointer;" class="inv-col-hdr" data-sort="number" title="Ordina per Numero">
+      <span class="truncate">Documento</span>
     </div>
-    <!-- Colonna 4: Importo Totale -->
-    <div style="display: flex; align-items: center; justify-content: flex-end;">
-      <div style="font-size: 11px; font-weight: 800; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Importo</div>
+
+    <div style="display:flex; align-items:center; gap:4px; font-weight:800; cursor:pointer;" class="inv-col-hdr" data-sort="due_date" title="Ordina per Scadenza">
+      <span class="truncate">Scadenza</span>
+      <svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" style="flex-shrink:0;"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </div>
+
+    <div style="display:flex; align-items:center; width:100%;">
+      <select id="inv-col-status-filter" style="font-size:11px;font-weight:800;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;border:none;background:transparent;cursor:pointer;padding:0;outline:none;width:100%;" onchange="window.applyFilters && window.applyFilters()">
+        <option value="">Stato pagamento</option>
+        <option value="not_paid">Non pagata</option>
+        <option value="proof_uploaded">Prova inviata</option>
+        <option value="under_review">In verifica</option>
+        <option value="paid">Pagata</option>
+        <option value="cancelled">Annullata</option>
+      </select>
+    </div>
+
+    <!-- NEW CATEGORY HEADER -->
+    <div style="display:flex; align-items:center; gap:4px; font-weight:800; cursor:pointer;" class="inv-col-hdr" data-sort="category" title="Ordina per Categoria">
+      <span class="truncate">Categoria</span>
+      <svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" style="flex-shrink:0;"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:4px; font-weight:800; cursor:pointer; justify-content:flex-end;" class="inv-col-hdr" data-sort="total" title="Ordina per Importo">
+      <span class="truncate">Importo</span>
+    </div>
+    
+    <div style="display:flex; align-items:center; justify-content:flex-end;">
+      <span class="truncate">IVA</span>
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:flex-end;">
+      <span class="truncate">Totale</span>
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:center;">
+      <span class="truncate">Azioni</span>
     </div>
   </div>
 
+  <!-- Sezione PROFORMA -->
+  <div id="inv-section-proforma" style="display:none;">
+    <div style="padding:7px 24px; background:var(--brand-50,#ede9fe); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px;">
+      <span style="font-size:10px;font-weight:800;color:var(--brand-700,#6d28d9);text-transform:uppercase;letter-spacing:.5px;">📋 Proforma</span>
+      <span id="inv-section-proforma-count" style="font-size:11px;color:var(--brand-600,#7c3aed);font-weight:600;"></span>
+    </div>
+    <div id="inv-list-proforma" style="display:flex;flex-direction:column;"></div>
+  </div>
+
+  <!-- Sezione FATTURE -->
+  <div id="inv-section-fatture" style="display:none;">
+    <div style="padding:7px 24px; background:var(--gray-50); border-top:2px solid var(--border); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px;">
+      <span style="font-size:10px;font-weight:800;color:var(--gray-700);text-transform:uppercase;letter-spacing:.5px;">🧾 Fatture</span>
+      <span id="inv-section-fatture-count" style="font-size:11px;color:var(--gray-500);font-weight:600;"></span>
+    </div>
+    <div id="inv-list-fatture" style="display:flex;flex-direction:column;"></div>
+  </div>
+
+  <!-- Empty / single-mode list fallback -->
   <div id="inv-list" style="display:flex;flex-direction:column;"></div>
+
+
   
   <div style="padding:16px 24px; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; background:#fff; border-bottom-left-radius:12px; border-bottom-right-radius:12px;">
     <div id="inv-info" style="font-size:13px; color:#6b7280; font-weight:500;"></div>
@@ -188,6 +291,11 @@
     </div>
     <div class="mac-mass-action-divider"></div>
     <div class="mac-mass-action-buttons">
+      <!-- Mass Category Select -->
+      <select id="mac-mass-action-category" class="form-input" style="height:26px; font-size:12px; padding:0 8px; margin-right:8px; border:1px solid rgba(255,255,255,0.2); background: transparent !important; color: white; border-radius:4px;" onchange="window.massCategory(this.value)">
+         <option value="" style="color:black;">Cambia Categoria...</option>
+      </select>
+      
       <!-- Siccome non possiamo eliminare fatture che magari hanno implicazioni fiscali pesanti, è meglio un prompt specifico -->
       <button class="mac-mass-action-btn delete" onclick="window.massDelete()" title="Elimina record selezionati">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>
@@ -237,6 +345,38 @@
 <label class="form-label">Cliente *</label>
 <select class="form-input" id="inv-client"><option value="">Seleziona cliente…</option></select>
 </div>
+<div class="form-group" style="grid-column:1/-1;">
+<label class="form-label">Azienda Fornitrice</label>
+<select class="form-input" id="inv-supplier-creation" disabled style="background-color:#f9fafb;"><option value="">Assegnata in base al cliente...</option></select>
+<div style="font-size:11px;color:#6b7280;margin-top:4px;">Dato recuperato in automatico dalla scheda Cliente o Prospect.</div>
+</div>
+<div class="form-group">
+<label class="form-label">Preventivo collegato</label>
+<select class="form-input" id="inv-quote-id">
+<option value="">Nessuno</option>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label">Contratto collegato</label>
+<select class="form-input" id="inv-contract-id">
+<option value="">Nessuno</option>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label">Onboarding collegato</label>
+<select class="form-input" id="inv-onboarding-id">
+<option value="">Nessuno</option>
+</select>
+</div>
+<div class="form-group" style="grid-column:1/-1;border-bottom:1px solid #e5e7eb;margin-top:8px;margin-bottom:8px;"></div>
+<div class="form-group">
+<label class="form-label">Numero Fattura</label>
+<input class="form-input" id="inv-number" type="text" placeholder="Es. FATT-123"/>
+</div>
+<div class="form-group">
+<label class="form-label">Data Emissione</label>
+<input class="form-input" id="inv-issue-date" type="date"/>
+</div>
 <div class="form-group">
 <label class="form-label">Importo (€) *</label>
 <input class="form-input" id="inv-amount" min="0" placeholder="0.00" step="0.01" type="number"/>
@@ -258,11 +398,13 @@
 <option value="carta">Carta di credito</option>
 </select>
 </div>
-<div class="form-group">
-<label class="form-label">Onboarding collegato</label>
-<select class="form-input" id="inv-onboarding-id">
-<option value="">Nessuno</option>
-</select>
+<div class="form-group" id="inv-pdf-viewer-container" style="display:none; grid-column:1/-1; margin-top:8px;">
+<button id="inv-view-pdf-btn" class="btn btn-secondary" style="width:100%; display:flex; justify-content:center; gap:8px;" onclick="if(this.dataset.url) window.open(this.dataset.url, '_blank')" type="button">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16">
+<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+</svg>
+Visualizza Documento
+</button>
 </div>
 </div>
 </div>
@@ -328,13 +470,13 @@
 </div>
 </div>
 <div class="toast-container" id="toast-container"></div>
-<script src="assets/js/api.js?v=147"></script>
-<script src="assets/js/auth.js?v=147"></script>
-<script src="assets/js/ui.js?v=147"></script>
-<script src="assets/js/i18n.js?v=147"></script>
-<script src="assets/js/dash.js?v=147"></script>
-<script src="assets/js/router.js?v=147"></script>
-<script src="assets/js/admin_invoices.js?v=147"></script>
-<script src="assets/js/global_search.js"></script>
+<script src="assets/js/api.js?v=152"></script>
+<script src="assets/js/auth.js?v=152"></script>
+<script src="assets/js/ui.js?v=152"></script>
+<script src="assets/js/i18n.js?v=152"></script>
+<script src="assets/js/dash.js?v=152"></script>
+<script src="assets/js/router.js?v=152"></script>
+<script src="assets/js/admin_invoices.js?v=152"></script>
+<script src="assets/js/global_search.js?v=152"></script>
 </body>
 </html>

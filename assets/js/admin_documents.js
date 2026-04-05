@@ -24,7 +24,7 @@
   const act = $('page-actions');
   if (act) act.innerHTML = `
     <button class="btn btn-secondary" id="btn-refresh"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> <span>Aggiorna</span></button>
-    <button class="btn-action-icon " id="btn-action-icon-upload-doc" title="Carica documento">
+    <button class="btn-action-icon" id="btn-upload-doc" title="Carica documento">
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
 </button>`;
   $('btn-refresh')?.addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
@@ -69,27 +69,22 @@
   }
 
   function updateKpis() {
-    const set = (id,v,m) => { const el=$(id); if(el) el.textContent=v; const em=$(id+'-meta'); if(em&&m!==undefined) em.textContent=m; };
-    set('kpi-doc-total',    ALL.length,                                                'In archivio');
-    set('kpi-doc-shared',   ALL.filter(d => d.visibility === 'shared').length,         'Col cliente');
-    set('kpi-doc-internal', ALL.filter(d => d.visibility === 'internal' || !d.visibility).length, 'Solo admin');
-    set('kpi-doc-signing',  ALL.filter(d => d.status === 'signing' || d.status === 'pending_signature').length, 'In attesa firma');
+    const set = (id,v) => { const el=$(id); if(el) el.textContent=v; };
+    set('kpi-doc-total',    ALL.length);
+    set('kpi-doc-shared',   ALL.filter(d => d.visibility === 'shared').length);
+    set('kpi-doc-internal', ALL.filter(d => !d.visibility || d.visibility === 'internal').length);
   }
 
   function applyFilters() {
     const q  = (search?.value || '').toLowerCase().trim();
-    const ty = fType?.value   || '';
     const cl = fClient?.value || '';
-    const vs = ''    || '';
 
     filtered = ALL.filter(d => {
       if (activeTab === 'shared'   && d.visibility !== 'shared')   return false;
-      if (activeTab === 'internal' && d.visibility && d.visibility !== 'internal') return false;
-      if (activeTab === 'signing'  && d.status !== 'signing' && d.status !== 'pending_signature') return false;
-      if (ty && d.type !== ty) return false;
+      if (activeTab === 'internal' && d.visibility === 'shared')   return false;
       if (cl && d.client_name !== cl) return false;
       if (q) {
-        const hay = [d.name, d.client_name, d.type].filter(Boolean).join(' ').toLowerCase();
+        const hay = [d.name, d.client_name, d.company_name, d.type].filter(Boolean).join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -225,51 +220,65 @@
       if (info) info.textContent=''; if (pag) pag.innerHTML=''; return;
     }
     const slice = filtered.slice((pg-1)*PER, pg*PER);
+    const TYPE_LABELS = { contract:'Contratto', invoice:'Fattura', report:'Report', identity:'Identità', other:'Altro' };
 
     list.innerHTML = slice.map(d => {
-      const isSelected = window.selectedIds.has(d.id);
-      const visLabel  = VIS_LABELS[d.visibility] || d.visibility || 'Interno';
-      const typeLabel = TYPE_LABELS[d.type]      || d.type        || 'Documento';
-      const visColor  = d.visibility === 'shared' ? 'var(--color-success)' : 'var(--gray-500)';
+      const isSelected  = window.selectedIds.has(d.id);
+      const typeLabel   = TYPE_LABELS[d.type] || d.type || 'Documento';
+      const isShared    = d.visibility === 'shared';
+      const visLabel    = isShared ? 'Condiviso' : 'Interno';
+      const visColor    = isShared ? '#16a34a' : 'var(--gray-500)';
+      const visBg       = isShared ? '#f0fdf4' : '#f3f4f6';
+      const dateStr     = d.created_at ? UI.date(d.created_at) : '';
 
-      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${d.id}" style="display:grid; grid-template-columns: 2.5fr 1.5fr 1fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;" onclick="document.querySelector('.mac-select-btn', this)?.click()">
-        <!-- Colonna 1: File -->
-        <div class="cl-col cl-col-1">
-          <div class="cl-row-identity">
-            <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${d.id}" onclick="window.toggleSelection(event, '${d.id}')" style="flex-shrink:0;">
-              <div class="mac-checkbox"></div>
-            </div>
-          <div style="flex:1; min-width:0;">
-            <div class="cl-row-name" style="font-size:14px; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${d.name || 'Documento senza nome'}">${d.name || 'Documento senza nome'}</div>
-            <div class="cl-row-meta" style="display:flex; gap:8px; align-items:center; margin-top:4px;">
-              <span class="cl-row-chip" style="font-size:12px; color:var(--gray-500); background:var(--gray-100); padding:2px 6px; border-radius:4px;">📄 ${typeLabel}</span>
-              ${d.uploaded_at ? `<span style="font-size:12px; color:var(--gray-500);">📅 Upload: ${UI.date(d.uploaded_at)}</span>` : ''}
-              ${d.file_size ? `<span style="font-size:12px; color:var(--gray-500);">💾 ${Math.round(d.file_size/1024)} KB</span>` : ''}
-            </div>
+      return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${d.id}"
+        style="display:grid; grid-template-columns:2fr 1.5fr 2fr 120px 110px; align-items:center; gap:16px; padding:14px 24px; border-bottom:1px solid var(--border); transition:background 0.15s; cursor:pointer;"
+        onclick="window.openDoc('${d.id}')">
+
+        <!-- Col 1: Cliente -->
+        <div class="cl-col-identity" style="min-width:0;">
+          <div class="mac-select-btn ${isSelected ? 'selected' : ''}" data-id="${d.id}" onclick="window.toggleSelection(event, '${d.id}')" style="flex-shrink:0;"><div class="mac-checkbox"></div></div>
+          <div style="flex:1;min-width:0;">
+            ${d.client_name
+              ? `<a href="admin_client_detail.html?id=${d.client_id}" onclick="event.stopPropagation();" style="font-size:13px;font-weight:600;color:var(--brand-600);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">🏢 ${d.client_name}</a>`
+              : `<span style="font-size:13px;color:var(--gray-400);">—</span>`}
           </div>
         </div>
 
-        </div>
-        <!-- Colonna 2: Cliente -->
-        <div class="cl-col" style="min-width:0;">
-          ${d.client_name ? `<a href="admin_client_detail.html?id=${d.client_id}" onclick="event.stopPropagation();" style="font-size:13px; font-weight:600; color:var(--brand-600); text-decoration:none;">🏢 ${d.client_name}</a>` : '<span style="font-size:13px; color:var(--gray-400);"></span>'}
-        </div>
-
-        <!-- Colonna 3: Visibilità / Stato -->
-        <div class="cl-col" style="min-width:0;">
-          <div style="font-size:12px; font-weight:600; color:${visColor}; margin-bottom:4px;">👁 ${visLabel}</div>
-          <div>${UI.pill(d.status || 'available')}</div>
+        <!-- Col 2: Fornitore -->
+        <div style="min-width:0;">
+          <span style="font-size:12px;font-weight:600;color:var(--gray-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">${d.company_name || '—'}</span>
         </div>
 
-        <!-- Colonna 4: Azioni -->
-        <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:8px; justify-content:flex-end;">
-          ${d.preview_url || d.url ? `<a href="${d.preview_url||d.url}" target="_blank" onclick="event.stopPropagation();" class="btn btn-secondary btn-sm" title="Anteprima"><svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></a>` : ''}
-          ${d.url ? `<a href="${d.url}" target="_blank" onclick="event.stopPropagation();" class="btn btn-ghost btn-sm" download title="Download"><svg style="width:14px;height:14px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></a>` : ''}
-          ${d.visibility !== 'shared' ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); shareDoc('${d.id}')">Condividi</button>` : `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); unshareDoc('${d.id}')">Rendi interno</button>`}
+        <!-- Col 3: File -->
+        <div style="min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${d.name || ''}">${d.name || 'Documento senza nome'}</div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:3px;">
+            <span style="font-size:11px;color:var(--gray-500);background:var(--gray-100);padding:1px 6px;border-radius:4px;">📄 ${typeLabel}</span>
+            ${dateStr ? `<span style="font-size:11px;color:var(--gray-400);">📅 ${dateStr}</span>` : ''}
+          </div>
+        </div>
+
+        <!-- Col 4: Stato -->
+        <div>
+          <span style="display:inline-flex;align-items:center;gap:4px;background:${visBg};color:${visColor};padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">
+            ${isShared ? '📤' : '🔒'} ${visLabel}
+          </span>
+        </div>
+
+        <!-- Col 5: Azioni -->
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;" onclick="event.stopPropagation();">
+          <button class="icon-btn-sm danger" onclick="deleteSingleDoc('${d.id}')" title="Elimina">
+            <svg style="width:13px;height:13px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+          ${isShared
+            ? `<button style="font-size:10px;padding:3px 8px;border-radius:5px;border:1px solid var(--gray-200);background:var(--gray-50);color:var(--gray-500);cursor:pointer;font-weight:600;" onclick="unshareDoc('${d.id}')" title="Rendi interno">🔒 Interno</button>`
+            : `<button style="font-size:10px;padding:3px 8px;border-radius:5px;border:1px solid #bbf7d0;background:#f0fdf4;color:#15803d;cursor:pointer;font-weight:600;" onclick="shareDoc('${d.id}')" title="Condividi col cliente">📤 Condividi</button>`
+          }
         </div>
       </div>`;
     }).join('');
-    
+
     const s=(pg-1)*PER+1, e=Math.min(pg*PER,filtered.length);
     if (info) info.textContent = `${s}–${e} di ${filtered.length}`;
     UI.pagination(pag, null, pg, filtered.length, PER, p => { pg=p; render(); window.updateSelectionUI(); });
@@ -307,8 +316,30 @@
     } catch {}
   });
 
-  window.shareDoc   = async id => { try { await API.Documents.update(id,{visibility:'shared'}); ALL=ALL.map(d=>d.id===id?{...d,visibility:'shared'}:d); updateKpis(); applyFilters(); UI.toast('Condiviso col cliente','success'); } catch(e) { UI.toast(e?.message||'Errore','error'); } };
-  window.unshareDoc = async id => { try { await API.Documents.update(id,{visibility:'internal'}); ALL=ALL.map(d=>d.id===id?{...d,visibility:'internal'}:d); updateKpis(); applyFilters(); UI.toast('Reso interno','info'); } catch(e) { UI.toast(e?.message||'Errore','error'); } };
+  // Open document viewer (get signed URL then open in new tab)
+  window.openDoc = async function(id) {
+    try {
+      const res = await API.get(`/documents/${id}/download-url`);
+      const url = res?.url;
+      if (url) { window.open(url, '_blank'); }
+      else { UI.toast('URL documento non disponibile', 'warning'); }
+    } catch(e) { UI.toast(e?.message || 'Errore apertura documento', 'error'); }
+  };
+
+  // Delete single document
+  window.deleteSingleDoc = async function(id) {
+    if (!confirm('Eliminare questo documento? L\'azione è irreversibile.')) return;
+    try {
+      if (API.Documents?.remove) await API.Documents.remove(id);
+      else await API.del(`/documents/${id}`);
+      ALL = ALL.filter(d => d.id !== id);
+      updateKpis(); applyFilters();
+      UI.toast('Documento eliminato', 'success');
+    } catch(e) { UI.toast(e?.message || 'Errore eliminazione', 'error'); }
+  };
+
+  window.shareDoc   = async id => { try { await API.Documents.update(id,{visibility:'shared'}); ALL=ALL.map(d=>d.id===id?{...d,visibility:'shared'}:d); updateKpis(); applyFilters(); UI.toast('Documento condiviso col cliente','success'); } catch(e) { UI.toast(e?.message||'Errore','error'); } };
+  window.unshareDoc = async id => { try { await API.Documents.update(id,{visibility:'internal'}); ALL=ALL.map(d=>d.id===id?{...d,visibility:'internal'}:d); updateKpis(); applyFilters(); UI.toast('Documento reso interno','info'); } catch(e) { UI.toast(e?.message||'Errore','error'); } };
 
   window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');

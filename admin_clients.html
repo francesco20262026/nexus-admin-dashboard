@@ -141,6 +141,9 @@
       <button class="cl-status-pill" data-tab="ceased">
         Cessati <span class="badge" id="kpi-cl-ceased">0</span>
       </button>
+      <button class="cl-status-pill" data-tab="insolvent">
+        Insolventi <span class="badge" id="kpi-cl-insolvent">0</span>
+      </button>
     </div>
     <!-- Quick-filter badges -->
     <div class="cl-quick-badges">
@@ -206,6 +209,8 @@
           <option value="active">Attivo</option>
           <option value="suspended">Sospeso</option>
           <option value="ceased">Cessato</option>
+          <option value="insolvent">Insolvente</option>
+          <option value="non_active">Non Attivo</option>
         </select>
       </div>
 
@@ -218,14 +223,13 @@
       </div>
 
       <div class="cl-col cl-col-5" style="flex-direction: row; align-items: center;">
-        <select class="mac-header-select" id="cl-filter-activity" title="Filtra per attività" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px;" onchange="window.applyFilters()">
-          <option value="">Attività ▼</option>
-          <option value="24h">Ultime 24h</option>
-          <option value="7d">Ultimi 7 gg</option>
-          <option value="30d">Ultimi 30 gg</option>
-        </select>
         <span onclick="window.toggleSort('date')" style="cursor:pointer; display:flex; align-items:center;">
-          <svg id="sort-icon-date" fill="none" height="14" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg" style="transition: transform 0.2s; flex-shrink:0;"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <select class="mac-header-select" id="cl-filter-activity" title="Filtra/Ordina per attività" style="appearance:none; background:transparent; border:none; color:inherit; font:inherit; font-weight:600; text-transform:uppercase; cursor:pointer; outline:none; padding-right:12px;" onchange="window.applyFilters()">
+            <option value="">Attività ▼</option>
+            <option value="24h">Ultime 24h</option>
+            <option value="7d">Ultimi 7 gg</option>
+            <option value="30d">Ultimi 30 gg</option>
+          </select>
         </span>
       </div>
 
@@ -365,6 +369,13 @@
             <div>
               <div style="font-size:13px;font-weight:600;color:var(--brand-600);" data-i18n="cl.f_invite_title">Crea utente portale</div>
               <div style="font-size:12px;color:var(--gray-600);" data-i18n="cl.f_invite_desc">Invia invito email al cliente per accedere al portale</div>
+            </div>
+          </label>
+          <label class="form-group form-grid--full" style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:12px;background:var(--gray-50);border:1px solid var(--border);border-radius:10px;margin-top:4px;">
+            <input type="checkbox" id="f-is-supplier" style="margin-top:3px;accent-color:var(--gray-500);"/>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--gray-700);">Questo è un fornitore</div>
+              <div style="font-size:12px;color:var(--gray-500);">Imposta l'entità come fornitore, rendendola disponibile per l'assegnazione alle fatture d'acquisto.</div>
             </div>
           </label>
         </div>

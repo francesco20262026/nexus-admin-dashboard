@@ -131,9 +131,13 @@
       <svg fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.75 19.5L8.25 12l7.5-7.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       Onboarding
     </a>
-    <button class="btn btn-secondary" id="cd-link-new-proforma" onclick="location.href='admin_invoices.html?new=1&type=proforma'">Nuova Proforma</button>
+    <button class="btn btn-secondary" title="Aggiorna" onclick="location.reload()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px;margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+      Aggiorna
+    </button>
     <a class="btn btn-primary" href="admin_quotes.html?new=1" id="cd-link-new-quote-card">Crea Preventivo</a>
   </div>
+
 </div>
 
 <!-- Tab navigation -->
@@ -235,7 +239,11 @@
   <div class="card" id="sec-documenti">
     <div class="mac-section-title">
       <span>Documenti</span>
-      <a class="mac-section-title-action" href="admin_documents.html" id="cd-link-docs">Tutti →</a>
+      <div>
+        <button class="btn-action-icon" id="cd-btn-add-doc" title="Carica Documento" style="margin-right:12px;">
+          <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </button>
+      </div>
     </div>
     <div id="cd-docs-list"></div>
   </div>
@@ -264,17 +272,8 @@
 </div>
 
 <div class="mac-tab-section" id="view-timeline" style="display: none;">
-  <div class="card">
-    <div class="mac-section-title">Storico Interazioni</div>
-    <div style="margin-bottom:20px;">
-      <textarea id="timeline-note-body" placeholder="Scrivi un aggiornamento o una nota rapida..." style="width:100%;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;font-size:13.5px;font-family:inherit;resize:vertical;min-height:80px;outline:none;"></textarea>
-      <div style="display:flex;justify-content:flex-end;margin-top:8px;">
-        <button class="btn btn-primary" onclick="saveTimelineNote()">Registra</button>
-      </div>
-    </div>
-    <div class="mac-activity-wrap">
-      <div id="timeline-feed-container"></div>
-    </div>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div id="timeline-feed-container"></div>
   </div>
 </div>
 
@@ -407,6 +406,42 @@
 </div>
 </div>
 
+<!-- ===== ADD DOCUMENT MODAL ===== -->
+<div class="modal-overlay" id="modal-upload-document" style="display:none;">
+<div class="modal modal--xs">
+<div class="modal-header">
+<div class="modal-title">Carica Documento</div>
+<button class="icon-btn" onclick="document.getElementById('modal-upload-document').classList.remove('open')">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+<div class="modal-body" style="padding:20px 24px; background:#ffffff;">
+<div class="mac-form-list">
+<div class="mac-form-row">
+<label class="mac-form-label">Titolo [Opzionale]</label>
+<input class="mac-form-input" id="fud-title" placeholder="Es. Visura Camerale" type="text"/>
+</div>
+<div style="display:none;">
+<label class="mac-form-label">Tipo Documento</label>
+<select class="mac-form-input" id="fud-type">
+  <option value="other" selected>Altro</option>
+  <option value="kyc">KYC</option>
+  <option value="id_proof">Documento Identità</option>
+</select>
+</div>
+<div class="mac-form-row">
+<label class="mac-form-label">File *</label>
+<input class="mac-form-input" id="fud-file" type="file" style="padding-top: 10px; padding-bottom: 25px;"/>
+</div>
+</div>
+</div>
+<div class="modal-footer" style="padding:0 24px 20px; display:flex; justify-content:flex-end; gap:12px;">
+<button class="btn btn-ghost" onclick="document.getElementById('modal-upload-document').classList.remove('open')">Annulla</button>
+<button class="btn btn-primary" id="modal-document-upload-save">Carica Documento</button>
+</div>
+</div>
+</div>
+
 <!-- ===== ADD ACTIVITY MODAL ===== -->
 <div class="modal-overlay" id="modal-add-activity" style="display:none;">
 <div class="modal modal--xs">
@@ -449,16 +484,16 @@
 </main>
 
 <!-- ==================== SCRIPTS ==================== -->
-<script src="assets/js/api.js?v=160"></script>
-<script src="assets/js/auth.js?v=160"></script>
-<script src="assets/js/ui.js?v=160"></script>
-<script src="assets/js/i18n.js?v=160"></script>
-<script src="assets/js/dash.js?v=160"></script>
-<script src="assets/js/router.js?v=160"></script>
-<script src="assets/js/activity_timeline.js?v=160"></script>
-<script src="assets/js/admin_client_calls.js?v=160"></script>
-<script src="assets/js/admin_client_comms.js?v=160"></script>
-<script src="assets/js/admin_onboarding_detail.js?v=160"></script>
+<script src="assets/js/api.js?v=168"></script>
+<script src="assets/js/auth.js?v=168"></script>
+<script src="assets/js/ui.js?v=168"></script>
+<script src="assets/js/i18n.js?v=168"></script>
+<script src="assets/js/dash.js?v=168"></script>
+<script src="assets/js/router.js?v=168"></script>
+<script src="assets/js/activity_timeline.js?v=168"></script>
+<script src="assets/js/admin_client_calls.js?v=168"></script>
+<script src="assets/js/admin_client_comms.js?v=168"></script>
+<script src="assets/js/admin_onboarding_detail.js?v=168"></script>
 </div></body>
 </link>  <!-- Shared Components: canonical single-source-of-truth CSS -->
   <link rel="stylesheet" href="assets/css/header_bar.css">

@@ -48,7 +48,7 @@ def _list_activity(company_id: str, *, client_id: str = None, onboarding_id: str
     return {"data": res.data or [], "total": res.count or 0, "page": page, "page_size": page_size}
 
 
-def _create_activity(company_id: str, actor_user_id: str, body: ActivityCreate,
+def _create_activity(company_id: str, user_id: str, body: ActivityCreate,
                      *, client_id: str = None, onboarding_id: str = None) -> dict:
     if body.event_type not in VALID_EVENT_TYPES:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -56,7 +56,7 @@ def _create_activity(company_id: str, actor_user_id: str, body: ActivityCreate,
 
     row = {
         "company_id":    company_id,
-        "actor_user_id": actor_user_id,
+        "actor_user_id": user_id,
         "event_type":    body.event_type,
         "title":         body.title,
         "body":          body.body,
@@ -71,15 +71,19 @@ def _create_activity(company_id: str, actor_user_id: str, body: ActivityCreate,
 
 def log_timeline_event(
     company_id: str,
-    actor_user_id: str,
-    event_type: str,
-    title: str,
+    user_id: str = None,
+    event_type: str = "system",
+    title: str = "",
     client_id: Optional[str] = None,
     onboarding_id: Optional[str] = None,
     body: Optional[str] = None,
-    metadata: Optional[dict] = None
+    metadata: Optional[dict] = None,
+    *,
+    actor_user_id: Optional[str] = None,
 ) -> None:
-    """Safely log a timeline event without raising HTTP exceptions if it fails."""
+    """Safely log a timeline event without raising HTTP exceptions if it fails.
+    Accepts both user_id (positional) and actor_user_id (keyword) for compatibility."""
+    resolved_user_id = actor_user_id or user_id or "system"
     try:
         activity_body = ActivityCreate(
             event_type=event_type,
@@ -87,10 +91,12 @@ def log_timeline_event(
             body=body,
             metadata=metadata
         )
-        _create_activity(company_id, actor_user_id, activity_body, client_id=client_id, onboarding_id=onboarding_id)
+        _create_activity(company_id, resolved_user_id, activity_body, client_id=client_id, onboarding_id=onboarding_id)
     except Exception as exc:
+        import traceback
+        with open("timeline_error_debug.txt", "w") as f:
+            f.write(traceback.format_exc())
         logger.warning(f"Failed to log timeline event ({event_type}): {exc}")
-
 
 # ── Client endpoints ──────────────────────────────────────────
 

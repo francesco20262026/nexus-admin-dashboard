@@ -93,7 +93,7 @@
       const catRes = await API.Services.catalog(false);
       let catData = Array.isArray(catRes) ? catRes : (catRes?.items ?? catRes?.data ?? []);
       // Map supplier company from joined data
-      ALL_CATALOG = catData.map(s => ({ ...s, supplier_name: s.companies?.name || 'Nova CRM' }));
+      ALL_CATALOG = catData.map(s => ({ ...s, supplier_name: s.companies?.name || '—' }));
       populateSupplierFilter();
     } catch (e) {
       console.error('[admin_services] load error:', e);
@@ -395,7 +395,7 @@
 
     const compSel = $('fs-company-id');
     if (compSel) {
-      compSel.innerHTML = '<option value="">Nova CRM (Predefinito)</option>' +
+      compSel.innerHTML = '<option value="">(Seleziona Fornitore)</option>' +
          _companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       compSel.value = svc?.company_id || '';
     }

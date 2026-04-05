@@ -127,12 +127,20 @@
         city:       $('f-city')?.value?.trim() || null,
         address:    $('f-address')?.value?.trim() || null,
         notes:      $('f-notes')?.value?.trim() || null,
-        invite_portal: $('f-portal')?.checked || false
+        invite_portal: $('f-portal')?.checked || false,
+        is_supplier: $('f-is-supplier')?.checked || false
       });
       if (created) ALL.unshift(created);
       UI.toast('Cliente creato con successo', 'success');
       modal?.classList.remove('open');
       load(true);
+      
+      // se l'utente ha creato un fornitore via link veloce, ricarica e manda alla pagina fornitori
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('create_supplier') === 'true' && $('f-is-supplier')?.checked) {
+          window.location.href = 'admin_suppliers.html';
+      }
+      
     } catch (e) {
       UI.toast(e.message || 'Errore durante la creazione', 'error');
     } finally {
@@ -156,6 +164,17 @@
       }
       const res = await API.Clients.list();
       ALL = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
+      
+      // Auto-open logic for supplier creation
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('create_supplier') === 'true' && !window._supplierModalOpened) {
+          window._supplierModalOpened = true; // prevent infinite loops
+          setTimeout(() => {
+             btnAdd?.click();
+             if($('f-is-supplier')) $('f-is-supplier').checked = true;
+          }, 300);
+      }
+      
     } catch (e) {
       console.error('[admin_clients] load error:', e);
       const errMsg = 'Impossibile caricare i clienti.';
@@ -172,6 +191,7 @@
     const active    = ALL.filter(c => c.status === 'active').length;
     const suspended = ALL.filter(c => c.status === 'suspended').length;
     const ceased    = ALL.filter(c => c.status === 'ceased').length;
+    const insolvent = ALL.filter(c => c.status === 'insolvent').length;
     const windocCount = ALL.filter(c => c.windoc_id).length;
 
     const set = (id, val) => { const el = $(id); if (el) el.textContent = val; };
@@ -180,6 +200,7 @@
     set('kpi-cl-active',    active);
     set('kpi-cl-suspended', suspended);
     set('kpi-cl-ceased',    ceased);
+    set('kpi-cl-insolvent', insolvent);
     set('kpi-cl-windoc',    windocCount);
     set('kpi-cl-nowindoc',  ALL.length - windocCount);
   }

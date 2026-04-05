@@ -171,43 +171,7 @@ window.ActivityTimeline = (function () {
 
     function renderStorico() {
       return `
-        <!-- Quick Add Box -->
-        <div class="al-quick-add" id="al-quick-add-form">
-          <input type="text" id="al-quick-title" class="al-quick-title" placeholder="Titolo dell'attività (obbligatorio)" maxlength="200" autocomplete="off" />
-          <textarea id="al-quick-body" class="al-quick-body" placeholder="Scrivi un aggiornamento, una nota o resoconto della chiamata..."></textarea>
-
-          <!-- Schedule Toggle -->
-          <div style="margin-top:8px;">
-            <button type="button" id="al-schedule-toggle" class="al-schedule-toggle ${showSchedule ? 'open' : ''}">
-              📅 ${showSchedule ? 'Nascondi pianificazione' : 'Pianifica data e assegnatario'}
-            </button>
-          </div>
-
-          <!-- Scheduling Panel (collapsible) -->
-          <div id="al-schedule-panel" style="display:${showSchedule ? 'grid' : 'none'}; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; padding:12px; background:var(--gray-50); border-radius:8px; border:1px solid var(--border);">
-            <div style="display:flex;flex-direction:column;gap:4px;">
-              <label style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.04em;">Data e Ora</label>
-              <input type="datetime-local" id="al-scheduled-at" class="form-input" style="font-size:13px;" />
-            </div>
-            <div style="display:flex;flex-direction:column;gap:4px;">
-              <label style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.04em;">Assegna a (Admin)</label>
-              <select id="al-assigned-to" class="form-input" style="font-size:13px;">
-                ${_adminOptions()}
-              </select>
-            </div>
-            <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:4px;">
-              <input type="checkbox" id="al-invite-client" style="accent-color:var(--brand-500);width:15px;height:15px;cursor:pointer;" />
-              <label for="al-invite-client" style="font-size:13px;color:var(--gray-700);cursor:pointer;">Invia invito calendario anche al cliente</label>
-            </div>
-          </div>
-
-          <div class="al-quick-actions">
-            <div class="al-type-selector" id="al-type-selector">
-              ${_renderTypeButtons(selectedAddType)}
-            </div>
-            <button class="btn btn-primary btn-sm" id="al-save-btn">Aggiungi</button>
-          </div>
-        </div>
+        <!-- Quick Add Box REMOVED as per request to be read-only timeline -->
         
         <!-- Header & Filters -->
         <div class="al-header-row">
@@ -318,8 +282,9 @@ window.ActivityTimeline = (function () {
         const res = await _load(cfg, currentPage, currentFilter);
         let events = res.data || [];
         
-        // Filter out activities that belong strictly to the "Attività" module (per user request)
-        events = events.filter(ev => !['call', 'meeting', 'task', 'email', 'email_sent'].includes(ev.event_type));
+        // Removed strict filtering so that the timeline acts as a complete
+        // audit trail for everything that happens, including automated events.
+        // events = events.filter(ev => !['call', 'meeting', 'task', 'email', 'email_sent'].includes(ev.event_type));
         
         if (!events.length) {
           listEl.innerHTML = `

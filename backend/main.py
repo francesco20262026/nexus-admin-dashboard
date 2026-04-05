@@ -26,6 +26,7 @@ from modules.quotes.router      import router as quotes_router
 from modules.users.router       import router as users_router
 from modules.companies.router   import router as companies_router
 from modules.copilot.router     import router as copilot_router
+from modules.categories.router  import router as categories_router
 from modules.activity.router    import client_router as activity_client_router
 from modules.activity.router    import onboarding_router as activity_onboarding_router
 from modules.activity.router    import global_router as activity_global_router
@@ -44,9 +45,38 @@ async def lifespan(app: FastAPI):
     """Start/stop background scheduler with the app."""
     from jobs.payment_reminders import run_payment_reminders
     from jobs.renewal_alerts    import run_renewal_alerts
+    from jobs.gdrive_pdf_poller import run_gdrive_pdf_poller
+
+    # ── Startup migrations (idempotent DDL additions) ─────────
+    try:
+        from database import supabase
+        supabase.table("documents").select("id,visibility,onboarding_id,contract_id").limit(0).execute()
+        logger.info("documents.visibility, onboarding_id, contract_id columns OK")
+    except Exception:
+        # Columns might not exist — add them via a raw psycopg2
+        try:
+            import psycopg2
+            from config import settings as _s
+            _project = _s.supabase_url.replace("https://", "").split(".")[0]
+            _pg_host = f"db.{_project}.supabase.co"
+            _conn = psycopg2.connect(host=_pg_host, port=5432, dbname="postgres",
+                                     user="postgres", password=_s.supabase_service_key,
+                                     connect_timeout=8)
+            _cur = _conn.cursor()
+            _cur.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS visibility TEXT NOT NULL DEFAULT 'internal'")
+            _cur.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS onboarding_id UUID")
+            _cur.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS contract_id UUID")
+            _conn.commit()
+            _cur.close(); _conn.close()
+            logger.info("Startup migration: documents extended with visibility, onboarding_id, contract_id")
+        except Exception as exc:
+            logger.warning("Startup migration for documents failed: %s — "
+                           "run manually: ALTER TABLE documents ADD COLUMN visibility TEXT NOT NULL DEFAULT 'internal', ADD COLUMN onboarding_id UUID, ADD COLUMN contract_id UUID", exc)
 
     scheduler.add_job(run_payment_reminders, "cron", hour=8, minute=0,  id="payment_reminders")
     scheduler.add_job(run_renewal_alerts,    "cron", hour=8, minute=30, id="renewal_alerts")
+    # Poll GDrive for PDFs every 5 minutes
+    scheduler.add_job(run_gdrive_pdf_poller, "interval", minutes=5, id="gdrive_pdf_poller")
     scheduler.start()
     app.state.scheduler = scheduler
     logger.info("Scheduler started")
@@ -97,8 +127,8 @@ app = FastAPI(
 _dev = settings.app_env == "development"
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if _dev else settings.cors_origins,
-    allow_credentials=False,  # incompatible with wildcard; auth uses Bearer tokens
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -120,6 +150,7 @@ app.include_router(quotes_router,      prefix="/api")
 app.include_router(users_router,       prefix="/api")
 app.include_router(companies_router,   prefix="/api")
 app.include_router(copilot_router,     prefix="/api")
+app.include_router(categories_router,  prefix="/api")
 app.include_router(activity_client_router,     prefix="/api")
 app.include_router(activity_onboarding_router, prefix="/api")
 app.include_router(activity_global_router,     prefix="/api")

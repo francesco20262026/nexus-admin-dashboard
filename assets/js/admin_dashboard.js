@@ -32,16 +32,7 @@
     },
   };
 
-  // Optional DOM nodes warn but do not crash
-  [
-    ['subtitle', '#dash-subtitle'], ['activityList', '#dashboard-activity-list'],
-    ['attentionList', '#attention-list'], ['clientsTbody', '#dash-clients-tbody'],
-    ['invoicesTbody', '#dash-invoices-tbody'], ['invoicesSubtitle', '#dash-invoices-subtitle'],
-    ['chartTotal', '#chart-total'], ['chartMeta', '#chart-meta'],
-    ['navBadgeInvoices', '#nav-badge-invoices'],
-  ].forEach(([key, sel]) => {
-    if (!els[key]) console.warn(`[admin_dashboard] Optional DOM node missing: ${sel}`);
-  });
+  // (Dom Node warnings are intentionally suppressed to prevent SPA noise)
 
   // ── Subtitle ────────────────────────────────────────────────
   function renderSubtitle() {
@@ -399,6 +390,7 @@
 
   // Company switch canonical event name
   window.addEventListener('companyChanged', () => {
+    if (!document.getElementById('dash-subtitle')) return; // Esci se non siamo in pagina
     renderSubtitle();
     loadDashboard();
   });

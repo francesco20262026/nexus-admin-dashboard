@@ -85,6 +85,7 @@
       UI.toast(e.message, 'error');
     }
   }
+  window.refreshOnboardingDetail = loadClient;
 
   /* ── Header ──────────────────────────────────────────────── */
   function _initials(str) {
@@ -553,22 +554,27 @@
         el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('cl.no_services') || 'Nessun servizio attivo.')}</div>`;
         return;
       }
-      el.innerHTML = data.map(s => `
-        <div class="list-card">
-          <div class="list-card-header">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="list-card-title">${s.services_catalog?.name || s.service_name || s.name || 0}</div>
-              ${UI.pill(s.status)}
+      el.innerHTML = `<table class="z-rel-table">
+        <thead><tr>
+          <th>Servizio</th><th>Ciclo</th><th>Data Inizio</th><th>Stato</th><th></th>
+        </tr></thead>
+        <tbody>${data.map(s => `<tr class="hover-row" style="cursor:pointer;" onclick="location.href='admin_services.html?id=${s.id}'">
+          <td class="z-rt-name">${s.services_catalog?.name || s.service_name || s.name || 'Servizio'}</td>
+          <td class="z-rt-date">${s.services_catalog?.billing_cycle || s.billing_cycle || '-'}</td>
+          <td class="z-rt-date">${s.start_date ? UI.date(s.start_date) : '-'}</td>
+          <td>${UI.pill(s.status)}</td>
+          <td>
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+              <button class="btn btn-ghost btn-xs text-primary" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.duplicateService(event, '${s.id}')" title="Duplica">
+                <span style="font-size:16px;line-height:1;">📄</span>
+              </button>
+              <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.deleteService(event, '${s.id}')" title="Elimina">
+                <span style="font-size:16px;line-height:1;">🗑️</span>
+              </button>
             </div>
-            <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteService(event, '${s.id}')" title="Elimina">
-              <span style="font-size:16px;line-height:1;">🗑️</span>
-            </button>
-          </div>
-          <div class="list-card-body">
-            <div class="list-card-meta">${I18n.t('cl.f_cycle') || 'Ciclo'}: ${s.services_catalog?.billing_cycle || s.billing_cycle || 0}</div>
-            <div class="list-card-meta">${I18n.t('cl.f_start_date') || 'Inizio'}: ${s.start_date ? UI.date(s.start_date) : 0}</div>
-          </div>
-        </div>`).join('');
+          </td>
+        </tr>`).join('')}</tbody>
+      </table>`;
     } catch {
       el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('error.generic') || 'Errore.')}</div>`;
     }
@@ -591,28 +597,73 @@
         el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('cl.no_contracts') || 'Nessun contratto.')}</div>`;
         return;
       }
-      el.innerHTML = data.map(c => `
-        <div class="list-card">
-          <div class="list-card-header">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="list-card-title">${c.title || I18n.t('nav.contracts') || 'Contratto'}</div>
-              ${UI.pill(c.status)}
+      el.innerHTML = `<table class="z-rel-table">
+        <thead><tr>
+          <th>Titolo Contratto</th><th>Creato</th><th>Scadenza</th><th>Stato</th><th></th>
+        </tr></thead>
+        <tbody>${data.map(c => `<tr class="hover-row" style="cursor:pointer;" onclick="location.href='admin_contracts.html?id=${c.id}'">
+          <td class="z-rt-name">${c.title || I18n.t('nav.contracts') || 'Contratto'}</td>
+          <td class="z-rt-date">${c.created_at ? UI.date(c.created_at) : '-'}</td>
+          <td class="z-rt-date">${c.expires_at ? UI.date(c.expires_at) : '-'}</td>
+          <td>${UI.pill(c.status)}</td>
+          <td>
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+              <button class="btn btn-ghost btn-xs text-primary" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.duplicateContract(event, '${c.id}')" title="Duplica">
+                <span style="font-size:16px;line-height:1;">📄</span>
+              </button>
+              <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.deleteContract(event, '${c.id}')" title="Elimina">
+                <span style="font-size:16px;line-height:1;">🗑️</span>
+              </button>
             </div>
-            <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteContract(event, '${c.id}')" title="Elimina">
-              <span style="font-size:16px;line-height:1;">🗑️</span>
-            </button>
-          </div>
-          <div class="list-card-body">
-            <div class="list-card-meta">${I18n.t('cl.created_at') || 'Creato'}: ${UI.date(c.created_at)}</div>
-            ${c.expires_at ? `<div class="list-card-meta">${I18n.t('cl.expires_at') || 'Scadenza'}: ${UI.date(c.expires_at)}</div>` : ''}
-          </div>
-        </div>`).join('');
+          </td>
+        </tr>`).join('')}</tbody>
+      </table>`;
     } catch {
       el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('error.generic') || 'Errore.')}</div>`;
     }
   }
 
   /* ── ⑤ Documents ────────────────────────────────────────────── */
+  window.downloadDocument = async (event, id, forceDownload=false) => {
+    event.stopPropagation();
+    const btn = event.currentTarget;
+    const txt = btn.innerHTML;
+    btn.innerHTML = '...';
+    btn.disabled = true;
+
+    // Open synchronously to avoid browser popup blockers for Visualizza
+    let newWin = null;
+    if (!forceDownload) {
+      newWin = window.open('about:blank', '_blank');
+    }
+
+    try {
+      const res = await API.Documents.download(id);
+      if (res && res.url) {
+        if (forceDownload) {
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = res.url;
+          a.download = 'documento.pdf';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          newWin.location.href = res.url;
+        }
+      } else {
+        if (newWin) newWin.close();
+        throw new Error('URL non valido');
+      }
+    } catch(e) {
+      if (newWin) newWin.close();
+      UI.toast('Impossibile scaricare il documento', 'error');
+    } finally {
+      btn.innerHTML = txt;
+      btn.disabled = false;
+    }
+  };
+
   async function loadDocuments() {
     const el = $('cd-docs-list');
     if (!el) return;
@@ -630,17 +681,23 @@
         <div class="list-card">
           <div class="list-card-header">
             <div style="display:flex;align-items:center;gap:12px;">
-              <div class="list-card-title">${d.name || d.filename || 0}</div>
-              ${UI.pill(d.status || 'active')}
+              <div class="list-card-title">${d.name || d.filename || 'Documento'}</div>
             </div>
-            <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteDocument(event, '${d.id}')" title="Elimina">
-              <span style="font-size:16px;line-height:1;">🗑️</span>
-            </button>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="btn btn-ghost btn-xs text-primary" style="padding:4px;" onclick="window.downloadDocument(event, '${d.id}', false)" title="Visualizza">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg>
+              </button>
+              <button class="btn btn-ghost btn-xs" style="padding:4px;" onclick="window.downloadDocument(event, '${d.id}', true)" title="Scarica">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
+              </button>
+              <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteDocument(event, '${d.id}')" title="Elimina">
+                <span style="font-size:16px;line-height:1;">🗑️</span>
+              </button>
+            </div>
           </div>
           <div class="list-card-body">
             ${d.size ? `<div class="list-card-meta">${Math.round(d.size / 1000)} KB</div>` : ''}
             <div class="list-card-meta">${UI.date(d.created_at || d.uploaded)}</div>
-            ${d.download_url ? `<a href="${d.download_url}" target="_blank" class="btn btn-ghost btn-sm" style="margin-top:6px;">${I18n.t('common.download') || 'Scarica'}</a>` : ''}
           </div>
         </div>`).join('');
     } catch {
@@ -666,15 +723,17 @@
         <thead><tr>
           <th>Titolo</th><th>Data</th><th>Importo</th><th>Stato</th><th></th>
         </tr></thead>
-        <tbody>${data.map(q => `<tr>
+        <tbody>${data.map(q => `<tr class="hover-row" style="cursor:pointer;" onclick="location.href='admin_quotes.html?id=${q.id}'">
           <td class="z-rt-name">${q.title || q.quote_number || q.number || 'Preventivo'}</td>
           <td class="z-rt-date">${q.created_at ? UI.date(q.created_at) : ''}</td>
           <td class="z-rt-amt">${UI.currency(q.total_amount || q.total || 0, q.currency)}</td>
           <td>${UI.pill(q.status)}</td>
           <td>
             <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
-              <a href="admin_quotes.html?id=${q.id}" class="z-rt-link">Apri →</a>
-              <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteQuote(event, '${q.id}')" title="Elimina">
+              <button class="btn btn-ghost btn-xs text-primary" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.duplicateQuote(event, '${q.id}')" title="Duplica">
+                <span style="font-size:16px;line-height:1;">📄</span>
+              </button>
+              <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.deleteQuote(event, '${q.id}')" title="Elimina">
                 <span style="font-size:16px;line-height:1;">🗑️</span>
               </button>
             </div>
@@ -705,17 +764,20 @@
       }
       el.innerHTML = `<table class="z-rel-table">
         <thead><tr>
-          <th>N° Fattura</th><th>Data</th><th>Scadenza</th><th>Importo</th><th>Stato</th>
+          <th>N° Fattura</th><th>Data</th><th>Scadenza</th><th>Importo</th><th>Stato</th><th></th>
         </tr></thead>
-        <tbody>${data.map(i => `<tr>
+        <tbody>${data.map(i => `<tr class="hover-row" style="cursor:pointer;" onclick="location.href='admin_invoices.html?id=${i.id}'">
           <td class="z-rt-name">${i.invoice_number || i.number || ''}</td>
           <td class="z-rt-date">${i.issue_date ? UI.date(i.issue_date) : ''}</td>
           <td class="z-rt-date">${i.due_date ? UI.date(i.due_date) : ''}</td>
           <td class="z-rt-amt">${UI.currency(i.total_amount || i.total, i.currency)}</td>
           <td>
-            <div style="display:flex;align-items:center;gap:8px;">
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
               ${UI.pill(i.status)}
-              <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="window.deleteInvoice(event, '${i.id}')" title="Elimina">
+              <button class="btn btn-ghost btn-xs text-primary" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.duplicateInvoice(event, '${i.id}')" title="Duplica">
+                <span style="font-size:16px;line-height:1;">📄</span>
+              </button>
+              <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.deleteInvoice(event, '${i.id}')" title="Elimina">
                 <span style="font-size:16px;line-height:1;">🗑️</span>
               </button>
             </div>
@@ -844,7 +906,7 @@
   async function loadStorico() {
     if (window.ActivityTimeline) {
       await ActivityTimeline.init({
-        entityType: 'client',
+        entityType: 'onboarding',
         entityId: onboardingId,
         containerId: 'timeline-feed-container',
       });
@@ -854,6 +916,8 @@
       if (fc) fc.innerHTML = '<p style="color:red;font-size:13px;">Impossibile isolare la timeline. Componente mancante.</p>';
     }
   }
+  // Expose to global scope so window.switchMainView can call it
+  window.loadStorico = loadStorico;
 
   /* ── Timeline Note Compose ──────────────────────────────────── */
   window.saveTimelineNote = async () => {
@@ -1023,6 +1087,27 @@
     catch(e) { UI.toast(e.message, 'error'); }
   };
 
+  window.duplicateService = async (event, id) => {
+    event.stopPropagation();
+    try { await window.API.post(`/services/subscriptions/${id}/duplicate`, {}); UI.toast('Servizio duplicato', 'success'); loadServices(); }
+    catch(e) { UI.toast(e.message, 'error'); }
+  };
+  window.duplicateContract = async (event, id) => {
+    event.stopPropagation();
+    try { await window.API.post(`/contracts/${id}/duplicate`, {}); UI.toast('Contratto duplicato', 'success'); loadContracts(); }
+    catch(e) { UI.toast(e.message, 'error'); }
+  };
+  window.duplicateQuote = async (event, id) => {
+    event.stopPropagation();
+    try { await window.API.post(`/quotes/${id}/duplicate`, {}); UI.toast('Preventivo duplicato', 'success'); loadQuotes(); }
+    catch(e) { UI.toast(e.message, 'error'); }
+  };
+  window.duplicateInvoice = async (event, id) => {
+    event.stopPropagation();
+    try { await window.API.post(`/invoices/${id}/duplicate`, {}); UI.toast('Fattura duplicata', 'success'); loadInvoices(); }
+    catch(e) { UI.toast(e.message, 'error'); }
+  };
+
   /* ── Contract Modal (Upload Signed) ─────────────────────────── */
   $('cd-btn-add-contract')?.addEventListener('click', () => {
     $('modal-upload-contract')?.classList.add('open');
@@ -1054,6 +1139,51 @@
       UI.toast(e.message || 'Errore durante il caricamento del contratto', 'error');
     } finally {
       const btn = $('modal-contract-upload-save'); if (btn) btn.disabled = false;
+    }
+  });
+
+  /* ── Document Modal (Upload Generic Document) ───────────────── */
+  $('cd-btn-add-doc')?.addEventListener('click', () => {
+    $('modal-upload-document')?.classList.add('open');
+  });
+
+  $('modal-document-upload-save')?.addEventListener('click', async () => {
+    const title = $('fud-title')?.value?.trim();
+    const docType = $('fud-type')?.value?.trim() || 'other';
+    const fileInput = $('fud-file');
+    const file = fileInput?.files?.[0];
+
+    if (!file) { UI.toast('Seleziona un file da caricare', 'warning'); return; }
+
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('onboarding_id', onboardingId);
+    if (docType) fd.append('doc_type', docType);
+    if (title) fd.append('name', title);
+    else fd.append('name', file.name || 'Documento');
+
+    try {
+      const btn = $('modal-document-upload-save'); if(btn) btn.disabled = true;
+      UI.toast('Caricamento in corso...', 'info');
+      await window.API.Documents.upload(fd);
+      $('modal-upload-document').classList.remove('open');
+      UI.toast('Documento caricato con successo', 'success');
+      
+      $('fud-title').value = '';
+      if(fileInput) fileInput.value = '';
+      
+      if (typeof loadDocuments === 'function') loadDocuments();
+      if (typeof window.ActivityTimeline === 'object') {
+        window.ActivityTimeline.init({
+          entityType: 'onboarding',
+          entityId: onboardingId,
+          containerId: 'timeline-mnt'
+        });
+      }
+    } catch (e) {
+      UI.toast(e.message || 'Errore durante il caricamento del documento', 'error');
+    } finally {
+      const btn = $('modal-document-upload-save'); if(btn) btn.disabled = false;
     }
   });
 

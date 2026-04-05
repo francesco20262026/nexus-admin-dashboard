@@ -73,7 +73,7 @@
       ALL = ALL.map(q => ({ 
         ...q, 
         client_name: q.clients?.name || q.onboarding?.company_name || q.client_name || '',
-        supplier_name: q.supplier_company?.name || q.tenant_company?.name || 'Nova CRM'
+        supplier_name: q.supplier_company?.name || q.tenant_company?.name || '—'
       }));
       populateClientFilter();
       populateSupplierFilter();
@@ -533,7 +533,7 @@
 
       const supplierSel = $('q-supplier-company');
       if (supplierSel) {
-        supplierSel.innerHTML = '<option value="">Predefinita</option>' +
+        supplierSel.innerHTML = '<option value="">(Seleziona Fornitore)</option>' +
           comps.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       }
 

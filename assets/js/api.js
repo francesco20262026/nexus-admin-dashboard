@@ -134,7 +134,12 @@ const API = {
     }
 
     const opts = { method, headers: this._headers() };
-    if (body != null) opts.body = JSON.stringify(body);
+    if (body instanceof FormData) {
+      opts.body = body;
+      delete opts.headers['Content-Type'];
+    } else if (body != null) {
+      opts.body = JSON.stringify(body);
+    }
 
     let res;
     try {
@@ -219,8 +224,15 @@ const API = {
     }
 
     if (!res.ok) {
-      const b      = await res.json().catch(() => ({}));
-      const detail = b.detail || `Errore upload ${res.status}`;
+      const b = await res.json().catch(() => ({}));
+      let detail = `Errore upload ${res.status}`;
+      if (typeof b.detail === 'string') {
+        detail = b.detail;
+      } else if (Array.isArray(b.detail) && b.detail.length > 0) {
+        detail = b.detail.map(e => e.msg).join(' | ');
+      } else if (b.message) {
+        detail = b.message;
+      }
       throw new ApiError(detail, 'server', res.status);
     }
 
@@ -316,7 +328,8 @@ const API = {
     create:    (body)        => API.post('/contracts/', body),
     update:    (id, body)    => API.put(`/contracts/${id}`, body),
     remove:    (id)          => API.del(`/contracts/${id}`),
-    send:      (id)          => API.post(`/contracts/${id}/send-sign`, {}),
+    delete:    (id)          => API.del(`/contracts/${id}`),
+    send:      (id, body = {}) => API.post(`/contracts/${id}/send-sign`, body),
     compile:   (id)          => API.post(`/contracts/${id}/compile`, {}),
     uploadSigned: (fd)       => API.upload('/contracts/upload-signed', fd),
     templates:        (p={}) => API.get('/contracts/templates/list?' + _buildQuery(p, true)),

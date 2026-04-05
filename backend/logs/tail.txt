@@ -1,48 +1,200 @@
-0 - "GET /api/services/catalog?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&active_only=true HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/users?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/onboarding/d8dc9787-05e3-4c77-8027-66fb3229201a HTTP/1.1" 200 OK
-
------
-
-WeasyPrint could not import some external libraries. Please carefully follow the installation steps before reporting an issue:
-https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation
-https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#troubleshooting 
-
------
-
-INFO:     109.233.83.25:0 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "OPTIONS /api/dashboard/revenue-chart?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&months=6 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "OPTIONS /api/dashboard/kpi?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "OPTIONS /api/dashboard/recent-activity?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=8 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "OPTIONS /api/contracts/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=sent&limit=3 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "OPTIONS /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=overdue&limit=3 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/onboarding/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "OPTIONS /api/renewals/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&expiring_days=15&limit=3 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "OPTIONS /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=5 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "OPTIONS /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=unpaid&limit=5 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/contracts/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=sent&limit=3 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=overdue&limit=3 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/dashboard/recent-activity?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=8 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/dashboard/kpi?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/dashboard/revenue-chart?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&months=6 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&limit=5 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/invoices/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&status=unpaid&limit=5 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/renewals/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&expiring_days=15&limit=3 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/onboarding/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/services/catalog?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&active_only=true HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/users?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "OPTIONS /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/clients/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/onboarding/?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/services/catalog?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200&active_only=true HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/users?company_id=7cef5536-ced1-41ab-857c-f469c78247f1&page_size=200 HTTP/1.1" 200 OK
-INFO:     109.233.83.25:0 - "GET /api/onboarding/d8dc9787-05e3-4c77-8027-66fb3229201a HTTP/1.1" 200 OK
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\cors.py", line 95, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\cors.py", line 153, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 130, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 116, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 670, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 324, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\App\crm\backend\modules\invoices\router.py", line 787, in parse_and_create_inbound_pdf
+    if not res.data:
+          ^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\postgrest\_sync\request_builder.py", line 53, in execute
+    raise APIError(dict(json_obj))
+postgrest.exceptions.APIError: {'message': "Could not find the 'supplier_name' column of 'invoices' in the schema cache", 'code': 'PGRST204', 'hint': None, 'details': None}
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [21112]
+INFO:     Started server process [22828]
+INFO:     Waiting for application startup.
+WeasyPrint OS dependency missing. OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0' � missing OS libraries. Install: pango, cairo, libffi, gdk-pixbuf (e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0)
+PDF subsystem FAILED to load: OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0' � missing OS libraries. Install: pango, cairo, libffi, gdk-pixbuf (e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0) � contract send-sign will return HTTP 503. Fix: apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0 libffi-dev && pip install weasyprint
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 416, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\cors.py", line 95, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\cors.py", line 153, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 130, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 116, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 670, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 324, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\App\crm\backend\modules\invoices\router.py", line 1165, in delete_invoice
+    old = _require_invoice(invoice_id, str(user.active_company_id), select="id,number,status")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\App\crm\backend\modules\invoices\router.py", line 155, in _require_invoice
+    .eq("company_id", str(user.active_company_id))
+                          ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'active_company_id'
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 416, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\cors.py", line 95, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\cors.py", line 153, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 130, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Program Files\Python311\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 116, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 670, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python311\Lib\site-packages\fastapi\routing.py", line 324, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\App\crm\backend\modules\invoices\router.py", line 1165, in delete_invoice
+    old = _require_invoice(invoice_id, str(user.active_company_id), select="id,number,status")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\App\crm\backend\modules\invoices\router.py", line 155, in _require_invoice
+    .eq("company_id", str(user.active_company_id))
+                          ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'active_company_id'
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [22828]
+INFO:     Started server process [19340]
+INFO:     Waiting for application startup.
+WeasyPrint OS dependency missing. OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0' � missing OS libraries. Install: pango, cairo, libffi, gdk-pixbuf (e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0)
+PDF subsystem FAILED to load: OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0' � missing OS libraries. Install: pango, cairo, libffi, gdk-pixbuf (e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0) � contract send-sign will return HTTP 503. Fix: apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0 libffi-dev && pip install weasyprint
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+Parse PDF: failed to auto-create client for VAT 00029516: {'message': 'null value in column "name" of relation "clients" violates not-null constraint', 'code': '23502', 'hint': None, 'details': 'Failing row contains (ad44e8b0-b12a-492a-bc12-1d10ea7e2e0c, 7cef5536-ced1-41ab-857c-f469c78247f1, null, null, null, null, null, 00029516, null, null, it, active, null, null, 2026-04-03 10:03:15.172944+00, 2026-04-03 10:03:15.172944+00, IT SERVICES & HUMAN JOB TALENT S.R.L., null, null).'}
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [19340]
+INFO:     Started server process [11952]
+INFO:     Waiting for application startup.
+WeasyPrint OS dependency missing. OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0' � missing OS libraries. Install: pango, cairo, libffi, gdk-pixbuf (e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0)
+PDF subsystem FAILED to load: OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0' � missing OS libraries. Install: pango, cairo, libffi, gdk-pixbuf (e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0) � contract send-sign will return HTTP 503. Fix: apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0 libffi-dev && pip install weasyprint
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+Parse PDF: failed to auto-create client for VAT 00029516: {'message': 'null value in column "name" of relation "clients" violates not-null constraint', 'code': '23502', 'hint': None, 'details': 'Failing row contains (2202dca3-6060-4dde-80a3-517935cfb03a, 7cef5536-ced1-41ab-857c-f469c78247f1, null, null, null, null, null, 00029516, null, null, it, active, null, null, 2026-04-03 10:06:01.555722+00, 2026-04-03 10:06:01.555722+00, IT SERVICES & HUMAN JOB TALENT S.R.L., null, null).'}
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [11952]
+INFO:     Started server process [8976]
+INFO:     Waiting for application startup.
+WeasyPrint OS dependency missing. OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0' � missing OS libraries. Install: pango, cairo, libffi, gdk-pixbuf (e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0)
+PDF subsystem FAILED to load: OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0' � missing OS libraries. Install: pango, cairo, libffi, gdk-pixbuf (e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0) � contract send-sign will return HTTP 503. Fix: apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0 libffi-dev && pip install weasyprint
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+OpenAI parsing failed: could not convert string to float: '1.856,37'. Falling back to Regex.

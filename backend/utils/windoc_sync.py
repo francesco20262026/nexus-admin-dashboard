@@ -167,3 +167,81 @@ async def sync_invoice_to_windoc(supabase, invoice_id: str, company_id: str) -> 
             "url_dir": result.get("url_dir")
         }
     return {"success": False, "error": "Winddoc non ha ritornato un ID valido."}
+
+async def sync_purchases_from_windoc(supabase, company_id: str, mese: str = "", anno: str = "") -> Dict[str, Any]:
+    """
+    Recupera le fatture di acquisto da Winddoc e le salva nel CRM.
+    Method presunto: acquisti_lista (o simile).
+    """
+    from database import safe_single
+    q_integ = supabase.table("integrations").select("config").eq("company_id", company_id).eq("type", "windoc").maybe_single().execute()
+    integ = q_integ.data
+    if not integ or not integ.get("config"):
+        return {"success": False, "error": "Integrazione Winddoc non configurata per l'azienda."}
+    
+    token = integ["config"].get("windoc_token")
+    token_app = integ["config"].get("windoc_token_app")
+
+    params = {}
+    if mese: params["mese"] = mese
+    if anno: params["anno"] = anno
+
+    # Chiamata all'API winddoc.
+    # Da documentazione: il metodo per gli acquisti potrebbe chiamarsi acquisti_lista o spese_lista
+    # Qui usiamo 'acquisti_lista' come default logico. Modificare se Winddoc richiede altro.
+    result = await call_windoc_api("acquisti_lista", token, token_app, params)
+    
+    if result.get("error") or not result.get("success", True):
+        return {"success": False, "error": result.get("message") or "Errore recupero acquisti da Winddoc"}
+        
+    lista = result.get("lista") or []
+    if not lista:
+        return {"success": True, "imported": 0, "message": "Nessuna fattura trovata in questo periodo."}
+
+    imported_count = 0
+    errors = []
+
+    for item in lista:
+        # Estrai identificativi: id o id_acquisto da windoc
+        windoc_id = str(item.get("id_acquisto") or item.get("id", ""))
+        numero = item.get("numero_documento") or item.get("numero") or ""
+        
+        if not windoc_id:
+            continue
+            
+        # Controlla se l'abbiamo gia' importata
+        existing = safe_single(supabase.table("invoices").select("id").eq("windoc_id", windoc_id).eq("company_id", company_id).maybe_single())
+        if existing.data:
+            continue # Già importata
+            
+        supplier_name = item.get("ragione_sociale") or item.get("fornitore_nome") or "Fornitore Sconosciuto"
+        supplier_vat = item.get("fornitore_piva") or item.get("piva") or ""
+        
+        # Mapping base dei dati
+        import_data = {
+            "company_id": company_id,
+            "direction": "inbound",  # <= FONDAMENTALE
+            "number": numero,
+            "issue_date": item.get("data") or None,
+            "due_date": item.get("data_scadenza") or None,
+            "total": float(item.get("totale") or 0.0),
+            "status": "paid" if item.get("stato") == "pagata" else "sent",
+            "supplier_name": supplier_name,
+            "windoc_id": windoc_id,
+            "windoc_number": numero,
+            "parsed_data": item # Salva raw per sicurezza
+        }
+        
+        try:
+            supabase.table("invoices").insert(import_data).execute()
+            imported_count += 1
+        except Exception as exc:
+            logger.error(f"Failed to insert inbound invoice da Winddoc: {exc}")
+            errors.append(str(exc))
+
+    return {
+        "success": True,
+        "imported": imported_count,
+        "errors": len(errors),
+        "details": errors
+    }

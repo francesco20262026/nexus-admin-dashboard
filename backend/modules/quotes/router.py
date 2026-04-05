@@ -82,23 +82,13 @@ async def _auto_compile_and_send_contract(
             "compiled_at": today.isoformat(),
         }).eq("id", contract_id).eq("company_id", company_id).execute()
 
-        # Generate PDF and send
-        from core_services.pdf_service import generate_pdf_from_html
-        from integrations.email_service import send_templated_email
-        from config import settings
-        pdf_bytes = generate_pdf_from_html(compiled)
-        frontend_url = getattr(settings, "FRONTEND_URL", "https://crm.delocanova.com")
-        await send_templated_email(
-            company_id=company_id,
-            to_email=recipient_email,
-            template_type="contract_send",
-            lang="it",
-            variables={"client_name": client_name, "client_portal_url": frontend_url},
-            attachments=[(f"Contratto_{contract_id[:8]}.pdf", pdf_bytes)],
-        )
-
-        # Mark contract as sent
-        supabase.table("contracts").update({"status": "sent"}).eq("id", contract_id).eq("company_id", company_id).execute()
+        # Generate PDF and send via the unified contract dispatch method (Zoho Sign natively, fallback to Email)
+        from modules.contracts.router import send_for_signature
+        try:
+            await send_for_signature(contract_id=UUID(contract_id), payload={"method": "zoho"}, user=user)
+        except Exception as zoho_exc:
+            logger.warning("_auto_compile_and_send_contract: Zoho Sign failed for %s, falling back to email: %s", contract_id, zoho_exc)
+            await send_for_signature(contract_id=UUID(contract_id), payload={"method": "email"}, user=user)
 
         auto_advance_onboarding(
             company_id=company_id,

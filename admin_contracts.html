@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="assets/css/header_bar.css">
 <link rel="stylesheet" href="assets/css/filter_bar.css">
 <link rel="stylesheet" href="assets/css/search_bar.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
 /* ── Two-view toggle ──────────────────────────────── */
 .ctr-view-toggle { display:flex; gap:0; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; }
@@ -43,8 +44,8 @@
 .ctr-grid-row:hover { background:var(--surface-hover); }
 .ctr-grid-row:last-child { border-bottom:none; }
 .tpl-row { grid-template-columns: 2fr 1fr 1fr 1fr 80px 120px 160px; gap:12px; }
-.ctr-row { grid-template-columns: 1.4fr 1fr 1.6fr 1fr 1.2fr 110px 120px 140px; gap:12px; }
-.ctr-row-header { grid-template-columns: 1.4fr 1fr 1.6fr 1fr 1.2fr 110px 120px 140px; gap:12px; }
+.ctr-row { grid-template-columns: 1.4fr 1.4fr 1.2fr 1fr 1.2fr 110px 120px 140px; gap:12px; }
+.ctr-row-header { grid-template-columns: 1.4fr 1.4fr 1.2fr 1fr 1.2fr 110px 120px 140px; gap:12px; }
 
 /* ── Origin badge ─────────────────────────────────── */
 .origin-badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; padding:3px 8px; border-radius:6px; white-space:nowrap; }
@@ -74,6 +75,17 @@
 
 /* ── Empty / skeleton ─────────────────────────────── */
 .ctr-empty { text-align:center; padding:64px 24px; color:var(--gray-400); font-size:14px; }
+
+/* ── Mac-style Swal ───────────────────────────────── */
+.swal-mac-popup { border-radius:18px !important; box-shadow:0 20px 40px rgba(0,0,0,0.15) !important; padding:0 !important; font-family:"Inter",sans-serif; }
+.swal-mac-actions { display:flex; flex-direction:column; gap:8px; width:100% !important; margin:0 !important; padding:0 24px 24px !important; }
+.swal-mac-btn { width:100%; margin:0 !important; padding:10px 16px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px; border:none; transition:all 0.15s; outline:none; }
+.swal-mac-btn-primary { background:var(--brand-600) !important; color:#fff !important; }
+.swal-mac-btn-primary:active { background:var(--brand-700) !important; transform:scale(0.98); }
+.swal-mac-btn-secondary { background:#e2e8f0 !important; color:#0f172a !important; }
+.swal-mac-btn-secondary:active { background:#cbd5e1 !important; transform:scale(0.98); }
+.swal-mac-btn-cancel { background:transparent !important; color:#64748b !important; font-weight:500; font-size:13px; }
+.swal-mac-btn-cancel:hover { background:#f1f5f9 !important; color:#334155 !important; }
 </style>
 </head>
 <body>
@@ -312,7 +324,7 @@
      MODAL — Template (create / edit)
 ═══════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-template">
-<div class="modal onb-form-modal" style="max-width:720px;width:95vw;">
+<div class="modal onb-form-modal" style="max-width:1200px;width:95vw;">
   <div class="modal-header" style="padding:20px 24px 16px;">
     <div style="display:flex;align-items:flex-start;gap:12px;">
       <div style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#f0f9ff;color:#0369a1;">
@@ -327,60 +339,108 @@
       <svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
     </button>
   </div>
-  <div class="modal-body" style="max-height:calc(90vh - 148px);overflow-y:auto;padding:20px 24px;">
-    <div class="modal-section-label">Identificazione</div>
-    <div style="border-left:2px solid #bfdbfe;padding-left:16px;margin-bottom:20px;">
-      <div class="form-grid">
-        <div class="form-group" style="grid-column:1/-1;">
-          <label class="form-label">Nome template *</label>
-          <input class="form-input" id="t-name" placeholder="es. Contratto Servizi Mensili – Delocanova" type="text">
+  <div class="modal-body" style="max-height:calc(90vh - 148px);display:flex;flex:1;min-height:0;overflow:hidden;padding:0;">
+    <!-- Main Form Section -->
+    <div style="flex:1;overflow-y:auto;padding:20px 24px;">
+      <div class="modal-section-label">Identificazione</div>
+      <div style="border-left:2px solid #bfdbfe;padding-left:16px;margin-bottom:20px;">
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Nome template *</label>
+            <input class="form-input" id="t-name" placeholder="es. Contratto Servizi Mensili – Delocanova" type="text">
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Azienda Fornitrice</label>
+            <select class="form-input" id="t-supplier">
+              <option value="">– Nessuna (template globale) –</option>
+            </select>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Associa il template a una specifica azienda fornitrice. Se lasciato vuoto vale per tutte.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo contratto</label>
+            <select class="form-input" id="t-type">
+              <option value="">– Seleziona –</option>
+              <option value="service">Servizi</option>
+              <option value="maintenance">Manutenzione</option>
+              <option value="consulting">Consulenza</option>
+              <option value="other">Altro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Versione</label>
+            <input class="form-input" id="t-version" placeholder="es. 1.0, 2025-v2" type="text">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lingua</label>
+            <select class="form-input" id="t-lang">
+              <option value="it">Italiano</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:24px;">
+            <input type="checkbox" id="t-active" style="width:16px;height:16px;accent-color:var(--brand-600);" checked>
+            <label for="t-active" class="form-label" style="margin:0;cursor:pointer;">Attivo (usabile per nuovi contratti)</label>
+          </div>
         </div>
+      </div>
+      <div class="modal-section-label">Contenuto</div>
+      <div style="border-left:2px solid #fde68a;padding-left:16px;margin-bottom:20px;">
         <div class="form-group">
-          <label class="form-label">Tipo contratto</label>
-          <select class="form-input" id="t-type">
-            <option value="">– Seleziona –</option>
-            <option value="service">Servizi</option>
-            <option value="maintenance">Manutenzione</option>
-            <option value="consulting">Consulenza</option>
-            <option value="other">Altro</option>
-          </select>
+          <label class="form-label">Corpo del template (HTML o testo con placeholder {{…}})</label>
+          <textarea class="form-input" id="t-content" placeholder="Inserisci il testo del contratto. Usa {{cliente_nome}}, {{fornitore_nome}}, {{servizio_nome}}, {{data_oggi}} ecc." style="font-family:monospace;font-size:13px;resize:vertical;white-space:pre;min-height:480px;width:100%;box-sizing:border-box;line-height:1.65;tab-size:4;"></textarea>
         </div>
-        <div class="form-group">
-          <label class="form-label">Versione</label>
-          <input class="form-input" id="t-version" placeholder="es. 1.0, 2025-v2" type="text">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Lingua</label>
-          <select class="form-input" id="t-lang">
-            <option value="it">Italiano</option>
-            <option value="en">English</option>
-          </select>
-        </div>
-        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:24px;">
-          <input type="checkbox" id="t-active" style="width:16px;height:16px;accent-color:var(--brand-600);" checked>
-          <label for="t-active" class="form-label" style="margin:0;cursor:pointer;">Attivo (usabile per nuovi contratti)</label>
+      </div>
+      <div class="modal-section-label">Governance</div>
+      <div style="border-left:2px solid #bbf7d0;padding-left:16px;">
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Note operative / Regole di utilizzo</label>
+            <textarea class="form-input" id="t-notes" rows="2" placeholder="es. Usare solo per clienti in regime forfettario…" style="resize:vertical;"></textarea>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="t-default" style="width:16px;height:16px;accent-color:var(--brand-600);">
+            <label for="t-default" class="form-label" style="margin:0;cursor:pointer;">Template predefinito</label>
+          </div>
         </div>
       </div>
     </div>
-    <div class="modal-section-label">Contenuto</div>
-    <div style="border-left:2px solid #fde68a;padding-left:16px;margin-bottom:20px;">
-      <div class="form-group">
-        <label class="form-label">Corpo del template (HTML o testo con placeholder {{…}})</label>
-        <textarea class="form-input" id="t-content" rows="10" placeholder="Inserisci il testo del contratto. Usa {{cliente_nome}}, {{fornitore_nome}}, {{servizio_nome}}, {{data_oggi}} ecc." style="font-family:monospace;font-size:12px;resize:vertical;"></textarea>
-      </div>
-    </div>
-    <div class="modal-section-label">Governance</div>
-    <div style="border-left:2px solid #bbf7d0;padding-left:16px;">
-      <div class="form-grid">
-        <div class="form-group" style="grid-column:1/-1;">
-          <label class="form-label">Note operative / Regole di utilizzo</label>
-          <textarea class="form-input" id="t-notes" rows="2" placeholder="es. Usare solo per clienti in regime forfettario…" style="resize:vertical;"></textarea>
-        </div>
-        <div class="form-group" style="grid-column:1/-1;display:flex;align-items:center;gap:10px;">
-          <input type="checkbox" id="t-default" style="width:16px;height:16px;accent-color:var(--brand-600);">
-          <label for="t-default" class="form-label" style="margin:0;cursor:pointer;">Template predefinito</label>
-        </div>
-      </div>
+    
+    <!-- Variables sidebar -->
+    <div style="width:230px;flex-shrink:0;border-left:1px solid var(--border);padding:14px 12px;overflow-y:auto;background:#fafafa;font-size:12px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:6px;">Variabili</div>
+      <div style="font-size:10px;color:#9ca3af;margin-bottom:8px;">Clicca per inserire nel testo</div>
+      
+      <div style="font-weight:600;color:#374151;margin:6px 0 3px;font-size:11px;">?? Cliente</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('cliente_nome')">{{cliente_nome}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('cliente_piva')">{{cliente_piva}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('cliente_email')">{{cliente_email}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('cliente_indirizzo')">{{cliente_indirizzo}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('cliente_citta')">{{cliente_citta}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('cliente_pec')">{{cliente_pec}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('cliente_sdi')">{{cliente_sdi}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('cliente_cf')">{{cliente_cf}}</div>
+      
+      <div style="font-weight:600;color:#374151;margin:8px 0 3px;font-size:11px;">?? Nostra azienda</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('fornitore_nome')">{{fornitore_nome}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('fornitore_piva')">{{fornitore_piva}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('fornitore_cf')">{{fornitore_cf}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('fornitore_indirizzo')">{{fornitore_indirizzo}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('fornitore_email')">{{fornitore_email}}</div>
+      
+      <div style="font-weight:600;color:#374151;margin:8px 0 3px;font-size:11px;">?? Servizio</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('servizio_nome')">{{servizio_nome}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('servizio_descrizione')">{{servizio_descrizione}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('servizi_elenco')" style="background:#f0fdfa; color:#0f766e; border-color:#99f6e4;">{{servizi_elenco}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('tabella_servizi')" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">{{tabella_servizi}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('servizio_prezzo')">{{servizio_prezzo}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('servizio_periodicita')">{{servizio_periodicita}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('servizio_clausole')" style="background:var(--brand-light);color:var(--brand);border-color:var(--brand-light);">{{servizio_clausole}}</div>
+      
+      <div style="font-weight:600;color:#374151;margin:8px 0 3px;font-size:11px;">?? Date</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('data_oggi')">{{data_oggi}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('data_inizio')">{{data_inizio}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('data_fine')">{{data_fine}}</div>
+      <div class="ct-var-chip" onclick="ctInsertVar('anno')">{{anno}}</div>
     </div>
   </div>
   <div class="modal-footer" style="padding:16px 24px;display:flex;justify-content:flex-end;gap:12px;border-top:1px solid #e5e7eb;background:#f9fafb;border-bottom-left-radius:12px;border-bottom-right-radius:12px;">

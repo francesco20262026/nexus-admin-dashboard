@@ -35,8 +35,13 @@
     renderPageActions();
     renderPills();
     renderGridHeader();
-    if (v === 'contracts') applyFiltersCtr();
-    else applyFiltersTpl();
+    if (v === 'contracts') {
+      if (!ALL_CTR.length) window.loadContracts();
+      else applyFiltersCtr();
+    } else {
+      if (!ALL_TPL.length) window.loadTemplates();
+      else applyFiltersTpl();
+    }
   });
 
   // ─── Page Actions (CTA buttons top-right) ────────────────────
@@ -68,12 +73,10 @@
   const CTR_TABS = [
     { tab:'all',      label:'Tutti' },
     { tab:'draft',    label:'Bozze' },
-    { tab:'sent',     label:'Inviati' },
-    { tab:'signing',  label:'In firma' },
+    { tab:'sent',     label:'Inviati / In firma' },
     { tab:'signed',   label:'Firmati' },
     { tab:'archived', label:'Archiviati' },
-    { tab:'from_quote',     label:'📋 Da preventivo', origin:true },
-    { tab:'supplier_change',label:'🔄 Cambio fornitore', origin:true },
+    { tab:'error',    label:'Errore' },
   ];
   const TPL_TABS = [
     { tab:'all',     label:'Tutti' },
@@ -139,7 +142,7 @@
         </div>
         <div style="display:flex;align-items:center;justify-content:flex-end;"><div>Azioni</div></div>`;
     } else {
-      el.className = 'mac-header-row tpl-row-header';
+      el.className = 'mac-header-row tpl-row';
       el.style.cssText = 'display: grid; align-items:center; padding: 12px 24px; border-bottom: 1px solid var(--border); background: #f9fafb; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-top-left-radius: 12px; border-top-right-radius: 12px; user-select: none;';
       el.innerHTML = `
         <div class="cl-col-identity">
@@ -217,6 +220,7 @@
         ...c,
         client_name:   c.clients?.name || c.clients?.email || c.onboarding?.company_name || c.onboarding?.email || '—',
         template_name: c.document_templates?.name || '—',
+        supplier_name: c.companies?.name || '—',
         origin:        c.origin || (c.quote_id ? 'from_quote' : 'direct'),
       }));
     } catch (e) {
@@ -234,13 +238,12 @@
     const supplier = $('ctr-filter-supplier')?.value || '';
 
     filteredCtr = ALL_CTR.filter(c => {
-      // 1. Check Pills
+      // 1. Check Pills (Status only now)
       const tab = activeTabCtr;
       if (tab !== 'all') {
-        if (tab === 'signing') {
-          if (c.status !== 'signing' && c.status !== 'sent') return false;
-        } else if (['from_quote','supplier_change','direct'].includes(tab)) {
-          if (c.origin !== tab) return false;
+        if (tab === 'sent') {
+          // Sent groups sent and signing
+          if (c.status !== 'sent' && c.status !== 'signing') return false;
         } else {
           if (c.status !== tab) return false;
         }
@@ -304,7 +307,7 @@
         <div style="font-size:12px;color:var(--gray-600);">
           ${sent ? `<div>Inv: <b>${sent}</b></div>` : ''}
           ${signed ? `<div>Firm: <b>${signed}</b></div>` : ''}
-          ${c.valid_to ? `<div style="color:var(--gray-400);">Scade: ${UI.date(c.valid_to)}</div>` : ''}
+          ${(c.valid_to && !c.onboarding_id) ? `<div style="color:var(--gray-400);">Scade: ${UI.date(c.valid_to)}</div>` : ''}
           ${!sent && !signed && !c.valid_to ? `<div style="color:var(--gray-300);">—</div>` : ''}
         </div>
         <div>${UI.pill(c.status || 'draft')}</div>
@@ -492,7 +495,7 @@
       clearSelection();
       UI.toast(`Eliminazione completata limitatamente agli elementi non protetti.`);
     } catch (e) {
-      UI.error('Errore durante l\'eliminazione. Alcuni elementi potrebbero essere protetti.');
+      UI.toast(e?.message || 'Errore durante l\'eliminazione. Alcuni elementi potrebbero essere protetti.', 'error');
     }
   };
 
@@ -545,8 +548,17 @@
       `<option value="${t.id}">${escHtml(t.name)}${t.version ? ' v'+t.version : ''}</option>`
     ).join('');
 
+    // Suppliers (Aziende fornitrici)
+    const cps = Array.isArray(compsRes) ? compsRes : (compsRes?.data ?? compsRes?.items ?? []);
+    if (wSup) {
+      wSup.innerHTML = '<option value="">Tutte le aziende fornitrici</option>' + cps.map(c => 
+        `<option value="${c.id}">${escHtml(c.name)}</option>`
+      ).join('');
+    }
+
     // Services
     window._services = Array.isArray(srvsRes) ? srvsRes : (srvsRes?.data ?? srvsRes?.items ?? []);
+
     
     function renderSvc(supId) {
        if (!wsList) return;
@@ -668,7 +680,7 @@
   });
 
   // ─── Template modal ───────────────────────────────────────────
-  window.openTemplateModal = function(editId = null) {
+  window.openTemplateModal = async function(editId = null) {
     const modal = $('modal-template'); if (!modal) return;
     $('modal-tpl-title').textContent = editId ? 'Modifica template' : 'Nuovo template';
     $('btn-save-tpl-label').textContent = editId ? 'Salva modifiche' : 'Crea template';
@@ -679,8 +691,19 @@
       const td=$('t-default'); if(td) td.checked=false;
       const tt=$('t-type'); if(tt) tt.value='';
       const tl=$('t-lang'); if(tl) tl.value='it';
+      const ts=$('t-supplier'); if(ts) ts.value='';
     }
     modal.classList.add('open');
+    // Populate supplier dropdown
+    const tSup = $('t-supplier');
+    if (tSup && tSup.options.length <= 1) {
+      try {
+        const compsRes = await API.Companies.list().catch(() => null);
+        const cps = Array.isArray(compsRes) ? compsRes : (compsRes?.data ?? compsRes?.items ?? []);
+        tSup.innerHTML = '<option value="">– Nessuna (template globale) –</option>' +
+          cps.map(c => `<option value="${c.id}">${escHtml(c.name)}</option>`).join('');
+      } catch(e) { /* ignore */ }
+    }
   };
 
   window.editTemplate = async function(id) {
@@ -691,6 +714,7 @@
       openTemplateModal(id);
       setTimeout(() => {
         const setVal = (elId, val) => { const el=$(elId); if(el && val!=null) el.value=val; };
+        setVal('t-supplier', data.supplier_company_id || '');
         setVal('t-name', data.name);
         setVal('t-content', data.content);
         setVal('t-type', data.contract_type || '');
@@ -711,6 +735,7 @@
       openTemplateModal(null);
       setTimeout(() => {
         const setVal = (elId, val) => { const el=$(elId); if(el && val!=null) el.value=val; };
+        setVal('t-supplier', data.supplier_company_id || '');
         setVal('t-name', data.name + ' (Copia)');
         setVal('t-content', data.content);
         setVal('t-type', data.contract_type || '');
@@ -741,6 +766,19 @@
     } catch(e) { UI.toast(e?.message||'Errore eliminazione', 'error'); }
   };
 
+  /** Insert dynamic variable into textarea */
+  window.ctInsertVar = function(varName) {
+    const ta = document.getElementById('t-content');
+    if(!ta) return;
+    const ins = `{{${varName}}}`;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = ta.value;
+    ta.value = text.substring(0, start) + ins + text.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + ins.length;
+    ta.focus();
+  };
+
   $('btn-save-template')?.addEventListener('click', async () => {
     const btn = $('btn-save-template');
     const name = $('t-name')?.value?.trim();
@@ -758,6 +796,7 @@
       contract_type: $('t-type')?.value || null,
       version: $('t-version')?.value?.trim() || null,
       notes: $('t-notes')?.value?.trim() || null,
+      supplier_company_id: $('t-supplier')?.value || null,
     };
 
     btn.disabled = true;
@@ -831,17 +870,11 @@
       const title = c?.title || c?.data?.title || 'Contratto';
       if (!raw) { UI.toast('Nessun template associato al contratto', 'warning'); return; }
 
-      const isHtml = /<[a-z][\s\S]*>/i.test(raw);
       let body = raw;
-      if (!isHtml) {
-        body = raw.replace(/\r\n/g, '\n')
-          .replace(/(^|\n)(\d+\.\s+[A-ZÀÈÌÒÙ][^\n]{0,80})/g, (_,pre,h) =>
-            `\n<h2 style="font-size:15px;font-family:Georgia,serif;text-transform:uppercase;border-bottom:1px solid #ddd;padding-bottom:4px;margin:28px 0 10px;">${h.trim()}</h2>\n`)
-          .split(/\n{2,}/).map(p => p.trim() ? `<p style="margin:0 0 10px;text-align:justify;">${p.replace(/\n/g,' ')}</p>` : '').join('\n');
-      }
+      // Note: Newlines and spaces are preserved via CSS white-space: pre-wrap
       const html = `<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><title>${escHtml(title)}</title>
-        <style>*{box-sizing:border-box}body{font-family:Georgia,serif;max-width:210mm;margin:0 auto;padding:20mm;font-size:11pt;line-height:1.7;color:#111;background:#fff}
-        h2{font-size:12pt;text-transform:uppercase;border-bottom:1px solid #ccc;padding-bottom:3px;margin:24pt 0 8pt}p{margin:0 0 8pt;text-align:justify}
+        <style>*{box-sizing:border-box}body{font-family:Georgia,serif;max-width:210mm;margin:0 auto;padding:20mm;font-size:11pt;line-height:1.7;color:#111;background:#fff;white-space:pre-wrap;}
+        table{white-space:normal;}h2{font-size:12pt;text-transform:uppercase;border-bottom:1px solid #ccc;padding-bottom:3px;margin:24pt 0 8pt}p{margin:0 0 8pt;text-align:justify}
         .no-print{position:fixed;top:16px;right:16px;display:flex;gap:8px;z-index:999}@media print{.no-print{display:none}body{padding:15mm}}</style></head>
         <body><div class="no-print">
           <button onclick="window.print()" style="padding:8px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;">🖨 Stampa / PDF</button>
@@ -860,11 +893,42 @@
   window.editContract = id => openContractModal(id);
 
   window.sendContract = async function(id) {
-    if (!confirm('Inviare il contratto per firma via email?')) return;
+    const res = await Swal.fire({
+      html: `
+        <div style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+          <div style="width:48px;height:48px;background:#e0e7ff;color:#4f46e5;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" width="24" height="24" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"></path></svg>
+          </div>
+          <h3 style="font-size:18px; font-weight:700; color:#111; margin:0 0 8px;">Invia Contratto</h3>
+          <p style="font-size:13px; color:#555; margin:0; line-height:1.5;">Seleziona la modalità di firma. La modalità digitale automatizza la fatturazione.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: 'Firma Digitale (Zoho)',
+      denyButtonText: 'Email Classica (PDF)',
+      cancelButtonText: 'Annulla',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'swal-mac-popup',
+        actions: 'swal-mac-actions',
+        confirmButton: 'swal-mac-btn swal-mac-btn-primary',
+        denyButton: 'swal-mac-btn swal-mac-btn-secondary',
+        cancelButton: 'swal-mac-btn swal-mac-btn-cancel'
+      },
+      width: 420,
+      padding: '24px 20px 24px',
+      showCloseButton: false,
+      focusConfirm: false
+    });
+
+    if (res.isDismissed) return;
+    const method = res.isConfirmed ? 'zoho' : 'email';
+
     try {
-      await API.Contracts.send(id);
+      await API.Contracts.send(id, { method });
       ALL_CTR = ALL_CTR.map(c => c.id===id ? {...c, status:'sent'} : c);
-      UI.toast('Contratto inviato per firma', 'success');
+      UI.toast(method === 'zoho' ? 'Contratto inviato tramite Zoho Sign' : 'Contratto inviato via Email', 'success');
       applyFiltersCtr();
     } catch(e) { UI.toast(e?.message||'Errore invio', 'error'); }
   };
@@ -923,6 +987,7 @@
   // ─── Init ─────────────────────────────────────────────────────
   window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');
+    document.querySelectorAll('.ctr-view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === activeView));
     renderPageActions();
     renderPills();
     renderGridHeader();
@@ -932,7 +997,11 @@
     const fromQuoteId  = params.get('quote_id');
     const fromClientId = params.get('client_id');
 
-    await loadContracts();
+    if (activeView === 'contracts') {
+      await loadContracts();
+    } else {
+      await loadTemplates();
+    }
 
     if (fromQuoteId) {
       const prefill = { origin: 'from_quote', client_id: fromClientId || undefined };

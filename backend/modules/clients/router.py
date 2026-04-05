@@ -2,7 +2,7 @@
 modules/clients/router.py — CRUD + contacts + Windoc sync
 """
 import logging
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from pydantic import BaseModel, EmailStr, field_validator
 from uuid import UUID
 from typing import Optional
@@ -46,7 +46,9 @@ class ClientCreate(BaseModel):
     windoc_id: Optional[str] = None        # pre-set when importing from Windoc
     force_create: bool = False              # bypass soft (name/email) duplicate warning
     invite_portal: bool = False             # send portal invite email after creation
+    is_supplier: bool = False               # flags this entity as a supplier
     company_id: Optional[str] = None       # override tenant (admin only)
+    alias: Optional[str] = None            # custom alias
 
     @field_validator("status")
     @classmethod
@@ -59,6 +61,7 @@ class ClientUpdate(BaseModel):
     name: Optional[str] = None
     company_name: Optional[str] = None
     email: Optional[EmailStr] = None
+    is_supplier: Optional[bool] = None
     phone: Optional[str] = None
     city: Optional[str] = None
     address: Optional[str] = None
@@ -75,6 +78,7 @@ class ClientUpdate(BaseModel):
     notes: Optional[str] = None
     windoc_id: Optional[str] = None     # stored after Windoc sync; updatable by admin
     company_id: Optional[str] = None
+    alias: Optional[str] = None
 
     @field_validator("status")
     @classmethod
@@ -194,14 +198,22 @@ def _check_client_duplicates(
 
 @router.get("/")
 async def list_clients(
+    request: Request,
     status_filter: Optional[str] = Query(None, alias="status"),
     search: Optional[str] = None,
+    is_supplier: Optional[bool] = Query(None),
     company_id: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     user: CurrentUser = Depends(get_current_user),
 ):
-    q = supabase.table("v_clients").select("*", count="exact")
+    with open("debug_request.txt", "a") as f:
+        f.write(f"RAW URL: {request.url}\n")
+        f.write(f"RAW QUERY PARAMS: {request.query_params}\n")
+        f.write(f"PARAMS: is_supplier={is_supplier}, company={company_id}\n")
+
+    table_name = "clients" if is_supplier is not None else "v_clients"
+    q = supabase.table(table_name).select("*", count="exact")
     
     if user.is_admin:
         if company_id:
@@ -214,11 +226,17 @@ async def list_clients(
     
     if status_filter:
         q = q.eq("status", status_filter)
+    if is_supplier is not None:
+        q = q.eq("is_supplier", is_supplier)
+    else:
+        q = q.eq("is_supplier", False)
     if search:
         q = q.ilike("name", f"%{search}%")
 
     offset = (page - 1) * page_size
+    print(f"DEBUG /clients -> params: company={company_id}, is_supplier={is_supplier}")
     res = q.order("name").range(offset, offset + page_size - 1).execute()
+    print(f"DEBUG /clients -> returned len: {len(res.data or [])}")
     return {"data": res.data or [], "total": res.count or 0, "page": page, "page_size": page_size}
 
 

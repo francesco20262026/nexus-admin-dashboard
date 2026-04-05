@@ -3,10 +3,10 @@ modules/invoices/router.py — Invoices, Proforma, Payment tracking
 Phase 3: is_proforma, payment_status, payment_method, payment_proof, onboarding_id
 """
 import logging
-from fastapi import APIRouter, HTTPException, status, Depends, Query
-from pydantic import BaseModel, field_validator
+from fastapi import APIRouter, HTTPException, status, Depends, Query, Request, UploadFile, File, BackgroundTasks
+from pydantic import BaseModel, field_validator, UUID4, Field
 from uuid import UUID
-from typing import Optional
+from typing import Optional, List
 from datetime import date, datetime, timezone
 
 from auth.middleware import get_current_user, require_admin, CurrentUser
@@ -15,7 +15,8 @@ import os
 import uuid
 import asyncio
 from jinja2 import Environment, FileSystemLoader
-from utils.windoc_sync import sync_invoice_to_windoc
+from utils.windoc_sync import sync_invoice_to_windoc, sync_purchases_from_windoc
+from utils.pdf_parser import parse_invoice_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class InvoiceCreate(BaseModel):
     payment_method: Optional[str]    = None
     description:    Optional[str]    = None
     notes:          Optional[str]    = None
+    direction:      Optional[str]    = "outbound"
 
     @field_validator("payment_method")
     @classmethod
@@ -62,6 +64,7 @@ class InvoiceUpdate(BaseModel):
     onboarding_id:  Optional[UUID]  = None
     contract_id:    Optional[UUID]  = None
     supplier_company_id: Optional[UUID] = None
+    category_id:    Optional[UUID]  = None
     due_date:       Optional[date]  = None
     notes:          Optional[str]   = None
     number:         Optional[str]   = None
@@ -123,6 +126,11 @@ class SubmitProofRequest(BaseModel):
         return v
 
 
+class SyncInboundRequest(BaseModel):
+    mese: Optional[str] = None
+    anno: Optional[str] = None
+
+
 # ── Helpers ──────────────────────────────────────────────────
 
 def _audit(user: CurrentUser, entity_id: str, action: str,
@@ -170,18 +178,20 @@ async def list_invoices(
     is_proforma:      Optional[bool] = Query(None),
     client_id:        Optional[str] = None,
     onboarding_id:    Optional[str] = None,
+    company_id:       Optional[str] = None,
     supplier_company_id: Optional[str] = None,
+    direction:        Optional[str] = Query(None),
     from_date:        Optional[date] = None,
     to_date:          Optional[date] = None,
     page:             int = Query(1, ge=1),
     page_size:        int = Query(50, ge=1, le=200),
     user: CurrentUser = Depends(get_current_user),
 ):
-    q = supabase.table("invoices").select("*, clients(name, email), contracts(id, title), companies!invoices_supplier_company_id_fkey(name)", count="exact")
+    q = supabase.table("invoices").select("*, clients(name, email, company_name, alias), contracts(id, title), companies:companies!invoices_company_id_fkey(name), supplier_company:companies!invoices_supplier_company_id_fkey(name), invoice_categories(name, color)", count="exact")
 
     if user.is_admin:
-        if supplier_company_id:
-            q = q.eq("company_id", str(supplier_company_id))
+        if company_id:
+            q = q.eq("company_id", str(company_id))
     else:
         q = q.eq("company_id", str(user.active_company_id))
 
@@ -190,17 +200,67 @@ async def list_invoices(
             return {"data": [], "total": 0, "page": page, "page_size": page_size}
         q = q.eq("client_id", str(user.client_id))
 
-    if status_filter:    q = q.eq("status", status_filter)
-    if payment_status:   q = q.eq("payment_status", payment_status)
+    if status_filter:       q = q.eq("status", status_filter)
+    if payment_status:      q = q.eq("payment_status", payment_status)
     if is_proforma is not None: q = q.eq("is_proforma", is_proforma)
-    if client_id:        q = q.eq("client_id", str(client_id))
-    if onboarding_id:    q = q.eq("onboarding_id", str(onboarding_id))
-    if from_date:        q = q.gte("due_date", from_date.isoformat())
-    if to_date:          q = q.lte("due_date", to_date.isoformat())
+    if direction:           q = q.eq("direction", direction)
+    if client_id:           q = q.eq("client_id", str(client_id))
+    if onboarding_id:       q = q.eq("onboarding_id", str(onboarding_id))
+    if supplier_company_id: q = q.eq("supplier_company_id", str(supplier_company_id))
+    if from_date:           q = q.gte("issue_date", from_date.isoformat())
+    if to_date:             q = q.lte("issue_date", to_date.isoformat())
 
     offset = (page - 1) * page_size
-    res = q.order("due_date", desc=True).range(offset, offset + page_size - 1).execute()
+    res = q.order("issue_date", desc=True).order("created_at", desc=True).range(offset, offset + page_size - 1).execute()
     return {"data": res.data or [], "total": res.count or 0, "page": page, "page_size": page_size}
+
+
+@router.get("/report/chart")
+async def get_invoices_report(
+    year: int = Query(default_factory=lambda: datetime.now(timezone.utc).year),
+    company_id: Optional[str] = Query(None),
+    user: CurrentUser = Depends(get_current_user)
+):
+    """
+    Ritorna dati aggregati (Ricavi vs Costi) per mese, per popolare il grafico sul frontend.
+    """
+    q = supabase.table("invoices").select("total, direction, issue_date, due_date, is_proforma")
+    
+    if user.is_admin:
+        if company_id:
+            q = q.eq("company_id", str(company_id))
+    else:
+        q = q.eq("company_id", str(user.active_company_id))
+
+    # Fetch invoices for the requested year
+    start_date = f"{year}-01-01"
+    end_date = f"{year}-12-31"
+    
+    # We use issue_date as the primary timeline metric, if null fallback to due_date in logic
+    res = q.gte("issue_date", start_date).lte("issue_date", end_date).execute()
+    data = res.data or []
+    
+    # Inizializza array per 12 mesi
+    months = [{"month": i, "revenues": 0.0, "costs": 0.0, "profit": 0.0} for i in range(1, 13)]
+    
+    for row in data:
+        dt_str = row.get("issue_date") or row.get("due_date")
+        if not dt_str: continue
+        try:
+            m = int(dt_str.split("-")[1])
+            if 1 <= m <= 12:
+                amt = float(row.get("total", 0.0))
+                idx = m - 1
+                if row.get("direction") == "inbound":
+                    months[idx]["costs"] += amt
+                elif not row.get("is_proforma"): # Solo fatture reali in uscita
+                    months[idx]["revenues"] += amt
+                
+                months[idx]["profit"] = months[idx]["revenues"] - months[idx]["costs"]
+        except Exception:
+            pass
+            
+    return {"year": year, "months": months}
 
 
 # ── Create ────────────────────────────────────────────────────
@@ -216,8 +276,17 @@ async def create_invoice(
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
                             "Importo obbligatorio (campo 'total' o 'total_amount')")
 
+    # --- DEDUPLICATION LOGIC per Acquisti ---
+    if body.direction == "inbound":
+        num = body.number or body.invoice_number
+        if num:
+            existing = supabase.table("invoices").select("id").eq("direction", "inbound").eq("client_id", str(body.client_id)).eq("number", num).eq("total", effective_total).execute()
+            if existing.data:
+                raise HTTPException(status.HTTP_409_CONFLICT, f"Possibile duplicato rilevato: la fattura d'acquisto n.{num} da {effective_total}€ per questo fornitore esiste già.")
+
     row = {
         "client_id":      str(body.client_id),
+        "direction":      body.direction,
         "company_id":     str(user.active_company_id),
         "onboarding_id":  str(body.onboarding_id) if body.onboarding_id else None,
         "contract_id":    str(body.contract_id) if body.contract_id else None,
@@ -487,16 +556,37 @@ async def get_invoice(invoice_id: UUID, user: CurrentUser = Depends(get_current_
     if not user.is_admin and not user.client_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN)
 
-    res = (
-        supabase.table("invoices")
-        .select("*, invoice_lines(*), clients(name,email)")
-        .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
-        .maybe_single()
-        .execute()
-    )
-    if not res.data:
-        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    try:
+        res = (
+            supabase.table("invoices")
+            .select("*, invoice_lines(*), clients(name,email,company_name,alias), contracts(id,title), companies!invoices_supplier_company_id_fkey(name), invoice_categories(name,color)")
+            .eq("id", str(invoice_id))
+            .eq("company_id", str(user.active_company_id))
+            .maybe_single()
+            .execute()
+        )
+    except Exception as exc:
+        logger.error("get_invoice query failed invoice=%s: %s", invoice_id, exc)
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Errore nel recupero della fattura")
+
+    # maybe_single() returns None when no record matches — handle gracefully
+    if res is None or not getattr(res, "data", None):
+        # Admin fallback: invoice may belong to a different company_id (e.g. created locally)
+        if user.is_admin:
+            try:
+                res2 = (
+                    supabase.table("invoices")
+                    .select("*, invoice_lines(*), clients(name,email,company_name,alias), contracts(id,title), companies!invoices_supplier_company_id_fkey(name), invoice_categories(name,color)")
+                    .eq("id", str(invoice_id))
+                    .maybe_single()
+                    .execute()
+                )
+                if res2 and getattr(res2, "data", None):
+                    return res2.data
+            except Exception as exc2:
+                logger.error("get_invoice admin-fallback failed invoice=%s: %s", invoice_id, exc2)
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Fattura non trovata")
+
     if not user.is_admin and str(user.client_id) != str(res.data.get("client_id")):
         raise HTTPException(status.HTTP_403_FORBIDDEN)
     return res.data
@@ -520,6 +610,14 @@ async def update_invoice(
         updates["contract_id"] = str(updates["contract_id"])
     if "supplier_company_id" in updates and updates["supplier_company_id"]:
         updates["supplier_company_id"] = str(updates["supplier_company_id"])
+    if "category_id" in updates and updates["category_id"]:
+        updates["category_id"] = str(updates["category_id"])
+
+    # Se payment_status diventa 'paid', allinea anche il generic status e data
+    if updates.get("payment_status") == "paid":
+        updates["status"] = "paid"
+        if not old.get("paid_at"):
+            updates["paid_at"] = datetime.now(timezone.utc).isoformat()
 
     res = (
         supabase.table("invoices")
@@ -627,6 +725,220 @@ async def manual_sync_windoc(
     if not res.get("success"):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, res.get("error") or "Errore di sincro Winddoc.")
     return res
+
+
+async def process_pdf_job(invoice_id: str, file_bytes: bytes, user_company_id: str):
+    import json
+    parsed_data = await parse_invoice_pdf(file_bytes)
+    
+    if not parsed_data.get("success"):
+        logger.warning(f"Async parse failed for {invoice_id}: {parsed_data.get('error')}")
+        supabase.table("invoices").update({"status": "draft", "payment_status": "cancelled", "notes": "Errore Parsing PDF: " + str(parsed_data.get("error"))}).eq("id", invoice_id).execute()
+        return
+
+    s_name = parsed_data.get("supplier_name") or "Sconosciuto"
+    vat = parsed_data.get("vat_number") or ""
+    issue_date = parsed_data.get("issue_date") or None
+    if issue_date: # uniforma data
+        try:
+            if "/" in issue_date: # DD/MM/YYYY
+                d, m, y = issue_date.split("/")
+                issue_date = f"{y}-{m}-{d}"
+            elif "-" in issue_date:
+                parts = issue_date.split("-")
+                if len(parts) == 3 and len(parts[0]) <= 2: # DD-MM-YYYY
+                    d, m, y = parts
+                    issue_date = f"{y}-{m}-{d}"
+        except Exception:
+            issue_date = None
+
+    tot = parsed_data.get("total", 0.0)
+
+    # Lookup o Create Supplier in clients
+    client_id = None
+    if vat:
+        cr = supabase.table("clients").select("id").eq("company_id", user_company_id).eq("is_supplier", True).eq("vat_number", vat).execute()
+        if cr.data:
+            client_id = cr.data[0]["id"]
+        else:
+            try:
+                nc = supabase.table("clients").insert({
+                    "company_id": user_company_id,
+                    "company_name": s_name,
+                    "name": s_name,
+                    "vat_number": vat,
+                    "status": "active",
+                    "is_supplier": True
+                }).execute()
+                if nc.data:
+                    client_id = nc.data[0]["id"]
+            except Exception as e:
+                logger.warning(f"Job db error vat: {e}")
+    elif s_name and s_name != "Sconosciuto":
+        cr = supabase.table("clients").select("id").eq("company_id", user_company_id).eq("is_supplier", True).ilike("company_name", f"%{s_name}%").execute()
+        if cr.data:
+            client_id = cr.data[0]["id"]
+        else:
+            cra = supabase.table("clients").select("id").eq("company_id", user_company_id).eq("is_supplier", True).ilike("alias", f"%{s_name}%").execute()
+            if cra.data:
+                client_id = cra.data[0]["id"]
+            else:
+                try:
+                    nc = supabase.table("clients").insert({
+                        "company_id": user_company_id,
+                        "company_name": s_name,
+                        "name": s_name,
+                        "status": "active",
+                        "is_supplier": True
+                    }).execute()
+                    if nc.data:
+                        client_id = nc.data[0]["id"]
+                except Exception as e:
+                    logger.warning(f"Job db error name: {e}")
+
+    inv_number = parsed_data.get("number") or "Sconosciuto"
+    update_data = {
+        "client_id": client_id,
+        "number": inv_number,
+        "total": tot,
+        "issue_date": issue_date,
+        "status": "draft",
+        "parsed_data": parsed_data
+    }
+    
+    supabase.table("invoices").update(update_data).eq("id", invoice_id).execute()
+    
+    # Inserimento Voci (invoice_lines)
+    items = parsed_data.get("full_data", {}).get("items", [])
+    if items:
+        lines_payload = []
+        for i, item in enumerate(items):
+            desc = item.get("description")
+            if not desc: continue
+            
+            qty = item.get("quantity")
+            uprice = item.get("unit_price")
+            if uprice is None and item.get("total_line") is not None:
+                uprice = item.get("total_line")
+            vat_r = item.get("vat_rate")
+            
+            def safe_float(v, default=0.0):
+                if not v: return default
+                v_str = str(v).replace(",", ".").replace("%", "").strip()
+                import re
+                v_str = re.sub(r'[^\d\.\-]', '', v_str)
+                try:
+                    return float(v_str) if v_str else default
+                except ValueError:
+                    return default
+            
+            qt_val = safe_float(qty, 1.0)
+            price_val = safe_float(uprice, 0.0)
+            vat_val = safe_float(vat_r, 0.0)
+            
+            lines_payload.append({
+                "invoice_id": invoice_id,
+                "description": desc,
+                "quantity": qt_val,
+                "unit_price": price_val,
+                "vat_rate": vat_val,
+                "total": round(qt_val * price_val * (1 + vat_val / 100.0), 2)
+            })
+            
+        if lines_payload:
+            try:
+                supabase.table("invoice_lines").insert(lines_payload).execute()
+            except Exception as e:
+                logger.warning(f"Parse PDF lines save: {e}")
+
+
+async def process_background_batch(jobs: list, company_id: str):
+    logger.info(f"Starting background parse for {len(jobs)} invoices")
+    for job in jobs:
+        try:
+            await process_pdf_job(job["invoice_id"], job["file_bytes"], company_id)
+        except Exception as e:
+            logger.error(f"Error processing background invoice {job['invoice_id']}: {e}")
+            try:
+                supabase.table("invoices").update({"status": "draft", "payment_status": "cancelled", "notes": f"Crash: {str(e)}"}).eq("id", job["invoice_id"]).execute()
+            except:
+                pass
+
+
+@router.post("/parse-pdf-batch")
+async def parse_and_create_inbound_pdf_batch(
+    background_tasks: BackgroundTasks,
+    files: List[UploadFile] = File(...),
+    user: CurrentUser = Depends(require_admin)
+):
+    """Accetta uno o più PDF, li salva subito in DB in stato elaborazione e li passa all'A.I."""
+    if not files:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Nessun file ricevuto.")
+        
+    jobs = []
+    queued = 0
+    for file in files:
+        if not file.filename.lower().endswith(".pdf"):
+            continue
+            
+        file_bytes = await file.read()
+        
+        # 1. Upload file to supabase directly to prevent holding it
+        storage_path = ""
+        try:
+            file_name = f"inbound_{uuid.uuid4().hex[:8]}_{file.filename}"
+            supabase.storage.from_("documents").upload(
+                file_name,
+                file_bytes,
+                {"content-type": file.content_type}
+            )
+            storage_path = supabase.storage.from_("documents").get_public_url(file_name)
+        except Exception as e:
+            logger.warning(f"Parse PDF: impossible to upload to documents bucket: {e}")
+            
+        # 2. Inserimento in DB rapido (status = parsing/processing)
+        import_data = {
+            "company_id": str(user.active_company_id),
+            "direction": "inbound",
+            "number": "Elaborando PDF...",
+            "status": "draft",
+            "payment_status": "not_paid",
+            "pdf_path": storage_path
+        }
+        
+        res = supabase.table("invoices").insert(import_data).execute()
+        if res.data:
+            queued += 1
+            jobs.append({
+                "invoice_id": res.data[0]["id"],
+                "file_bytes": file_bytes,
+                "filename": file.filename
+            })
+            
+    if jobs:
+        background_tasks.add_task(process_background_batch, jobs, str(user.active_company_id))
+        
+    return {"success": True, "queued": queued}
+
+
+
+@router.post("/sync-inbound-windoc")
+async def windoc_sync_inbound(
+    body: SyncInboundRequest,
+    user: CurrentUser = Depends(require_admin),
+):
+    """Sincronizza le fatture di acquisto (inbound) da Winddoc al CRM."""
+    res = await sync_purchases_from_windoc(
+        supabase,
+        str(user.active_company_id),
+        mese=body.mese or "",
+        anno=body.anno or ""
+    )
+    if not res.get("success"):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, res.get("error") or "Errore sync Winddoc acquisti")
+    
+    return res
+
 
 
 # ── Review Payment (admin) ────────────────────────────────────
@@ -967,6 +1279,51 @@ async def get_invoice_windoc_status(invoice_id: UUID, user: CurrentUser = Depend
     except Exception as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc))
 
+@router.post("/{invoice_id}/duplicate")
+async def duplicate_invoice(
+    invoice_id: UUID,
+    user: CurrentUser = Depends(get_current_user)
+):
+    """
+    Duplica una fattura/proforma esistente e le sue righe come nuova bozza (proforma).
+    """
+    old = _require_invoice(invoice_id, user, select="*")
+    
+    # Rimuovi campi tracciamento univoci
+    new_inv = dict(old)
+    for k in ["id", "number", "reference_id", "windoc_id", "created_at", "updated_at", "payment_status", "status"]:
+        new_inv.pop(k, None)
+    
+    new_inv["status"] = "draft"
+    new_inv["payment_status"] = "not_paid"
+    new_inv["payment_method"] = None
+    new_inv["payment_proof"] = None
+    new_inv["is_proforma"] = True
+    new_inv["company_id"] = str(user.active_company_id)
+    
+    # 1. Inserisci la nuova fattura
+    res = supabase.table("invoices").insert(new_inv).execute()
+    if not res.data:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Impossibile duplicare la fattura")
+        
+    new_id = res.data[0]["id"]
+    
+    # 2. Copia le righe se presenti
+    lines_res = supabase.table("invoice_lines").select("*").eq("invoice_id", str(invoice_id)).execute()
+    if lines_res.data:
+        new_lines = []
+        for line in lines_res.data:
+            new_line = dict(line)
+            for k in ["id", "created_at"]:
+                new_line.pop(k, None)
+            new_line["invoice_id"] = new_id
+            new_lines.append(new_line)
+        if new_lines:
+            supabase.table("invoice_lines").insert(new_lines).execute()
+            
+    _audit(user, str(new_id), "create", new={"copied_from": str(invoice_id)})
+    return {"message": "Duplicazione completata", "id": new_id, "data": res.data[0]}
+
 # ── Delete ────────────────────────────────────────────────────
 
 @router.delete("/{invoice_id}")
@@ -977,7 +1334,7 @@ async def delete_invoice(
     """
     Elimina una fattura o proforma e opzionalmente le righe collegate se on-delete-cascade non è impostato.
     """
-    old = _require_invoice(invoice_id, str(user.active_company_id), select="id,number,status")
+    old = _require_invoice(invoice_id, user, select="id,number,status")
     
     # Try deleting invoice lines first just in case
     supabase.table("invoice_lines").delete().eq("invoice_id", str(invoice_id)).execute()
@@ -986,11 +1343,56 @@ async def delete_invoice(
         supabase.table("invoices")
         .delete()
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
         .execute()
     )
     if not res.data:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Errore eliminazione")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Fattura non trovata o già eliminata")
         
     _audit(user, str(invoice_id), "delete", old=old)
     return {"message": "Fattura eliminata con successo"}
+
+# ── Categories ────────────────────────────────────────────────
+class CategoryCreate(BaseModel):
+    name: str
+    color: Optional[str] = "#6B7280"
+
+@router.get("/categories/list")
+async def get_invoice_categories(user: CurrentUser = Depends(get_current_user)):
+    res = supabase.table("invoice_categories").select("*").eq("company_id", str(user.active_company_id)).order("name").execute()
+    return res.data or []
+
+@router.post("/categories")
+async def create_invoice_category(data: CategoryCreate, user: CurrentUser = Depends(get_current_user)):
+    res = supabase.table("invoice_categories").insert({
+        "company_id": str(user.active_company_id),
+        "name": data.name,
+        "color": data.color
+    }).execute()
+    if not res.data:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Impossibile creare categoria")
+    return res.data[0]
+
+class CategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    color: Optional[str] = None
+    is_active: Optional[bool] = None
+
+@router.delete("/categories/{cat_id}")
+async def delete_invoice_category(cat_id: UUID, user: CurrentUser = Depends(get_current_user)):
+    res = supabase.table("invoice_categories").delete().eq("id", str(cat_id)).eq("company_id", str(user.active_company_id)).execute()
+    if not res.data:
+         raise HTTPException(status.HTTP_404_NOT_FOUND, "Categoria non trovata")
+    return {"message": "Eliminata"}
+
+@router.patch("/categories/{cat_id}")
+async def update_invoice_category(cat_id: UUID, data: CategoryUpdate, user: CurrentUser = Depends(get_current_user)):
+    updates = data.model_dump(exclude_unset=True)
+    if not updates:
+        return {"message": "Nessuna modifica."}
+    
+    res = supabase.table("invoice_categories").update(updates).eq("id", str(cat_id)).eq("company_id", str(user.active_company_id)).execute()
+    if not res.data:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Categoria non trovata")
+    return res.data[0]
+
+    

@@ -398,7 +398,6 @@
       <button class="detail-tab" data-tab="brevo">Mittente Personalizzato</button>
       <button class="detail-tab" data-tab="windoc">Windoc</button>
       <button class="detail-tab" data-tab="zoho">Zoho Sign</button>
-      <button class="detail-tab" data-tab="template-contratti">Template Contratti</button>
       <button class="detail-tab" data-tab="template-email">Template Email</button>
     </div>
 
@@ -718,24 +717,6 @@
 
 
 
-    <!-- Tab: Template Contratti -->
-
-    <div class="tab-panel" id="tab-template-contratti" style="padding:24px;">
-
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-
-        <p style="font-size:12px;color:var(--gray-500);margin:0;">Testo base del contratto con <code style="background:#f3f4f6;padding:1px 5px;border-radius:4px;">{{variabile}}</code> per le parti dinamiche.</p>
-
-        <button class="btn-action-icon  btn-action-icon-sm" onclick="openCtForm()" title="+ Nuovo template">
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-</button>
-
-      </div>
-
-      <div id="ct-company-list" class="cl-list"><div class="skeleton-text skeleton" style="height:48px;border-radius:8px;"></div></div>
-
-    </div>
-
 
 
     <!-- Tab: Template Email -->
@@ -755,128 +736,6 @@
 
 
   </div><!-- /card -->
-
-
-
-  <!-- MODAL: Contract Template Editor (Company context) -->
-
-  <div id="ct-company-modal" style="display:none;position:fixed;inset:0;background:rgba(17,24,39,.45);backdrop-filter:blur(4px);z-index:9999;align-items:flex-start;justify-content:center;padding-top:40px;">
-
-    <div style="background:#fff;border-radius:20px;max-width:960px;width:96vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 25px 50px rgba(0,0,0,.15);overflow:hidden;">
-
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);flex-shrink:0;">
-
-        <div>
-
-          <div id="ct-company-modal-title" style="font-size:18px;font-weight:800;">Nuovo template contratto</div>
-
-          <div style="font-size:12px;color:#6b7280;margin-top:2px;">Incolla il testo. Usa <code style="background:#f3f4f6;padding:0 4px;border-radius:3px;">{{variabile}}</code> per i dati dinamici. Clicca sulle variabili a destra per inserirle.</div>
-
-        </div>
-
-        <button onclick="closeCtForm()" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:8px;color:var(--gray-500);">
-
-          <svg style="width:20px;height:20px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-
-        </button>
-
-      </div>
-
-      <div style="display:flex;flex:1;min-height:0;overflow:hidden;">
-
-        <!-- Editor area -->
-
-        <div style="flex:1;display:flex;flex-direction:column;padding:16px 20px 20px;min-width:0;overflow-y:auto;">
-
-          <label class="form-label">Nome template *</label>
-
-          <input class="form-input" id="ct-co-name" type="text" placeholder="es. Contratto Standard, Contratto SEO" style="margin-bottom:12px;"/>
-
-          <label class="form-label" style="margin-bottom:6px;">Testo contratto</label>
-
-          <textarea id="ct-co-content" style="min-height:420px;font-family:monospace;font-size:13px;line-height:1.7;border:1px solid var(--border);border-radius:8px;padding:12px;resize:vertical;width:100%;box-sizing:border-box;" placeholder="Incolla qui il testo del contratto...&#10;&#10;Esempio: La societ {{fornitore_nome}} (P.IVA {{fornitore_piva}}) e {{cliente_nome}}..."></textarea>
-
-          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
-
-            <button class="btn btn-secondary" onclick="closeCtForm()">Annulla</button>
-
-            <button class="btn btn-primary" id="ct-co-save-btn" onclick="saveCtTemplate()">Salva template</button>
-
-          </div>
-
-        </div>
-
-        <!-- Variable reference -->
-
-        <div style="width:210px;flex-shrink:0;border-left:1px solid var(--border);padding:14px 12px;overflow-y:auto;background:#fafafa;font-size:12px;">
-
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:6px;">Variabili</div>
-
-          <div style="font-size:10px;color:#9ca3af;margin-bottom:8px;">Clicca per inserire nel testo</div>
-
-          <div style="font-weight:600;color:#374151;margin:6px 0 3px;font-size:11px;">?? Cliente</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('cliente_nome')">{{cliente_nome}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('cliente_piva')">{{cliente_piva}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('cliente_email')">{{cliente_email}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('cliente_indirizzo')">{{cliente_indirizzo}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('cliente_citta')">{{cliente_citta}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('cliente_pec')">{{cliente_pec}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('cliente_sdi')">{{cliente_sdi}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('cliente_cf')">{{cliente_cf}}</div>
-
-          <div style="font-weight:600;color:#374151;margin:8px 0 3px;font-size:11px;">?? Nostra azienda</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('fornitore_nome')">{{fornitore_nome}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('fornitore_piva')">{{fornitore_piva}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('fornitore_indirizzo')">{{fornitore_indirizzo}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('fornitore_email')">{{fornitore_email}}</div>
-
-          <div style="font-weight:600;color:#374151;margin:8px 0 3px;font-size:11px;">?? Servizio</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('servizio_nome')">{{servizio_nome}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('servizio_descrizione')">{{servizio_descrizione}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('servizio_prezzo')">{{servizio_prezzo}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('servizio_periodicita')">{{servizio_periodicita}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('servizio_clausole')" style="background:var(--brand-light);color:var(--brand);border-color:var(--brand-light);">{{servizio_clausole}}</div>
-
-          <div style="font-weight:600;color:#374151;margin:8px 0 3px;font-size:11px;">?? Date</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('data_oggi')">{{data_oggi}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('data_inizio')">{{data_inizio}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('data_fine')">{{data_fine}}</div>
-
-          <div class="ct-var-chip" onclick="ctInsertVar('anno')">{{anno}}</div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-</main>
-
-</div>
 
 
 
