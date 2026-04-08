@@ -13,7 +13,7 @@
   const saved   = window.SessionState?.load('invoices') || {};
   let pg        = saved.pg  || 1;
   let activeTab = saved.tab || 'all';
-  let activeDirection = requestedTab === 'inbound' ? 'inbound' : (saved.dir || 'outbound');
+  let activeDirection = requestedTab === 'inbound' ? 'inbound' : (requestedTab === 'report' ? 'report' : (saved.dir || 'outbound'));
   const PER = 15;
 
   const $ = id => document.getElementById(id);
@@ -41,7 +41,7 @@
   if (act) act.innerHTML = `
     <button class="btn btn-secondary" id="btn-refresh"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> <span class="hide-mobile">Aggiorna</span></button>
     <button class="btn btn-secondary" id="btn-windoc-sync" style="display:none;"><svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> <span class="hide-mobile">Sync Windoc</span></button>
-    <button class="btn btn-secondary" id="btn-gdrive-sync" style="display:none;"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" /></svg> <span class="hide-mobile">Sync GDrive</span></button>
+    <button class="btn btn-secondary" id="btn-gdrive-sync" style="display:none;white-space:nowrap;"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" /></svg> <span class="hide-mobile">Sync GDrive</span></button>
     <button class="btn btn-secondary" id="btn-upload-pdf" style="display:none;"><svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> <span class="hide-mobile">Carica PDF</span></button>
     <button class="btn btn-secondary" id="btn-new-proforma" style="display:none;"><svg style="width:15px;height:15px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12"/></svg> <span class="hide-mobile">Nuova proforma</span></button>
     <button class="btn-action-icon" id="btn-action-icon-new-invoice" title="Nuova fattura" style="display:none;">
@@ -54,27 +54,80 @@
   $('btn-action-icon-new-invoice')?.addEventListener('click', () => openModal(false));
   $('btn-new-proforma')?.addEventListener('click', () => openModal(true));
   
-  $('btn-windoc-sync')?.addEventListener('click', async () => {
-     if (!confirm('Vuoi forzare la sincronizzazione (Acquisti) globale da Winddoc?')) return;
-     if (window.UI) UI.toast('Sincronizzazione in corso...', 'info');
-     try {
-       await API.post('/invoices/sync-inbound-windoc', {});
-       if (window.UI) UI.toast('Sincronizzazione completata!', 'success');
-       load(true);
-     } catch (err) {
-       console.error(err);
-       if (window.UI) UI.toast('Errore: ' + (err.message || 'Sincronizzazione fallita'), 'error');
-     }
+  $('btn-windoc-sync')?.addEventListener('click', () => {
+    const curYear = new Date().getFullYear();
+    const years = [curYear, curYear - 1, curYear - 2].map(y => `<option value="${y}">${y}</option>`).join('');
+    const months = [['','Tutti i mesi'],['1','Gennaio'],['2','Febbraio'],['3','Marzo'],['4','Aprile'],['5','Maggio'],['6','Giugno'],['7','Luglio'],['8','Agosto'],['9','Settembre'],['10','Ottobre'],['11','Novembre'],['12','Dicembre']].map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:9000;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = `
+      <div style="background:#1c1c1e;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:28px 32px;width:360px;box-shadow:0 24px 64px rgba(0,0,0,.6);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <span style="font-size:22px;">🔄</span>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#f5f5f7;">Importa Acquisti da Windoc</div>
+            <div style="font-size:12px;color:#8e8e93;margin-top:2px;">Seleziona il periodo da sincronizzare</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+          <div>
+            <label style="font-size:11px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Anno</label>
+            <select id="wd-sync-anno" style="width:100%;background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;cursor:pointer;">${years}</select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Mese</label>
+            <select id="wd-sync-mese" style="width:100%;background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:14px;cursor:pointer;">${months}</select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button id="wd-sync-cancel" style="padding:9px 20px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#8e8e93;font-size:14px;font-weight:500;cursor:pointer;">Annulla</button>
+          <button id="wd-sync-confirm" style="padding:9px 22px;border-radius:8px;border:none;background:#0a84ff;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Importa</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    document.getElementById('wd-sync-cancel').onclick = close;
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    document.getElementById('wd-sync-confirm').onclick = async () => {
+      const anno = document.getElementById('wd-sync-anno').value;
+      const mese = document.getElementById('wd-sync-mese').value;
+      close();
+      UI.toast('Sincronizzazione acquisti Windoc in corso...', 'info');
+      try {
+        const res = await API.post('/invoices/sync-inbound-windoc', { anno, mese });
+        UI.toast(`✅ Importate ${res.imported ?? 0} fatture da Windoc!`, 'success');
+        setTimeout(() => { load(true); }, 1200);
+      } catch (err) { console.error(err); UI.toast('Errore sync Windoc: ' + (err.message || ''), 'error'); }
+    };
   });
 
-  $('btn-gdrive-sync')?.addEventListener('click', async () => {
-     if (window.UI) UI.toast('Scansione cartelle GDrive avviata...', 'info');
+  window.pushInvoiceWindoc = async function(id) {
+    if (!await UI.confirm('Inviare questa fattura a Windoc?')) return;
+    try {
+      UI.toast('Invio a Windoc in corso...', 'info');
+      const res = await API.post(`/invoices/${id}/windoc-push`, {});
+      const wdNum = res?.data?.numero_documento || res?.data?.numero || '';
+      UI.toast('✅ Fattura inviata a Windoc' + (wdNum ? ` — N° ${wdNum}` : ''), 'success');
+      // Update local record so badge switches immediately
+      const inv = ALL.find(i => i.id === id);
+      if (inv) { inv.windoc_id = String(res?.data?.id || 'synced'); applyFilters(); }
+    } catch (err) {
+      UI.toast('Errore invio Windoc: ' + (err.message || ''), 'error');
+    }
+  };
+
+  $('btn-gdrive-sync')?.addEventListener('click', async function() {
+     const btn = this;
+     btn.disabled = true;
+     if (window.UI) UI.toast('Scansione GDrive avviata...', 'info');
      try {
-       await API.post('/jobs/trigger-gdrive-poller', {});
-       if (window.UI) UI.toast('Scansione completata, aggiorno in 30 secondi...', 'success');
-       setTimeout(() => load(true), 30000); // Wait for background poller to process the files
+       await API.post('/invoices/sync-gdrive', {});
+       if (window.UI) UI.toast('Scansione avviata in background. Aggiorno tra 20 secondi...', 'success');
+       setTimeout(() => { load(true); btn.disabled = false; }, 20000);
      } catch(e) {
-       if (window.UI) UI.toast('Errore durante l\'avvio dello script poller', 'error');
+       console.error('GDrive sync error:', e);
+       if (window.UI) UI.toast('Errore sync GDrive: ' + (e.message || ''), 'error');
+       btn.disabled = false;
      }
   });
 
@@ -121,10 +174,16 @@
     });
     mainTabs.addEventListener('click', e => {
       const b = e.target.closest('.main-tab'); if (!b) return;
+      
+      // If it's a real hyperlink, let the browser navigate normally
+      if (b.tagName === 'A' || b.getAttribute('href')) return;
+      
       mainTabs.querySelectorAll('.main-tab').forEach(x => {
-        x.classList.remove('active');
-        x.style.borderBottomColor = 'transparent';
-        x.style.color = '#6b7280';
+        if (x.tagName !== 'A' && !x.getAttribute('href')) {
+          x.classList.remove('active');
+          x.style.borderBottomColor = 'transparent';
+          x.style.color = '#6b7280';
+        }
       });
       b.classList.add('active'); 
       b.style.borderBottomColor = '#0a84ff';
@@ -135,44 +194,20 @@
       const btnPF = $('btn-new-proforma'), btnFT = $('btn-action-icon-new-invoice');
       const btnSync = $('btn-windoc-sync'), btnPdf = $('btn-upload-pdf'), btnGdrive = $('btn-gdrive-sync');
 
-      if (activeDirection === 'report') {
+      if (activeDirection === 'inbound') {
          if (btnPF) btnPF.style.display = 'none';
-         if (btnFT) btnFT.style.display = 'none';
+         if (btnFT) btnFT.style.display = 'inline-flex';
+         if (btnGdrive) btnGdrive.style.display = 'inline-flex';
+         if (btnSync) btnSync.style.display = 'none';
+         if (btnPdf) btnPdf.style.display = 'inline-flex';
+      } else {
+         if (btnPF) btnPF.style.display = 'inline-flex';
+         if (btnFT) btnFT.style.display = 'inline-flex';
          if (btnGdrive) btnGdrive.style.display = 'none';
          if (btnSync) btnSync.style.display = 'none';
          if (btnPdf) btnPdf.style.display = 'none';
-
-         if (pipelineBar) pipelineBar.style.display = 'none';
-         const filters = list.closest('.card');
-         if (filters) filters.style.display = 'none';
-         if (secPF) secPF.style.display = 'none';
-         if (secFT) secFT.style.display = 'none';
-         list.innerHTML = `<div class="list-card"><div style="padding:40px;position:relative;height:500px;width:100%"><canvas id="invoicesChart"></canvas></div></div>`;
-         list.style.display = 'block';
-         if (pag) pag.innerHTML = '';
-         if (info) info.innerHTML = '';
-         renderReport();
-      } else {
-         if (pipelineBar) pipelineBar.style.display = 'flex';
-         const filters = list.closest('.card');
-         if (filters) filters.style.display = 'block';
-         list.style.display = 'flex';
-         
-         if (activeDirection === 'inbound') {
-            if (btnPF) btnPF.style.display = 'none';
-            if (btnFT) btnFT.style.display = 'inline-flex';
-            if (btnGdrive) btnGdrive.style.display = 'inline-flex';
-            if (btnSync) btnSync.style.display = 'inline-flex';
-            if (btnPdf) btnPdf.style.display = 'inline-flex';
-         } else {
-            if (btnPF) btnPF.style.display = 'inline-flex';
-            if (btnFT) btnFT.style.display = 'inline-flex';
-            if (btnGdrive) btnGdrive.style.display = 'none';
-            if (btnSync) btnSync.style.display = 'none';
-            if (btnPdf) btnPdf.style.display = 'none';
-         }
-         load(true);
       }
+      load(true);
     });
     
     // trigger initial buttons layout
@@ -181,61 +216,13 @@
         if ($('btn-action-icon-new-invoice')) $('btn-action-icon-new-invoice').style.display = 'inline-flex';
     } else if (activeDirection === 'inbound') {
         if ($('btn-gdrive-sync')) $('btn-gdrive-sync').style.display = 'inline-flex';
-        if ($('btn-windoc-sync')) $('btn-windoc-sync').style.display = 'inline-flex';
+        if ($('btn-windoc-sync')) $('btn-windoc-sync').style.display = 'none';
         if ($('btn-upload-pdf')) $('btn-upload-pdf').style.display = 'inline-flex';
         if ($('btn-action-icon-new-invoice')) $('btn-action-icon-new-invoice').style.display = 'inline-flex';
     }
   }
 
-  async function renderReport() {
-      // Inietta libreria chart.js se non presente
-      if (!window.Chart) {
-          await new Promise(r => {
-             const s = document.createElement('script');
-             s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-             s.onload = r;
-             document.head.appendChild(s);
-          });
-      }
-      
-      const ctx = $('invoicesChart');
-      if (!ctx) return;
-      try {
-          const res = await API.get('/invoices/report/chart');
-          const mm = res.months || [];
-          const labels = mm.map(m => `Mese ${m.month}`);
-          const revenues = mm.map(m => m.revenues);
-          const costs = mm.map(m => m.costs);
-          
-          new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels,
-              datasets: [
-                {
-                  label: 'Ricavi (Outbound)',
-                  data: revenues,
-                  backgroundColor: 'rgba(10, 132, 255, 0.7)',
-                  borderRadius: 4
-                },
-                {
-                  label: 'Costi (Inbound)',
-                  data: costs,
-                  backgroundColor: 'rgba(239, 68, 68, 0.7)',
-                  borderRadius: 4
-                }
-              ]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: { beginAtZero: true }
-              }
-            }
-          });
-      } catch (err) {}
-  }
+
 
   pipelineBar?.querySelectorAll('.cl-status-pill').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
   pipelineBar?.addEventListener('click', e => {
@@ -268,7 +255,9 @@
     });
   });
 
-  window.addEventListener('companyChanged', load);
+  if (window._invoicesCmpListener) window.removeEventListener('companyChanged', window._invoicesCmpListener);
+  window._invoicesCmpListener = () => load();
+  window.addEventListener('companyChanged', window._invoicesCmpListener);
   window._reloadInvoices = load;
 
   /* ── Eventi Modale (Servizi e Ricorrenza) ───────────────────── */
@@ -367,10 +356,6 @@
     if (listFT) listFT.innerHTML = '';
     if (secPF) secPF.style.display = 'none';
     if (secFT) secFT.style.display = 'none';
-    if (activeDirection === 'report') {
-       // if stuck on report view somehow, shortcircuit
-       return;
-    }
     try {
       if (!ALL_CATEGORIES.length) {
          const cr = await API.get('/categories');
@@ -384,9 +369,9 @@
       // Flatten client and supplier names from joins
       ALL = ALL.map(i => ({
         ...i,
-        client_name:   i.clients?.name || i.client_name || '',
+        client_name:   i.clients?.alias || i.clients?.company_name || i.clients?.name || i.client_name || '',
         supplier_name: i.direction === 'inbound' 
-                         ? (i.supplier_company?.name || i.parsed_data?.supplier_name || i.supplier_name || '') 
+                         ? (i.clients?.alias || i.clients?.company_name || i.clients?.name || i.parsed_data?.supplier_name || i.supplier_name || '') 
                          : (i.companies?.name || i.supplier_name || ''),
       }));
       populateClientFilter();
@@ -432,7 +417,7 @@
     if (fCategory) {
       const prev  = fCategory.value;
       const names = [...new Set(ALL.map(i => i.invoice_categories?.name || '').filter(Boolean))].sort();
-      fCategory.innerHTML = `<option value="">Tutte le categorie</option>` + names.map(n => `<option value="${n}">${n}</option>`).join('');
+      fCategory.innerHTML = `<option value="">Tutte le categorie</option><option value="EMPTY">Senza Categoria</option>` + names.map(n => `<option value="${n}">${n}</option>`).join('');
       if (prev) fCategory.value = prev;
     }
     
@@ -440,7 +425,7 @@
     const massSel = document.getElementById('mac-mass-action-category');
     if (massSel && ALL_CATEGORIES && ALL_CATEGORIES.length > 0) {
       const massPrev = massSel.value;
-      massSel.innerHTML = `<option value="" style="color:black;">Cambia Categoria...</option>` + ALL_CATEGORIES.map(c => `<option style="color:black;" value="${c.id}">${c.name}</option>`).join('');
+      massSel.innerHTML = `<option value="" style="color:black;">Cambia Categoria</option>` + ALL_CATEGORIES.map(c => `<option style="color:black;" value="${c.id}">${c.name}</option>`).join('');
       massSel.value = massPrev;
     }
   }
@@ -486,7 +471,11 @@
       const matchName = activeDirection === 'inbound' ? i.supplier_name : i.client_name;
       if (cl  && matchName !== cl) return false;
       
-      if (cat && (i.invoice_categories?.name || '') !== cat) return false;
+      if (cat === 'EMPTY') {
+          if (i.invoice_categories?.name) return false;
+      } else if (cat) {
+          if ((i.invoice_categories?.name || '') !== cat) return false;
+      }
       if (stF && i.payment_status !== stF) return false;
       if (q) {
         const hay = [i.number, i.client_name, i.supplier_name, i.notes, i.payment_method].filter(Boolean).join(' ').toLowerCase();
@@ -523,16 +512,15 @@
 
   // ── Selection & Mass Actions (Mac Style) ───────────────────
   window.selectedIds = new Set();
-  
-  window.toggleSelection = function(e, id) {
-    e.stopPropagation(); // Evita di far scattare l'onclick della riga
-    if (e.target.checked) {
-      window.selectedIds.add(id);
-    } else {
-      window.selectedIds.delete(id);
-    }
-    updateSelectionUI();
-  };
+    window.toggleSelection = function(e, id) {
+      e.stopPropagation(); // Evita di far scattare l'onclick della riga
+      if (window.selectedIds.has(id)) {
+        window.selectedIds.delete(id);
+      } else {
+        window.selectedIds.add(id);
+      }
+      updateSelectionUI();
+    };
   
   window.toggleSelectAll = function(el) {
     const isSelected = el.classList.toggle('selected');
@@ -603,7 +591,7 @@
   
   window.massDelete = async function() {
     if (window.selectedIds.size === 0) return;
-    if (!confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} fatture selezionate? Questa operazione è puramente documentale e non eliminerà il file fiscale nel cassetto.`)) return;
+    if (!await UI.confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} fatture selezionate? Questa operazione è puramente documentale e non eliminerà il file fiscale nel cassetto.`)) return;
     let success = 0;
     if (window.UI) UI.toast('Eliminazione in corso...', 'info');
     for (const id of window.selectedIds) {
@@ -622,14 +610,18 @@
   };
 
   window.massCategory = async function(catId) {
-    if (!catId) return;
+    if (catId === '') return; // placeholder, not selected yet
     if (window.selectedIds.size === 0) {
       const sel = $('mac-mass-action-category');
       if (sel) sel.value = '';
       return;
     }
-    const catName = ALL_CATEGORIES.find(c => c.id === catId)?.name || 'selezionata';
-    if (!confirm(`Spostare ${window.selectedIds.size} documenti nella categoria "${catName}"?`)) {
+    const isRemove = catId === 'NONE';
+    const catName = isRemove ? 'Nessuna' : (ALL_CATEGORIES.find(c => c.id === catId)?.name || 'selezionata');
+    const msg = isRemove
+      ? `Rimuovere la categoria da ${window.selectedIds.size} documenti?`
+      : `Spostare ${window.selectedIds.size} documenti nella categoria "${catName}"?`;
+    if (!await UI.confirm(msg)) {
       const sel = $('mac-mass-action-category');
       if (sel) sel.value = '';
       return;
@@ -638,12 +630,12 @@
     if (window.UI) UI.toast('Aggiornamento categoria in corso...', 'info');
     for (const id of window.selectedIds) {
       try {
-        await API.put(`/invoices/${id}`, { category_id: catId });
+        await API.put(`/invoices/${id}`, { category_id: isRemove ? null : catId });
         success++;
       } catch (e) { console.warn(e); }
     }
     if (success > 0) {
-      if (window.UI) UI.toast(`${success} documenti aggiornati con successo!`, 'success');
+      if (window.UI) UI.toast(`${success} documenti aggiornati!`, 'success');
       load(true);
       window.clearSelection();
     }
@@ -664,7 +656,7 @@
   };
 
   window.duplicateInvoice = async function(id) {
-    if(!confirm('Vuoi duplicare questo record?')) return;
+    if(!await UI.confirm('Vuoi duplicare questo record?')) return;
     try {
       UI.toast('Duplicazione in corso...', 'info');
       // Re-trigger auth validation and proceed
@@ -680,19 +672,23 @@
 
   window.togglePaymentStatus = async function(id, isPaid) {
      const status = isPaid ? 'paid' : 'not_paid';
+     // Optimistic update UI immediately
+     const idx = ALL.findIndex(i => i.id === id);
+     if (idx > -1) ALL[idx].payment_status = status;
+     applyFilters();
      try {
-       UI.toast('Aggiornamento stato...', 'info');
        await API.put(`/invoices/${id}`, { payment_status: status });
        UI.toast('Stato aggiornato', 'success');
-       load(true);
      } catch(err) {
+       // Revert on failure
+       if (idx > -1) ALL[idx].payment_status = !isPaid ? 'paid' : 'not_paid';
+       applyFilters();
        UI.toast('Errore: ' + (err.message||''), 'error');
-       load(true); // reload to visually reset switch on failure
      }
   };
 
   window.deleteInvoice = async function(id) {
-    if(!confirm('Eliminare definitivamente il record?')) return;
+    if(!await UI.confirm('Eliminare definitivamente il record?')) return;
     try {
       UI.toast('Eliminazione in corso...', 'info');
       if (API.Invoices && API.Invoices.delete) {
@@ -709,7 +705,7 @@
     }
   };
 
-  const GRID = '2fr 1fr 1.4fr 1fr 140px 1fr 90px 70px 90px 120px';
+  const GRID = 'minmax(180px, 1.8fr) 50px 1.2fr 90px 90px 130px minmax(130px, 1fr) 90px 70px 90px 90px';
 
   function renderRow(i) {
     try {
@@ -719,22 +715,25 @@
       const pmLabel = i.payment_method ? `<span style="font-size:10px;color:var(--gray-400);">· ${PAYMENT_METHOD_LABEL[i.payment_method]||i.payment_method}</span>` : '';
       let pfBadge = i.is_proforma
         ? `<span style="font-size:10px;background:#ede9fe;color:#6d28d9;padding:2px 6px;border-radius:4px;font-weight:700;">PROFORMA</span>`
-        : `<span style="font-size:10px;background:var(--gray-100);color:var(--gray-600);padding:2px 6px;border-radius:4px;font-weight:700;">FATTURA</span>`;
+        : ``;
+
 
       if (i.status === 'processing') {
         pfBadge = `<span style="font-size:10px;background:#fffbeb;color:#d97706;padding:2px 6px;border-radius:4px;font-weight:700;">⚙️ IN ELABORAZIONE</span>`;
       }
       const overdueStyle = i.due_date && new Date(i.due_date) < new Date() && ps !== 'paid' ? 'color:#ef4444;font-weight:700;' : '';
       const windocBadge = i.windoc_id
-        ? `<span style="font-size:10px;color:#059669;font-weight:600;">✅ Windoc</span>`
-        : ``;
+        ? `<span style="font-size:10px;color:#059669;font-weight:600;">✅ WD #${i.windoc_id}</span>`
+        : (activeDirection === 'outbound'
+          ? `<button onclick="event.stopPropagation();window.pushInvoiceWindoc('${i.id}')" title="Invia a Windoc" style="font-size:10px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:4px;padding:1px 7px;cursor:pointer;font-weight:600;">↑ WD</button>`
+          : '');
       const proofBadge = ps === 'proof_uploaded' ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-weight:700;">📎 Prova</span>` : '';
 
       let primaryName, primarySub, secondaryName;
       
       // For inbound invoices (Acquisti), the external entity is the Supplier
       if (activeDirection === 'inbound') {
-        primaryName   = i.supplier_company?.name || i.parsed_data?.supplier_name || i.supplier_name || 'Fornitore Sconosciuto';
+        primaryName   = i.clients?.alias || i.clients?.company_name || i.clients?.name || i.parsed_data?.supplier_name || i.supplier_name || 'Fornitore Sconosciuto';
         primarySub    = ''; // Or parsed_data email if exists
         secondaryName = i.companies?.name || 'Azienda Interna';
       } else {
@@ -742,6 +741,13 @@
         primaryName   = i.clients?.alias || i.clients?.company_name || i.clients?.name || i.client_name || 'Cliente Sconosciuto';
         primarySub    = i.clients?.email || '';
         secondaryName = i.companies?.name || 'Azienda Interna';
+      }
+
+      let secondaryBadge = 'INT';
+      if (secondaryName) {
+        if (secondaryName.toUpperCase().includes('IT SERVICES')) secondaryBadge = 'ITS';
+        else if (secondaryName.toUpperCase().includes('DELOCA')) secondaryBadge = 'DLC';
+        else secondaryBadge = secondaryName.substring(0, 3).toUpperCase();
       }
 
       return `<div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${i.id}"
@@ -760,8 +766,8 @@
         </div>
 
         <!-- 2) Emittente / Controparte -->
-        <div style="min-width:0;">
-          <div style="font-size:12px;font-weight:600;color:var(--gray-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${secondaryName}</div>
+        <div style="min-width:0; display:flex; align-items:center;">
+          <div title="${secondaryName}" style="font-size:11px;font-weight:700;color:var(--gray-600);background:var(--gray-100);padding:2px 6px;border-radius:4px;cursor:help;">${secondaryBadge}</div>
         </div>
 
         <!-- 3) Numero / Tipo -->
@@ -774,10 +780,14 @@
           </div>
         </div>
 
+        <!-- 3.5) Emissione -->
+        <div style="min-width:0;">
+          <div style="font-size:13px;color:var(--gray-900);font-weight:600;">${i.issue_date ? UI.date(i.issue_date) : '-'}</div>
+        </div>
+
         <!-- 4) Scadenza -->
         <div style="min-width:0;">
-          <div style="font-size:12px;color:var(--gray-500);">Ems: <span style="font-weight:600;">${i.issue_date ? UI.date(i.issue_date) : ''}</span></div>
-          <div style="font-size:12px;color:var(--gray-500);margin-top:2px;">Scad: <span style="font-weight:600;${overdueStyle}">${i.due_date ? UI.date(i.due_date) : ''}</span></div>
+          <div style="font-size:13px;color:var(--gray-900);font-weight:600;${overdueStyle}">${i.due_date ? UI.date(i.due_date) : '-'}</div>
         </div>
 
         <!-- 5) Stato -->
@@ -787,12 +797,14 @@
         </div>
 
         <!-- 5.5) Categoria -->
-        <div style="min-width:0;" onclick="event.stopPropagation()">
-          <select style="font-size:12px; font-weight:600; color:${i.invoice_categories?.color || 'var(--gray-600)'}; border:none; background:transparent; cursor:pointer;" onchange="window.updateInvoiceCategory('${i.id}', this.value)">
-            <option value="" style="color:var(--gray-600);">-</option>
-            ${ALL_CATEGORIES.map(c => `<option value="${c.id}" ${i.category_id === c.id ? 'selected' : ''} style="color:${c.color||'black'};">${c.name}</option>`).join('')}
+        <div class="mac-cat-row-wrap" onclick="event.stopPropagation()">
+          ${i.invoice_categories ? `<span class="mac-cat-dot" style="background:${i.invoice_categories.color||'#6b7280'};"></span>` : '<span class="mac-cat-dot" style="background:#e5e7eb;"></span>'}
+          <select class="mac-cat-row-select" onchange="window.updateInvoiceCategory('${i.id}', this.value || null)">
+            <option value="" ${!i.category_id ? 'selected' : ''}>— nessuna —</option>
+            ${ALL_CATEGORIES.map(c => `<option value="${c.id}" ${i.category_id === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
           </select>
         </div>
+
 
         <!-- 6) Importo -->
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
@@ -801,7 +813,7 @@
         
         <!-- 7) IVA -->
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-          <span style="font-size:13px;font-weight:600;color:var(--gray-600);">${i.parsed_data?.totals?.vat_amount != null ? UI.currency(i.parsed_data.totals.vat_amount) : '-'}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--gray-600);">${UI.currency(i.parsed_data?.totals?.vat_amount || i.vat_amount || 0)}</span>
         </div>
 
         <!-- 8) Totale -->
@@ -812,9 +824,10 @@
         <!-- 9) Azioni -->
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;" onclick="event.stopPropagation()">
           <!-- Switch Pagamento -->
-          <div title="${ps==='paid' ? 'Segna non pagata' : 'Segna pagata'}" style="width:36px; height:20px; border-radius:20px; background:${ps==='paid'?'#34c759':'#e5e5ea'}; position:relative; cursor:pointer; transition:.3s; margin-right:4px;" onclick="event.stopPropagation(); window.togglePaymentStatus('${i.id}', ${ps!=='paid'})">
-            <div style="width:16px; height:16px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px; transform:${ps==='paid'?'translateX(16px)':'none'}; transition:.3s; box-shadow:0 1px 2px rgba(0,0,0,.2);"></div>
-          </div>
+          <label class="mac-switch" title="${ps==='paid' ? 'Segna non pagata' : 'Segna pagata'}" onclick="event.stopPropagation()">
+            <input type="checkbox" ${ps==='paid' ? 'checked' : ''} onchange="window.togglePaymentStatus('${i.id}', this.checked)">
+            <span class="mac-slider"></span>
+          </label>
           
           <!-- Duplica -->
           <div title="Duplica" style="cursor:pointer; font-size:16px; margin-right:4px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="event.stopPropagation(); window.duplicateInvoice('${i.id}')">
@@ -1032,7 +1045,7 @@
 
   // ── Row actions ────────────────────────────────────────────
   window.markPaid = async id => {
-    if (!confirm('Segnare come pagata?')) return;
+    if (!await UI.confirm('Segnare come pagata?')) return;
     try {
       await API.Invoices.markPaid(id);
       ALL = ALL.map(i => i.id===id ? {...i, status:'paid', payment_status:'paid', paid_at:new Date().toISOString()} : i);
@@ -1042,7 +1055,7 @@
 
   window.reviewPayment = async (id, newStatus) => {
     const labels = { paid: 'confermare il pagamento', under_review: 'spostare in verifica', not_paid: 'riportare a non pagata' };
-    if (!confirm(`Vuoi ${labels[newStatus]||newStatus}?`)) return;
+    if (!await UI.confirm(`Vuoi ${labels[newStatus]||newStatus}?`)) return;
     try {
       await API.Invoices.reviewPayment(id, { payment_status: newStatus });
       ALL = ALL.map(i => i.id===id ? {...i, payment_status: newStatus, ...(newStatus==='paid'?{status:'paid',paid_at:new Date().toISOString()}:{})} : i);
@@ -1051,7 +1064,7 @@
   };
 
   window.confirmAndSync = async id => {
-    if (!confirm('Vuoi confermare il pagamento e generare la fattura Windoc in un clic?')) return;
+    if (!await UI.confirm('Vuoi confermare il pagamento e generare la fattura Windoc in un clic?')) return;
     try {
       UI.toast('Conferma e sincronizzazione in corso...', 'info');
       const res = await API.post(`/invoices/${id}/confirm-and-sync`, { payment_status: 'paid' });
@@ -1073,6 +1086,25 @@
   window.syncWindoc = async id => {
     try { await API.post(`/invoices/${id}/push-windoc`,{}); UI.toast('Sync Windoc avviata','info'); await load(); }
     catch(e) { UI.toast(e?.message||'Errore Windoc','error'); }
+  };
+
+  window.syncGdrive = async btn => {
+    try {
+      const orig = btn.innerHTML;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Sync...`;
+      btn.disabled = true;
+      const res = await API.post('/invoices/sync-gdrive', {});
+      UI.toast(res.message || 'Sincronizzazione GDrive avviata', 'info');
+      setTimeout(async () => {
+         await load();
+         btn.innerHTML = orig;
+         btn.disabled = false;
+      }, 3000);
+    } catch(e) {
+      UI.toast(e?.message || 'Errore Sync GDrive', 'error');
+      btn.innerHTML = 'G-Drive Sync'
+      btn.disabled = false;
+    }
   };
 
   window.onPageReady(async () => {
