@@ -268,6 +268,8 @@
     if (recSect) recSect.style.background = e.target.checked ? '#fefce8' : 'transparent';
   });
 
+
+
   $('inv-client')?.addEventListener('change', async (e) => {
     const cid = e.target.value;
     const servSect = $('inv-services-section');
@@ -278,41 +280,45 @@
     if (!cid) {
       if(servSect) servSect.style.display = 'none';
       if(servList) servList.innerHTML = '<div style="font-size:13px;color:#6b7280;text-align:center;">Seleziona un cliente per caricare i servizi.</div>';
-      return;
+    } else {
+      if(servSect) servSect.style.display = 'block';
+      if(servList) servList.innerHTML = '<div style="font-size:13px;color:#6b7280;text-align:center;">Caricamento servizi...</div>';
     }
     
-    if(servSect) servSect.style.display = 'block';
-    if(servList) servList.innerHTML = '<div style="font-size:13px;color:#6b7280;text-align:center;">Caricamento servizi...</div>';
-    
-    // Carica contratti per questo cliente
+    // Carica contratti (per questo cliente o globale se non selezionato)
     const contSelect = $('inv-contract-id');
     if (contSelect) {
-      API.get(`/contracts?client_id=${cid}`).then(res => {
-         const arr = res.data || res.items || [];
-         contSelect.innerHTML = '<option value="">Nessun contratto</option>' + arr.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
-      }).catch(e => contSelect.innerHTML = '<option value="">Nessun contratto</option>');
+      const p = cid ? { client_id: cid } : {};
+      API.Contracts.list(p).then(res => {
+         const arr = Array.isArray(res) ? res : (res.data || res.items || []);
+         contSelect.innerHTML = '<option value="">Nessun contratto</option>' + arr.map(c => `<option value="${c.id}">${c.title || c.number || (c.document_templates && c.document_templates.name) || (c.onboarding && c.onboarding.company_name) || c.id.substring(0,8)}</option>`).join('');
+      }).catch(e => {
+         console.error('Errore caricamento contratti:', e);
+         contSelect.innerHTML = '<option value="">Nessun contratto</option>';
+      });
     }
 
-    // Carica fornitore basato su company_id del cliente
+    // Preseleziona fornitore basato su company_id del cliente
     const supSelect = $('inv-supplier-creation');
-    if (supSelect) {
-      supabaseClient.from('clients').select('*, companies(*)').eq('id', cid).single().then(res => {
-         if (res.data && res.data.companies) {
-            supSelect.innerHTML = `<option value="${res.data.companies.id}">${res.data.companies.name}</option>`;
-         } else {
-            supSelect.innerHTML = `<option value="">Nessun fornitore associato al cliente</option>`;
-         }
-      }).catch(e => supSelect.innerHTML = '<option value="">Errore fornitore</option>');
+    if (cid && supSelect) {
+      API.Clients.get(cid).then(res => {
+         if (res && res.company_id) supSelect.value = res.company_id;
+      }).catch(e => console.error('Errore preselezione fornitore', e));
+    } else if (supSelect) {
+      supSelect.value = '';
     }
 
     // Carica preventivi
     const quoteSelect = $('inv-quote-id');
     if (quoteSelect) {
-      supabaseClient.from('quotes').select('id, number, title').eq('client_id', cid).order('created_at', {ascending:false}).then(res => {
-         const arr = res.data || [];
+      const p = cid ? { client_id: cid } : {};
+      API.Quotes.list(p).then(res => {
+         const arr = Array.isArray(res) ? res : (res.data || res.items || []);
          quoteSelect.innerHTML = '<option value="">Nessun preventivo</option>' + arr.map(q => `<option value="${q.id}">${q.number||''} ${q.title||''}</option>`).join('');
       }).catch(e => quoteSelect.innerHTML = '<option value="">Nessun preventivo</option>');
     }
+
+    if (!cid) return; // Fine early return per servizi se cid vuoto
 
     try {
       const res = await API.Services.subscriptions({ client_id: cid });
@@ -346,6 +352,109 @@
       });
     } catch (err) {
       if(servList) servList.innerHTML = '<div style="font-size:13px;color:#ef4444;text-align:center;">Errore durante il caricamento dei servizi.</div>';
+    }
+  });
+
+  $('inv-onboarding-id')?.addEventListener('change', async (e) => {
+    const oid = e.target.value;
+    if (!oid) return; // Se vuoto, non fare nulla (lascia i valori del cliente se ci sono)
+
+    // Carica contratti per questo onboarding
+    const contSelect = $('inv-contract-id');
+    if (contSelect) {
+      // Nota: list_contracts API bypassa onboarding_id se non è filterato backend-side, ma passiamo comunque il param 
+      // tramite array/object o fetch nativa.
+      API.Contracts.list({ onboarding_id: oid }).then(res => {
+         const arr = Array.isArray(res) ? res : (res.data || res.items || []);
+         contSelect.innerHTML = '<option value="">Nessun contratto</option>' + arr.map(c => `<option value="${c.id}">${c.title || c.number || (c.document_templates && c.document_templates.name) || (c.onboarding && c.onboarding.company_name) || c.id.substring(0,8)}</option>`).join('');
+      }).catch(e => contSelect.innerHTML = '<option value="">Nessun contratto</option>');
+    }
+
+    // Preseleziona fornitore e cliente basato su onboarding
+    const supSelect = $('inv-supplier-creation');
+    API.Onboarding.get(oid).then(res => {
+       if (res) {
+          if (res.company_id && supSelect) {
+             supSelect.value = res.company_id;
+          }
+          if (res.client_id) {
+             const cSel = $('inv-client');
+             if (cSel && (!cSel.value || cSel.value === '')) cSel.value = res.client_id;
+          }
+       }
+    }).catch(e => console.error('Errore preselezione fornitore/cliente da onboarding', e));
+
+    // Carica preventivi
+    const quoteSelect = $('inv-quote-id');
+    if (quoteSelect) {
+      API.Quotes.list({ onboarding_id: oid }).then(res => {
+         const arr = Array.isArray(res) ? res : (res.data || res.items || []);
+         quoteSelect.innerHTML = '<option value="">Nessun preventivo</option>' + arr.map(q => `<option value="${q.id}">${q.number||''} ${q.title||''}</option>`).join('');
+      }).catch(e => quoteSelect.innerHTML = '<option value="">Nessun preventivo</option>');
+    }
+  });
+
+  $('inv-quote-id')?.addEventListener('change', async (e) => {
+    const quoteId = e.target.value;
+    if (!quoteId) return;
+    try {
+      const quote = await API.Quotes.get(quoteId);
+      if (!quote) return;
+      
+      const amtEl = $('inv-amount');
+      const qTotal = quote.total_amount ?? quote.total ?? quote.amount ?? 0;
+      if (amtEl && qTotal !== undefined) {
+         amtEl.value = Number(qTotal).toFixed(2);
+      }
+      
+      const descEl = $('inv-desc');
+      if (descEl) descEl.value = 'Rif. preventivo ' + (quote.number ? quote.number + ' ' : '') + (quote.title || '');
+      
+      if (quote.client_id) {
+          const cSel = $('inv-client');
+          if (cSel) cSel.value = quote.client_id;
+      }
+      if (quote.onboarding_id) {
+          const oSel = $('inv-onboarding-id');
+          if (oSel) oSel.value = quote.onboarding_id;
+      }
+      if (quote.supplier_company_id) {
+          const sSel = $('inv-supplier-creation');
+          if (sSel) sSel.value = quote.supplier_company_id;
+      }
+
+      const contractSel = $('inv-contract-id');
+      if (contractSel) {
+        let contracts = await API.Contracts.list({ quote_id: quoteId }).catch(() => []);
+        contracts = Array.isArray(contracts) ? contracts : (contracts.data || contracts.items || []);
+        
+        if (contracts.length > 0) {
+          const c = contracts[0];
+          if (!Array.from(contractSel.options).find(opt => opt.value === c.id)) {
+            contractSel.add(new Option(`Contratto (rif. ${c.number || c.title || (c.document_templates && c.document_templates.name) || c.id.substring(0,8)})`, c.id));
+          }
+          contractSel.value = c.id;
+        } else {
+           // Create missing contract automatically
+           const newContract = await API.Contracts.create({
+              quote_id: quoteId,
+              client_id: quote.client_id || $('inv-client')?.value || null,
+              onboarding_id: quote.onboarding_id || $('inv-onboarding-id')?.value || null,
+              supplier_company_id: quote.supplier_company_id || $('inv-supplier-creation')?.value || null,
+              title: 'Contratto da ' + (quote.number || 'Prev'),
+              status: 'active',
+              total: quote.total,
+           }).catch(err => { console.warn('Errore auto-creazione contratto', err); return null; });
+           
+           if (newContract && newContract.id) {
+              contractSel.add(new Option(`Nuovo Contratto (${newContract.title || newContract.id.substring(0,6)})`, newContract.id));
+              contractSel.value = newContract.id;
+              UI.toast('Contratto generato automaticamente!', 'success');
+           }
+        }
+      }
+    } catch(err) {
+      console.error(err);
     }
   });
 
@@ -450,8 +559,13 @@
     set('kpi-inv-proof_uploaded', ALL.filter(i => i.payment_status === 'proof_uploaded').length);
     set('kpi-inv-under_review', ALL.filter(i => i.payment_status === 'under_review').length);
     set('kpi-inv-paid',         ALL.filter(i => i.payment_status === 'paid').length);
+    
+    set('kpi-inv-to_invoice',   ALL.filter(i => i.is_proforma && !ALL.some(inv => inv.proforma_id === i.id && !inv.is_proforma)).length);
+    set('kpi-inv-sync_failed',  ALL.filter(i => i.windoc_sync_status === 'error').length);
+    set('kpi-inv-windoc',       ALL.filter(i => i.windoc_id != null).length);
   }
 
+  window.applyFilters = applyFilters;
   function applyFilters() {
     const q   = (search?.value || '').toLowerCase().trim();
     const cl  = fClient?.value   || '';
@@ -467,6 +581,14 @@
       if (activeTab === 'proof_uploaded' && i.payment_status !== 'proof_uploaded')         return false;
       if (activeTab === 'under_review'   && i.payment_status !== 'under_review')           return false;
       if (activeTab === 'paid'           && i.payment_status !== 'paid')                   return false;
+      
+      if (activeTab === 'to_invoice') {
+         if (!i.is_proforma) return false;
+         const childFattura = ALL.find(inv => inv.proforma_id === i.id && !inv.is_proforma);
+         if (childFattura) return false; 
+      }
+      if (activeTab === 'sync_failed'    && i.windoc_sync_status !== 'error') return false;
+      if (activeTab === 'windoc'         && !i.windoc_id) return false;
       
       const matchName = activeDirection === 'inbound' ? i.supplier_name : i.client_name;
       if (cl  && matchName !== cl) return false;
@@ -705,7 +827,7 @@
     }
   };
 
-  const GRID = 'minmax(180px, 1.8fr) 50px 1.2fr 90px 90px 130px minmax(130px, 1fr) 90px 70px 90px 90px';
+  const GRID = 'minmax(130px, 1.5fr) 60px 80px minmax(90px, 1.2fr) 75px 75px 110px 60px minmax(80px, 1fr) 80px 55px 80px 180px';
 
   function renderRow(i) {
     try {
@@ -714,19 +836,13 @@
       const psInfo = PAYMENT_STATUS[ps] || PAYMENT_STATUS.not_paid;
       const pmLabel = i.payment_method ? `<span style="font-size:10px;color:var(--gray-400);">· ${PAYMENT_METHOD_LABEL[i.payment_method]||i.payment_method}</span>` : '';
       let pfBadge = i.is_proforma
-        ? `<span style="font-size:10px;background:#ede9fe;color:#6d28d9;padding:2px 6px;border-radius:4px;font-weight:700;">PROFORMA</span>`
-        : ``;
-
+        ? `<span style="font-size:11px;background:#ede9fe;color:#6d28d9;padding:3px 8px;border-radius:4px;font-weight:800;letter-spacing:0.5px;display:inline-block;">PROFORMA</span>`
+        : `<span style="font-size:11px;background:#e0f2fe;color:#0369a1;padding:3px 8px;border-radius:4px;font-weight:800;letter-spacing:0.5px;display:inline-block;">FATTURA</span>`;
 
       if (i.status === 'processing') {
-        pfBadge = `<span style="font-size:10px;background:#fffbeb;color:#d97706;padding:2px 6px;border-radius:4px;font-weight:700;">⚙️ IN ELABORAZIONE</span>`;
+        pfBadge += `<span style="font-size:10px;background:#fffbeb;color:#d97706;padding:2px 6px;border-radius:4px;font-weight:700;">⚙️ IN ELB.</span>`;
       }
       const overdueStyle = i.due_date && new Date(i.due_date) < new Date() && ps !== 'paid' ? 'color:#ef4444;font-weight:700;' : '';
-      const windocBadge = i.windoc_id
-        ? `<span style="font-size:10px;color:#059669;font-weight:600;">✅ WD #${i.windoc_id}</span>`
-        : (activeDirection === 'outbound'
-          ? `<button onclick="event.stopPropagation();window.pushInvoiceWindoc('${i.id}')" title="Invia a Windoc" style="font-size:10px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:4px;padding:1px 7px;cursor:pointer;font-weight:600;">↑ WD</button>`
-          : '');
       const proofBadge = ps === 'proof_uploaded' ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-weight:700;">📎 Prova</span>` : '';
 
       let primaryName, primarySub, secondaryName;
@@ -770,14 +886,36 @@
           <div title="${secondaryName}" style="font-size:11px;font-weight:700;color:var(--gray-600);background:var(--gray-100);padding:2px 6px;border-radius:4px;cursor:help;">${secondaryBadge}</div>
         </div>
 
+        <!-- NEW 2.5) Origine -->
+        <div style="min-width:0;">
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            ${i.contracts?.title ? `<span style="font-size:10px;color:#6366f1;font-weight:700;" title="${i.contracts.title}" class="truncate">Contr: ${i.contracts.title}</span>` : ''}
+            ${i.quotes?.number ? `<span style="font-size:10px;color:#0891b2;font-weight:700;" class="truncate">Prev: #${i.quotes.number}</span>` : ''}
+            ${!i.contracts?.title && !i.quotes?.number ? `<span style="font-size:10px;color:var(--gray-400);font-weight:600;">(Manuale)</span>` : ''}
+          </div>
+        </div>
+
         <!-- 3) Numero / Tipo -->
         <div style="min-width:0;">
-          <div style="font-size:12px;font-weight:600;color:var(--gray-800);">${i.number ? `#${i.number}` : 'Da assegnare'}</div>
-          <div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:3px;">
+          <div style="margin-bottom:4px;">
             ${pfBadge}
-            ${i.contracts?.title ? `<span style="font-size:10px;color:#6366f1;font-weight:600;">📄 ${i.contracts.title}</span>` : ''}
-            ${i.quotes?.number ? `<span style="font-size:10px;color:#0891b2;font-weight:600;">🧾 Prev. #${i.quotes.number}</span>` : ''}
           </div>
+          <div style="font-size:12px;font-weight:700;color:var(--gray-900);">${i.number ? `N. ${i.number}` : 'Da assegnare'}</div>
+          
+          ${(function(){
+              if (i.is_proforma) {
+                  const childFattura = ALL.find(inv => inv.proforma_id === i.id && !inv.is_proforma);
+                  if (childFattura) {
+                      return `<div style="margin-top:6px;" onclick="event.stopPropagation();window.location.href='admin_invoice_detail.html?id=${childFattura.id}'"><span style="font-size:11px;color:#0d9488;background:#ccfbf1;padding:2px 6px;border-radius:4px;font-weight:700;cursor:pointer;">🔗 Fatturata con #${childFattura.number || childFattura.windoc_number || '?'}</span></div>`;
+                  }
+              } else if (i.proforma_id) {
+                  const parentProforma = ALL.find(inv => inv.id === i.proforma_id);
+                  if (parentProforma) {
+                      return `<div style="margin-top:6px;" onclick="event.stopPropagation();window.location.href='admin_invoice_detail.html?id=${parentProforma.id}'"><span style="font-size:11px;color:#c026d3;background:#fae8ff;padding:2px 6px;border-radius:4px;font-weight:700;cursor:pointer;">↳ Da proforma #${parentProforma.number || '?'}</span></div>`;
+                  }
+              }
+              return '';
+          })()}
         </div>
 
         <!-- 3.5) Emissione -->
@@ -793,7 +931,30 @@
         <!-- 5) Stato -->
         <div style="display:flex;flex-direction:column;gap:4px;">
           <div><span class="pill ${psInfo.cls}">${psInfo.label}</span></div>
-          <div style="font-size:10px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;">${pmLabel}${proofBadge}${windocBadge}</div>
+          <div style="font-size:10px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;">${pmLabel}${proofBadge}</div>
+        </div>
+
+        <!-- NEW 5.5) SYNC WINDDOC -->
+        <div style="min-width:0;">
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
+          ${(function(){
+              if (activeDirection === 'inbound') return '<span style="color:#9ca3af;font-size:11px;">-</span>';
+              if (i.windoc_id) {
+                  return `<span style="font-size:10px;background:#d1fae5;color:#065f46;padding:2px 6px;border-radius:4px;font-weight:800;letter-spacing:0.5px;">OK WD</span>`;
+              }
+              if (i.windoc_sync_status === 'error') {
+                  return `<span style="font-size:10px;background:#fee2e2;color:#b91c1c;padding:2px 6px;border-radius:4px;font-weight:800;">ERRORE</span>
+                          <button onclick="event.stopPropagation();window.pushInvoiceWindoc('${i.id}')" style="font-size:9px;background:#fff;border:1px solid #fecaca;color:#dc2626;border-radius:4px;padding:2px 4px;cursor:pointer;font-weight:700;">↻ RIPROVA</button>`;
+              }
+              if (i.windoc_sync_status === 'pending' || i.windoc_sync_status === 'processing') {
+                  return `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-weight:800;">IN CORSO</span>`;
+              }
+              if (!i.is_proforma) {
+                  return `<button onclick="event.stopPropagation();window.pushInvoiceWindoc('${i.id}')" title="Sincronizza" style="font-size:10px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:4px;padding:2px 6px;cursor:pointer;font-weight:800;">↑ INVIA WD</button>`;
+              }
+              return '<span style="color:#9ca3af;font-size:11px;">-</span>';
+          })()}
+          </div>
         </div>
 
         <!-- 5.5) Categoria -->
@@ -823,11 +984,35 @@
 
         <!-- 9) Azioni -->
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;" onclick="event.stopPropagation()">
-          <!-- Switch Pagamento -->
+          ${(i.pdf_path || i.windoc_link) ? `
+          <a href="${i.pdf_path || i.windoc_link}" target="_blank" onclick="event.stopPropagation();" title="Scarica o Apri PDF" style="font-size:11px;background:#e0f2fe;color:#0ea5e9;border:1px solid #bae6fd;border-radius:4px;padding:3px 8px;text-decoration:none;font-weight:700;">
+            Apri PDF
+          </a>` : ''}
+
+          ${(i.windoc_link) ? `
+          <a href="${i.windoc_link}" target="_blank" onclick="event.stopPropagation();" title="Apri su WindDoc" style="font-size:11px;background:#f8fafc;color:#475569;border:1px solid #cbd5e1;border-radius:4px;padding:3px 8px;text-decoration:none;font-weight:700;">
+            Apri WindDoc
+          </a>` : ''}
+
+          <!-- Genera Fattura Action -->
+          ${(i.is_proforma && ps !== 'paid' && i.status !== 'generazione_in_corso') ? `
+          <div style="display:flex; flex-direction:column; gap:4px; justify-content:center;">
+             <button onclick="event.stopPropagation(); window.togglePaymentStatus('${i.id}', true)" title="Segna il pagamento come ricevuto ma NON generare fattura" style="font-size:10px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:4px;padding:4px 8px;cursor:pointer;font-weight:600;white-space:nowrap;">
+               Solo pagamento
+             </button>
+             <button onclick="event.stopPropagation(); window.confirmAndSync('${i.id}', this)" title="Conferma Pagamento e Genera Fattura WindDoc in automatico" style="font-size:11px;background:#10b981;color:white;border:none;border-radius:4px;padding:5px 8px;cursor:pointer;font-weight:700;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.1);">
+               ⚡ PAGA E FATTURA
+             </button>
+          </div>
+          ` : ''}
+
+          <!-- Switch Pagamento se non ci sono bottoni di pagamento evidenti -->
+          ${(ps === 'paid' || (!i.is_proforma && ps !== 'paid')) ? `
           <label class="mac-switch" title="${ps==='paid' ? 'Segna non pagata' : 'Segna pagata'}" onclick="event.stopPropagation()">
             <input type="checkbox" ${ps==='paid' ? 'checked' : ''} onchange="window.togglePaymentStatus('${i.id}', this.checked)">
             <span class="mac-slider"></span>
           </label>
+          ` : ''}
           
           <!-- Duplica -->
           <div title="Duplica" style="cursor:pointer; font-size:16px; margin-right:4px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="event.stopPropagation(); window.duplicateInvoice('${i.id}')">
@@ -903,6 +1088,7 @@
     const nxt = $('inv-recurrence-next');
     
     if (amt) amt.value = '';
+    if ($('inv-abbuono')) $('inv-abbuono').value = '';
     if (dsc) dsc.value = '';
     if ($('inv-number')) $('inv-number').value = '';
     if ($('inv-issue-date')) $('inv-issue-date').value = '';
@@ -913,6 +1099,9 @@
     if(servSect) servSect.style.display = 'none';
     if(servList) servList.innerHTML = '<div style="font-size:13px;color:#6b7280;text-align:center;">Seleziona un cliente per caricare i servizi.</div>';
 
+    const linesContainer = $('inv-lines-container');
+    if (linesContainer) linesContainer.innerHTML = '';
+
     if (cl)  cl.innerHTML  = '<option value="">Caricamento…</option>';
     if (onb) onb.innerHTML = '<option value="">Nessuno</option>';
     const supp = $('inv-supplier-creation');
@@ -922,14 +1111,31 @@
 
     modal.classList.add('open');
     try {
-      const [clientsRes, onbRes, compRes] = await Promise.all([
+      const [clientsRes, onbRes, compRes, wdDict] = await Promise.all([
         API.Clients.list(activeDirection === 'inbound' ? { is_supplier: true } : { status: 'active' }).catch(() => []),
         API.Onboarding.list().catch(() => []),
-        API.get('/companies/mine').catch(() => []).then(r => r.data || r || []), // Fallback to try fetch companies
+        API.get('/companies').catch(() => []).then(r => r.data || r || []), 
+        API.get('/invoices/windoc-dictionary').catch(() => null)
       ]);
       const clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes?.items ?? clientsRes?.data ?? []);
       const onbs    = Array.isArray(onbRes)     ? onbRes     : (onbRes?.items    ?? onbRes?.data    ?? []);
       const comps   = Array.isArray(compRes)    ? compRes    : [];
+      
+      // Popolamento dinamico metodi di pagamento da Windoc
+      if (wdDict && wdDict.pagamenti_lista && $('inv-payment-method')) {
+          const pmSel = $('inv-payment-method');
+          const currentMethod = pmSel.value;
+          pmSel.innerHTML = '<option value="">Non specificato</option>' + 
+                            wdDict.pagamenti_lista.map(p => `<option value="${p.id_metodo_pagamento}">${p.nome}</option>`).join('');
+          if (currentMethod) pmSel.value = currentMethod;
+      }
+      
+      // Salva imposte per le righe fattura
+      if (wdDict && wdDict.imposte_lista) {
+          window.WdImposte = wdDict.imposte_lista;
+      } else {
+          window.WdImposte = null;
+      }
 
       if (activeDirection === 'inbound') {
          const lbl1 = cl.closest('.form-group').querySelector('label');
@@ -951,9 +1157,10 @@
          const subLbl = supp.closest('.form-group').querySelector('div');
          if (subLbl) subLbl.innerHTML = 'Dato recuperato in automatico dalla scheda Cliente o Prospect.';
          if (supp) {
-             supp.disabled = true;
-             supp.style.backgroundColor = '#f9fafb';
-             supp.innerHTML = '<option value="">(Stessa azienda attuale)</option>' + comps.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+             // CHANGE: we allow the user to select the internal emitting company manually for Proforma/Fattura
+             supp.disabled = false;
+             supp.style.backgroundColor = '';
+             supp.innerHTML = '<option value="">Seleziona azienda fornitrice...</option>' + comps.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
          }
       }
 
@@ -971,26 +1178,128 @@
             .join('');
       }
 
-      if (preset?.client_id && cl) { cl.value = preset.client_id; cl.dispatchEvent(new Event('change')); }
+      const qSel = $('inv-quote-id'); if (qSel) qSel.innerHTML = '<option value="">Nessuno</option>';
+      const cSel = $('inv-contract-id'); if (cSel) cSel.innerHTML = '<option value="">Nessuno</option>';
+
+      if (preset?.client_id && cl) cl.value = preset.client_id; 
+      if (cl) cl.dispatchEvent(new Event('change'));
+      
       if (preset?.onboarding_id && onb) onb.value = preset.onboarding_id;
+
+      // Aggiungi riga di default solo se non stiamo precompilando (es. nuovo documento)
+      // e DOPO aver scaricato WdImposte così ha le tendine corrette
+      if (!preset || Object.keys(preset).length === 0) {
+         if (window.addInvoiceLine && linesContainer && linesContainer.children.length === 0) {
+             window.addInvoiceLine();
+         }
+      }
 
       const due = $('inv-due');
       if (due) { const d = new Date(); d.setDate(d.getDate() + 30); due.value = d.toISOString().split('T')[0]; }
       const nxt = $('inv-recurrence-next');
       if (nxt) { const d = new Date(); d.setDate(d.getDate() + 30); nxt.value = d.toISOString().split('T')[0]; }
+      const issue = $('inv-issue-date');
+      if (issue && !issue.value) { issue.value = new Date().toISOString().split('T')[0]; }
       
-      const qSel = $('inv-quote-id'); if (qSel) qSel.innerHTML = '<option value="">Nessuno</option>';
-      const cSel = $('inv-contract-id'); if (cSel) cSel.innerHTML = '<option value="">Nessuno</option>';
-      const sSel = $('inv-supplier-creation'); if (sSel) sSel.innerHTML = '<option value="">Assegnata in base al cliente...</option>';
+      const numLabel = $('inv-number')?.closest('.form-group')?.querySelector('label');
+      if (isProforma) {
+          if (numLabel) numLabel.innerHTML = 'Numero Proforma';
+          if ($('inv-number')) {
+              $('inv-number').placeholder = 'Assegnazione automatica';
+              $('inv-number').readOnly = true;
+              $('inv-number').style.backgroundColor = '#f9fafb';
+          }
+      } else {
+          if (numLabel) numLabel.innerHTML = 'Numero Fattura';
+          if ($('inv-number')) {
+              $('inv-number').placeholder = 'Es. FATT-123';
+              $('inv-number').readOnly = false;
+              $('inv-number').style.backgroundColor = '';
+          }
+      }
+      
+      // I dropdown (quote-id, contract-id, supplier-creation) vengono inizializzati prima
+      // o popolati dal listener 'change' di inv-client, quindi NON sovrascriverli qui!
     } catch (e) { UI.toast('Errore caricamento dati modal', 'error'); }
   }
 
+  window.addInvoiceLine = (desc = '', qty = 1, price = 0, vat = '', sconto = 0, centro_ricavo = '') => {
+    const container = $('inv-lines-container');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'inv-line-row';
+    div.style = 'display:flex; gap:8px; align-items:center; background:#f9fafb; padding:8px; border-radius:8px; border:1px solid #e5e7eb; overflow-x: auto;';
+    
+    // Select IVA Dinamica
+    let ivaOptions = '<option value="">Nessuna</option>';
+    if (window.WdImposte) {
+       ivaOptions += window.WdImposte.map(i => `<option value="${i.id_aliquota}">${i.nome} (${i.valore}%)</option>`).join('');
+    } else {
+       ivaOptions += `<option value="22" ${vat=='22'?'selected':''}>22%</option>
+                      <option value="10" ${vat=='10'?'selected':''}>10%</option>
+                      <option value="4" ${vat=='4'?'selected':''}>4%</option>
+                      <option value="0" ${vat=='0'?'selected':''}>0%</option>`;
+    }
+
+    div.innerHTML = `
+      <input type="text" class="form-input l-desc" placeholder="Es. Servizio web..." value="${desc}" title="Descrizione" style="flex:1; min-width:200px;" onchange="window.calcInvoiceTotal()">
+      <input type="text" class="form-input l-rc" placeholder="Opzionale..." title="Centro Ricavo (Opzionale)" value="${centro_ricavo}" style="width:100px; min-width:100px;">
+      <input type="number" class="form-input l-qty" placeholder="1" title="Quantità" value="${qty}" style="width:70px; min-width:70px;" min="0.1" step="0.1" onchange="window.calcInvoiceTotal()">
+      <input type="number" class="form-input l-price" placeholder="0.00" title="Prezzo unitario" value="${price}" style="width:90px; min-width:90px;" min="0" step="0.01" onchange="window.calcInvoiceTotal()">
+      <input type="number" class="form-input l-discount" placeholder="0.00" title="Sconto riga in €" value="${sconto}" style="width:90px; min-width:90px;" min="0" step="0.01" onchange="window.calcInvoiceTotal()">
+      <select class="form-input l-vat" title="Aliquota IVA" style="width:200px; min-width:200px; text-overflow: ellipsis;" onchange="window.calcInvoiceTotal()">
+        ${ivaOptions}
+      </select>
+      <button type="button" class="btn btn-ghost" style="color:#ef4444; padding:4px;" onclick="this.parentElement.remove(); window.calcInvoiceTotal();" title="Rimuovi">✕</button>
+    `;
+    container.appendChild(div);
+  };
+
+  window.calcInvoiceTotal = () => {
+    let tot = 0;
+    // Somma i servizi (checkbox abbonamenti attivi) se visibili
+    const serviceIds = Array.from(document.querySelectorAll('.inv-service-cb:checked'));
+    serviceIds.forEach(cb => {
+      const p = parseFloat(cb.dataset.price || 0);
+      tot += p;
+    });
+    // Somma righe dinamiche
+    const lines = document.querySelectorAll('.inv-line-row');
+    lines.forEach(row => {
+      const q = parseFloat(row.querySelector('.l-qty').value) || 0;
+      const p = parseFloat(row.querySelector('.l-price').value) || 0;
+      const d = parseFloat(row.querySelector('.l-discount').value) || 0;
+      let rigaTot = (q * p) - d;
+      if (rigaTot < 0) rigaTot = 0;
+      tot += rigaTot;
+    });
+    
+    // Abbuono totale (aggiunto in HTML successivamente)
+    const abbEl = $('inv-abbuono');
+    if (abbEl) {
+       const abbNum = parseFloat(abbEl.value) || 0;
+       tot -= abbNum;
+       if (tot < 0) tot = 0;
+    }
+    
+    const amtEl = $('inv-amount');
+    if (amtEl) amtEl.value = tot.toFixed(2);
+  };
+
   $('btn-save-invoice')?.addEventListener('click', async () => {
     const cid = $('inv-client')?.value, amt = parseFloat($('inv-amount')?.value), due = $('inv-due')?.value;
-    if (!cid || isNaN(amt) || !due) { UI.toast('Cliente, importo e scadenza sono obbligatori', 'warning'); return; }
+    const oid = $('inv-onboarding-id')?.value;
+    if ((!cid && !oid) || isNaN(amt) || !due) {
+        UI.toast('Cliente (o Onboarding), Importo e Scadenza sono obbligatori', 'warning');
+        if (!cid && !oid && $('inv-client')) {
+            $('inv-client').style.border = '2px solid #ef4444';
+            $('inv-client').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => $('inv-client').style.border = '', 3000);
+        }
+        return;
+    }
     const isProforma  = $('inv-is-proforma')?.value === '1';
     const method      = $('inv-payment-method')?.value || null;
-    const onboardingId = $('inv-onboarding-id')?.value || null;
     const contractId   = $('inv-contract-id')?.value || null;
     const quoteId      = $('inv-quote-id')?.value || null;
     const supCompId    = $('inv-supplier-creation')?.value || null;
@@ -1000,30 +1309,58 @@
     const serviceIds = Array.from(document.querySelectorAll('.inv-service-cb:checked')).map(cb => cb.value);
     const recToggle  = $('inv-is-recurring')?.checked;
     
+    // Costruzione array lines dinamiche
+    const invoiceLines = [];
+    document.querySelectorAll('.inv-line-row').forEach(row => {
+      const desc = row.querySelector('.l-desc').value.trim();
+      const rc   = row.querySelector('.l-rc').value.trim() || null;
+      const qty = parseFloat(row.querySelector('.l-qty').value) || 0;
+      const price = parseFloat(row.querySelector('.l-price').value) || 0;
+      const discount = parseFloat(row.querySelector('.l-discount').value) || 0;
+      const vat = row.querySelector('.l-vat').value; 
+      
+      let rigaTot = (qty * price) - discount;
+      if (rigaTot < 0) rigaTot = 0;
+      
+      if (desc && qty > 0) {
+         invoiceLines.push({ 
+           description: desc, 
+           revenue_center: rc,
+           quantity: qty, 
+           unit_price: price, 
+           discount: discount,
+           vat_rate: vat // In Windoc sarà id_aliquota (stringa) o numerico
+         });
+      }
+    });
+
     if (activeDirection === 'inbound' && !supCompId) {
         UI.toast('Seleziona l\'Azienda Ricevente', 'warning');
+        if (btn) btn.disabled = false;
         return;
     }
     
     // Payload Base
     const payload = {
-      client_id:    cid,
+      client_id:    cid || null,
       direction:    activeDirection === 'inbound' ? 'inbound' : 'outbound',
       total:        amt, 
       amount:       amt, 
       total_amount: amt,
+      abbuono:      parseFloat($('inv-abbuono')?.value) || 0.0,
+
       due_date:     due,
       number:       $('inv-number')?.value?.trim() || null,
       issue_date:   $('inv-issue-date')?.value || null,
       notes:        $('inv-desc')?.value?.trim() || null,
       is_proforma:  isProforma,
-      payment_method:  method      || undefined,
-      onboarding_id:   onboardingId || undefined,
-      contract_id:     contractId || undefined,
-      quote_id:        quoteId || undefined,
-      supplier_company_id: activeDirection === 'inbound' ? undefined : (supCompId || undefined),
-      company_id:      activeDirection === 'inbound' ? supCompId : (supCompId || window.SessionState?.company_id || undefined),
-      service_ids:     serviceIds.length ? serviceIds : undefined
+      payment_method:  method || null,
+      onboarding_id:   oid || null,
+      contract_id:     contractId || null,
+      quote_id:        quoteId || null,
+      supplier_company_id: activeDirection === 'inbound' ? null : (supCompId || null),
+      company_id:      activeDirection === 'inbound' ? (supCompId || null) : (supCompId || window.SessionState?.company_id || null),
+      service_ids:     serviceIds.length ? serviceIds : null
     };
 
     // Estensione Payload Abbonamento / Ricorrenza
@@ -1035,12 +1372,45 @@
     }
 
     try {
-      await API.Invoices.create({ body: payload, lines: [] });
+      await API.Invoices.create({ body: payload, lines: invoiceLines });
       UI.toast(isProforma ? 'Proforma (e ricorrenza) creata' : 'Fattura creata', 'success');
       modal?.classList.remove('open');
       await load();
     } catch (e) { UI.toast(e?.message || 'Errore', 'error'); }
     finally { if (btn) btn.disabled = false; }
+  });
+
+  // Auto-popolamento righe fattura / proforma al cambio contratto
+  $('inv-contract-id')?.addEventListener('change', async function() {
+      const contractId = this.value;
+      const linesContainer = $('inv-lines-container');
+      if (!contractId || !linesContainer || typeof window.addInvoiceLine !== 'function') return;
+      
+      try {
+         // Recuperiamo la lista dei contratti. Se esiste l'endpoint singolo sarebbe meglio,
+         // ma per sicurezza riutilizziamo la query generale (già filtrata se possibile).
+         const res = await API.get('/contracts');
+         const ctrs = res?.data || res || [];
+         const ctr = ctrs.find(c => c.id === contractId);
+         
+         if (ctr && ctr.contract_services && ctr.contract_services.length > 0) {
+             linesContainer.innerHTML = ''; // Rimuove eventuali righe "vuote" o vecchie
+             ctr.contract_services.forEach(s => {
+                 const cat = s.services_catalog || {};
+                 const name = cat.name || '';
+                 const price = parseFloat(cat.price) || 0;
+                 // (desc, qty, price, vat, sconto, centro_ricavo)
+                 // Lasciamo l'IVA vuota così il default di addInvoiceLine la lascerà '0' o come predefinita.
+                 window.addInvoiceLine(name, 1, price, '', 0, ''); 
+             });
+             // Dopo aver aggiunto tutte le righe, ricalcola i totali
+             if (typeof window.calcInvoiceTotal === 'function') {
+                 window.calcInvoiceTotal();
+             }
+         }
+      } catch(e) {
+         console.warn('Impossibile auto-popolare proforma dal contratto:', e);
+      }
   });
 
   // ── Row actions ────────────────────────────────────────────
@@ -1063,19 +1433,31 @@
     } catch(e) { UI.toast(e?.message||'Errore','error'); }
   };
 
-  window.confirmAndSync = async id => {
-    if (!await UI.confirm('Vuoi confermare il pagamento e generare la fattura Windoc in un clic?')) return;
+  const syncingItems = new Set();
+  
+  window.confirmAndSync = async (id, btnEl) => {
+    if (syncingItems.has(id)) return;
+    if (!await UI.confirm('Vuoi confermare il pagamento e generare SUDITO la fattura reale su Windoc?')) return;
+    
+    syncingItems.add(id);
+    if (btnEl) btnEl.disabled = true;
+    
     try {
-      UI.toast('Conferma e sincronizzazione in corso...', 'info');
+      UI.toast('Conferma e generazione fattura in corso...', 'info');
       const res = await API.post(`/invoices/${id}/confirm-and-sync`, { payment_status: 'paid' });
       const wd = res.windoc || {};
       if (wd.success) {
-        UI.toast('Fattura Windoc generata con successo!', 'success');
+        UI.toast('Fattura Windoc generata e agganciata con successo!', 'success');
       } else {
-        UI.toast('Pagamento confermato, ma errore Windoc: ' + (wd.message||'Sconosciuto'), 'warning');
+        UI.toast('Pagamento confermato, ma fallito Windoc: ' + (wd.message||wd.error||'Sconosciuto'), 'warning');
       }
       await load();
-    } catch(e) { UI.toast(e?.message||"Errore durante l'operazione", 'error'); }
+    } catch(e) { 
+      UI.toast(e?.message||"Errore durante l'operazione", 'error'); 
+    } finally {
+      syncingItems.delete(id);
+      if (btnEl) btnEl.disabled = false;
+    }
   };
 
   window.sendReminder = async id => {

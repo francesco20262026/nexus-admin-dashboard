@@ -30,7 +30,7 @@
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
 </button>`;
   $('btn-refresh')?.addEventListener('click', function() { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
-  $('btn-invite')?.addEventListener('click',  openModal);
+  $('btn-action-icon-invite')?.addEventListener('click',  openModal);
 
   tabBar?.querySelectorAll('.cl-status-pill').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
   if (tabBar) tabBar.addEventListener('click', e => {
@@ -43,7 +43,9 @@
     el?.addEventListener('change', () => { pg=1; applyFilters(); });
   });
 
-  window.addEventListener('companyChanged', load);
+  if (window._usersCmpListener) window.removeEventListener('companyChanged', window._usersCmpListener);
+  window._usersCmpListener = () => load();
+  window.addEventListener('companyChanged', window._usersCmpListener);
   window._reloadUsers = load;
 
   async function load() {
@@ -188,7 +190,7 @@
   
   window.massDelete = async function() {
     if (window.selectedIds.size === 0) return;
-    if (!confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} utenti selezionati?`)) return;
+    if (!await UI.confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} utenti selezionati?`)) return;
     
     let success = 0;
     try {
@@ -214,7 +216,7 @@
     }
   };
 
-  const ROLE_LABELS  = { admin:'Admin', super_admin:'Super Admin', operator:'Operatore', member:'Membro', viewer:'Viewer' };
+  const ROLE_LABELS  = { super_admin:'Super Admin', admin:'Admin', client:'Cliente', operator:'Operatore', member:'Membro', viewer:'Viewer' };
   const STATUS_COLORS = { active:'var(--color-success)', invited:'var(--color-warning)', inactive:'var(--gray-400)' };
 
   // Avatar colors palette
@@ -249,7 +251,7 @@
       };
       const st = STATUS[u.status] || STATUS.active;
 
-      return `<div class="cl-row fade-in" data-id="${u.id}" style="display:grid; grid-template-columns: 2.5fr 1.5fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;" onclick="location.href='admin_user_detail.html?id=${u.id}'">
+      return `<div class="cl-row fade-in" data-id="${u.id}" style="display:grid; grid-template-columns: 2.5fr 1.5fr 100px 100px 100px 100px; align-items:center; gap:16px; padding:10px 24px; border-bottom:1px solid var(--border); transition:all 0.15s; cursor:pointer;" onclick="location.href='admin_user_detail.html?id=${u.id}'">
         <!-- Colonna 1: Avatar e Nome -->
         <div class="cl-col cl-col-1">
           <div class="cl-row-identity">
@@ -264,23 +266,42 @@
               ${isMe ? '<span class="tag-pill" style="margin-left:8px;font-size:10px;padding:2px 6px;">Tu</span>' : ''}
             </div>
             <div class="cl-row-meta" style="font-size:12px; color:var(--gray-500); margin-top:2px;">
-              ${u.email || ''}${(u.company_name || u.tenant_name) ? `<span style="color:var(--gray-300);margin:0 5px;">·</span><span>${u.company_name || u.tenant_name}</span>` : ''}
+              ${u.email || ''}
             </div>
           </div>
         </div>
 
         </div>
-        <!-- Colonna 2: Ruolo -->
+        <!-- Colonna 2: Azienda Cliente -->
+        <div class="cl-col" style="min-width:0;">
+          <div style="font-size:13px; color:var(--gray-700); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.client_name || '-'}</div>
+        </div>
+        <!-- Colonna 3: Fornitore -->
+        <div class="cl-col" style="min-width:0;">
+          ${u.role === 'super_admin' ? 
+            `<div style="font-size:11px; font-weight:800; color:var(--gray-700); background:var(--gray-200); border:1px solid var(--border); padding:2px 8px; border-radius:20px; display:inline-block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">ALL</div>` : 
+            `<div style="font-size:11px; font-weight:800; color:var(--gray-700); background:var(--gray-100); border:1px solid var(--border); padding:2px 8px; border-radius:20px; display:inline-block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.company_alias || (u.company_name ? u.company_name.substring(0,3).toUpperCase() : '-')}</div>`
+          }
+        </div>
+        <!-- Colonna 4: Ruolo -->
         <div class="cl-col" style="min-width:0;">
           <div style="font-size:13px; color:var(--gray-700);">${role}</div>
         </div>
-
-        <!-- Colonna 3: Stato -->
+        <!-- Colonna 5: Stato -->
+        <div class="cl-col" style="min-width:0;">
+          <div style="font-size:13px; color:${u.status === 'active' ? 'var(--color-success)' : 'var(--gray-400)'}; font-weight:600;">${u.status === 'active' ? 'Attivo' : 'Disattivo'}</div>
+        </div>
+        <!-- Colonna 6: Azioni -->
         <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; gap:12px; justify-content:flex-end;">
           <label class="mac-switch" title="Abilita/Disabilita Utente" onclick="event.stopPropagation()">
             <input type="checkbox" onchange="window.toggleUserActive('${u.id}', this.checked)" ${u.status === 'active' ? 'checked' : ''}>
             <span class="mac-slider"></span>
           </label>
+          <button class="btn-action-icon" title="Reset Password" style="outline:none;border:none;background:transparent;cursor:pointer;color:var(--gray-500);display:flex;align-items:center;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='var(--gray-500)'" onclick="event.stopPropagation(); window.resetUserPassword('${u.id}')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:16px;height:16px">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+            </svg>
+          </button>
         </div>
       </div>`;
     }).join('');
@@ -317,9 +338,17 @@
   // Row actions
   window.resendInvite   = async id => { try { await API.post(`/users/${id}/resend-invite`,{}); UI.toast('Invito re-inviato','success'); } catch(e) { UI.toast(e?.message||'Errore','error'); } };
   window.changeRole     = async (id, currentRole) => {
-    const role = prompt('Nuovo ruolo (admin / operator):', currentRole); if (!role) return;
+    const role = prompt('Nuovo ruolo (super_admin / client):', currentRole); if (!role) return;
     try { await API.Users.update(id, {role}); ALL=ALL.map(u=>u.id===id?{...u,role}:u); updateKpis(); applyFilters(); UI.toast('Ruolo aggiornato','success'); }
     catch(e) { UI.toast(e?.message||'Errore','error'); }
+  };
+  window.resetUserPassword = async id => {
+    try { 
+      UI.toast('Invio link di reset in corso...', 'info');
+      await API.post(`/users/${id}/reset-password`); 
+      UI.toast('Link di reset inviato', 'success'); 
+    }
+    catch(e) { UI.toast(e?.message || 'Errore reset password', 'error'); }
   };
   window.deactivateUser = async id => {
     try { 

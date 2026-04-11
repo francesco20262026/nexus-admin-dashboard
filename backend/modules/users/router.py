@@ -42,18 +42,43 @@ class AddCompanyRequest(BaseModel):
 
 # ── Helpers ──────────────────────────────────────────────────
 
-def _enrich_users(users_rows: list, perms_rows: list, companies_map: dict) -> list:
+def _enrich_users(users_rows: list, perms_rows: list, companies_map: dict, clients_map: dict) -> list:
     """Merge users + permissions + company name into a flat list."""
-    perm_by_user = {}
+    perms_by_user = {}
     for p in perms_rows:
         uid = p["user_id"]
-        if uid not in perm_by_user:
-            perm_by_user[uid] = p
+        if uid not in perms_by_user:
+            perms_by_user[uid] = []
+        perms_by_user[uid].append(p)
 
     result = []
     for u in users_rows:
         uid = u["id"]
-        perm = perm_by_user.get(uid, {})
+        user_perms = perms_by_user.get(uid, [])
+        if not user_perms:
+            user_perms = [{}]
+            
+        primary_perm = user_perms[0]
+        aliases = []
+        names = []
+        for p in user_perms:
+            comp = companies_map.get(p.get("company_id", ""), {})
+            comp_name = comp.get("name", "")
+            if comp_name:
+                names.append(comp_name)
+                # Calcola alias: ITS per IT SERVICES, DLC per DELOCA
+                upper_name = comp_name.upper()
+                if "IT SERVICE" in upper_name:
+                    aliases.append("ITS")
+                elif "DELOCA" in upper_name:
+                    aliases.append("DLC")
+                else:
+                    aliases.append(comp_name[:3].upper())
+
+        # Deduplicate
+        aliases = list(dict.fromkeys(aliases))
+        names = list(dict.fromkeys(names))
+
         result.append({
             "id":           uid,
             "name":         u.get("name") or "",
@@ -61,10 +86,13 @@ def _enrich_users(users_rows: list, perms_rows: list, companies_map: dict) -> li
             "lang":         u.get("lang") or "it",
             "is_active":    u.get("is_active", True),
             "created_at":   u.get("created_at"),
-            "role":         perm.get("role", "operator"),
+            "role":         primary_perm.get("role", "operator"),
             "status":       "active" if u.get("is_active", True) else "inactive",
-            "company_id":   perm.get("company_id"),
-            "company_name": companies_map.get(perm.get("company_id", ""), ""),
+            "company_id":   primary_perm.get("company_id"),
+            "company_name": " / ".join(names) if names else "",
+            "company_alias": " / ".join(aliases) if aliases else "",
+            "client_id":    primary_perm.get("client_id"),
+            "client_name":  clients_map.get(primary_perm.get("client_id", ""), ""),
         })
     return result
 
@@ -81,7 +109,7 @@ async def list_users(user: CurrentUser = Depends(require_internal)):
         perms = perms_res.data or []
     else:
         company_id = str(user.active_company_id)
-        perms_res = supabase.table("user_company_permissions").select("*").eq("company_id", company_id).execute()
+        perms_res = supabase.table("user_company_permissions").select("*").eq("company_id", user.tenant).execute()
         perms = perms_res.data or []
         user_ids = [p["user_id"] for p in perms]
         if not user_ids:
@@ -90,18 +118,30 @@ async def list_users(user: CurrentUser = Depends(require_internal)):
         users_rows = users_res.data or []
 
     all_company_ids = list({p["company_id"] for p in perms if p.get("company_id")})
-    companies_map: dict[str, str] = {}
+    companies_map: dict = {}
     if all_company_ids:
         comp_res = (
             supabase.table("companies")
-            .select("id,name")
+            .select("id,name,slug")
             .in_("id", all_company_ids)
             .execute()
         )
         for c in (comp_res.data or []):
-            companies_map[c["id"]] = c.get("name", "")
+            companies_map[c["id"]] = c
 
-    return _enrich_users(users_rows, perms, companies_map)
+    all_client_ids = list({p["client_id"] for p in perms if p.get("client_id")})
+    clients_map: dict = {}
+    if all_client_ids:
+        cl_res = (
+            supabase.table("clients")
+            .select("id,name")
+            .in_("id", all_client_ids)
+            .execute()
+        )
+        for cl in (cl_res.data or []):
+            clients_map[cl["id"]] = cl.get("name", "")
+
+    return _enrich_users(users_rows, perms, companies_map, clients_map)
 
 
 @router.get("/{user_id}")
@@ -370,7 +410,7 @@ async def update_user(
             )
         supabase.table("user_company_permissions").update(
             {"role": body.role}
-        ).eq("user_id", uid).eq("company_id", company_id).execute()
+        ).eq("user_id", uid).eq("company_id", current_user.tenant).execute()
 
     # Update active status in public.users
     if body.status is not None:
