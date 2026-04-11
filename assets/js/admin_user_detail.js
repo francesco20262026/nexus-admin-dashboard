@@ -14,7 +14,7 @@
   let _allCompanies = [];
   let _allClients   = [];
 
-  const ROLE_LABELS = { admin: 'Admin', operator: 'Operatore' };
+  const ROLE_LABELS = { super_admin: 'Super Admin', client: 'Cliente' };
   const STATUS_MAP  = {
     active:   { label: 'Attivo',      color: '#16a34a', bg: '#f0fdf4' },
     inactive: { label: 'Disattivato', color: '#dc2626', bg: '#fef2f2' },
@@ -105,8 +105,8 @@
           </div>
           <div class="assoc-controls">
             <select class="form-input" style="width:120px;font-size:13px;padding:5px 8px;" onchange="changeRole('${c.company_id}', this.value)">
-              <option value="operator" ${c.role==='operator'?'selected':''}>Operatore</option>
-              <option value="admin"    ${c.role==='admin'   ?'selected':''}>Admin</option>
+              <option value="client"      ${c.role==='client'     ?'selected':''}>Cliente</option>
+              <option value="super_admin" ${c.role==='super_admin'?'selected':''}>Super Admin</option>
             </select>
             <button class="btn btn-ghost btn-sm" onclick="pickClient('${c.company_id}')" title="Associa cliente" style="padding:5px 8px;white-space:nowrap;">
               👤 Cliente
@@ -138,7 +138,7 @@
   });
 
   $('btn-reset-password')?.addEventListener('click', async () => {
-    if (!confirm('Inviare un link di reset password a questo utente?')) return;
+    if (!await UI.confirm('Inviare un link di reset password a questo utente?')) return;
     const btn = $('btn-reset-password'); if (btn) btn.disabled = true;
     try {
       const res = await API.post(`/users/${USER_ID}/reset-password`, {});
@@ -160,7 +160,7 @@
   };
 
   window.removeCompany = async (companyId, companyName) => {
-    if (!confirm(`Rimuovere accesso a "${companyName}"?`)) return;
+    if (!await UI.confirm(`Rimuovere accesso a "${companyName}"?`)) return;
     try {
       await API.del(`/users/${USER_ID}/companies/${companyId}`);
       UI.toast('Accesso rimosso', 'info');
@@ -243,7 +243,7 @@
   const btnDeleteUser = document.getElementById('btn-delete-user');
   if (btnDeleteUser) {
     btnDeleteUser.addEventListener('click', async () => {
-      if (!confirm('ATTENZIONE: vuoi davvero eliminare questo utente in modo permanente? \\n\\nQuesta azione è IRREVERSIBILE e lo disconnetterà anche da Supabase Auth.')) return;
+      if (!await UI.confirm('ATTENZIONE: vuoi davvero eliminare questo utente in modo permanente? \\n\\nQuesta azione è IRREVERSIBILE e lo disconnetterà anche da Supabase Auth.')) return;
       btnDeleteUser.disabled = true;
       btnDeleteUser.textContent = 'Eliminazione...';
       try {

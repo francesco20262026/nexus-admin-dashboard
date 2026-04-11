@@ -47,7 +47,7 @@ async def matching_report(user: CurrentUser = Depends(require_admin)):
         res = (
             supabase.table("audit_logs")
             .select("entity_id, created_at, user_id, action, new_values")
-            .eq("company_id", company_id)
+            .eq("company_id", user.tenant)
             .in_("action", ["payment_auto_confirmed", "payment_manual_confirmed"])
             .order("created_at", desc=True)
             .limit(50)

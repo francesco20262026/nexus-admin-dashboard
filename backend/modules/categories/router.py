@@ -21,7 +21,7 @@ class CategoryUpdate(BaseModel):
 async def list_categories(user = Depends(get_current_user)):
     """List invoice categories associated with the active company"""
     try:
-        q = supabase.table("invoice_categories").select("*").eq("company_id", str(user.active_company_id))
+        q = supabase.table("invoice_categories").select("*").eq("company_id", user.tenant)
         res = q.order("name").execute()
         return {"data": res.data if res.data else []}
     except Exception as e:
@@ -62,7 +62,7 @@ async def update_category(cat_id: str, payload: CategoryUpdate, partial: Optiona
         res = supabase.table("invoice_categories")\
                       .update(upd)\
                       .eq("id", cat_id)\
-                      .eq("company_id", str(user.active_company_id))\
+                      .eq("company_id", user.tenant)\
                       .execute()
         if not res.data:
             raise HTTPException(status_code=404, detail="Categoria non trovata")
@@ -81,7 +81,7 @@ async def delete_category(cat_id: str, user = Depends(get_current_user)):
         res = supabase.table("invoice_categories")\
                       .delete()\
                       .eq("id", cat_id)\
-                      .eq("company_id", str(user.active_company_id))\
+                      .eq("company_id", user.tenant)\
                       .execute()
         if not res.data:
             raise HTTPException(status_code=404, detail="Categoria non trovata o già eliminata")

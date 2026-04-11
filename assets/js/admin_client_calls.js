@@ -205,7 +205,7 @@ async function _patchCall(id, patch, successMsg) {
    deleteCall(id)
    ────────────────────────────────────────────────────────── */
 async function deleteCall(id) {
-  if (!confirm('Eliminare questa chiamata?')) return;
+  if (!await UI.confirm('Eliminare questa chiamata?')) return;
   try {
     await API.del(`/clients/calls/${id}`);
     await loadCalls();

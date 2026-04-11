@@ -24,6 +24,47 @@
 
   const $ = id => document.getElementById(id);
 
+  // ─── Downloader ──────────────────────────────────────────────
+  window.downloadContractPDF = async (event, id, forceDownload=false) => {
+    event.stopPropagation();
+    const btn = event.currentTarget;
+    const txt = btn.innerHTML;
+    btn.innerHTML = '...';
+    btn.disabled = true;
+
+    // Open synchronously to avoid browser popup blockers for Visualizza
+    let newWin = null;
+    if (!forceDownload) {
+      newWin = window.open('about:blank', '_blank');
+    }
+
+    try {
+      const res = await API.get(`/contracts/${id}/download-url`);
+      if (res && res.url) {
+        if (forceDownload) {
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = res.url;
+          a.download = 'contratto.pdf';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          newWin.location.href = res.url;
+        }
+      } else {
+        if (newWin) newWin.close();
+        throw new Error('URL non valido');
+      }
+    } catch(e) {
+      if (newWin) newWin.close();
+      UI.toast('Impossibile scaricare il contratto', 'error');
+    } finally {
+      btn.innerHTML = txt;
+      btn.disabled = false;
+    }
+  };
+
   // ─── View Toggle ─────────────────────────────────────────────
   document.getElementById('view-toggle')?.addEventListener('click', e => {
     const btn = e.target.closest('.ctr-view-btn');
@@ -75,6 +116,7 @@
     { tab:'draft',    label:'Bozze' },
     { tab:'sent',     label:'Inviati / In firma' },
     { tab:'signed',   label:'Firmati' },
+    { tab:'expiring', label:'In Scadenza' },
     { tab:'archived', label:'Archiviati' },
     { tab:'error',    label:'Errore' },
   ];
@@ -87,13 +129,38 @@
     { tab:'consulting',label:'Consulenza', typeFilter:true },
   ];
 
+  function getTabCount(tabObj, isTpl) {
+    if (isTpl) {
+      if (tabObj.tab === 'all') return ALL_TPL.length;
+      if (tabObj.tab === 'active') return ALL_TPL.filter(t => t.is_active).length;
+      if (tabObj.tab === 'inactive') return ALL_TPL.filter(t => !t.is_active).length;
+      if (tabObj.typeFilter) return ALL_TPL.filter(t => t.contract_type === tabObj.tab).length;
+    } else {
+      if (tabObj.tab === 'all') return ALL_CTR.length;
+      if (tabObj.tab === 'expiring') {
+        const now = new Date();
+        const future = new Date(); future.setDate(future.getDate() + 30);
+        return ALL_CTR.filter(c => {
+          if (['draft', 'archived', 'error'].includes(c.status)) return false;
+          if (!c.valid_to) return false;
+          const vTo = new Date(c.valid_to);
+          return vTo <= future;
+        }).length;
+      }
+      if (tabObj.tab === 'sent') return ALL_CTR.filter(c => c.status === 'sent' || c.status === 'signing').length;
+      return ALL_CTR.filter(c => c.status === tabObj.tab).length;
+    }
+    return 0;
+  }
+
   function renderPills() {
     const pills = $('ctr-pills'); if (!pills) return;
     const tabs = activeView === 'contracts' ? CTR_TABS : TPL_TABS;
     const active = activeView === 'contracts' ? activeTabCtr : activeTabTpl;
-    pills.innerHTML = tabs.map(t =>
-      `<button class="cl-status-pill ${t.tab === active ? 'active':''}" data-tab="${t.tab}">${t.label}</button>`
-    ).join('');
+    pills.innerHTML = tabs.map(t => {
+      const count = getTabCount(t, activeView === 'templates');
+      return `<button class="cl-status-pill ${t.tab === active ? 'active':''}" data-tab="${t.tab}">${t.label} <span class="badge">${count}</span></button>`;
+    }).join('');
     pills.querySelectorAll('.cl-status-pill').forEach(b => b.addEventListener('click', () => {
       const t = b.dataset.tab;
       if (activeView === 'contracts') { activeTabCtr = t; pageCtr = 1; }
@@ -120,8 +187,8 @@
             <option value="">Fornitore ▼</option>
           </select>
         </div>
-        <div style="display:flex;align-items:center;"><div>Titolo Contratto</div></div>
-        <div style="display:flex;align-items:center;">
+        <div style="display:flex;align-items:center;gap:6px;" class="mac-header-sort cl-col-header" data-sort="title">TITOLO <i class="fas fa-sort" style="opacity:.3"></i></div>
+        <div style="display:flex;align-items:center;gap:6px;">
           <select class="mac-header-select cl-col-header" id="ctr-filter-origin" title="Filtra per origine" style="appearance:none;background:transparent;border:none;color:inherit;font:inherit;text-transform:uppercase;cursor:pointer;outline:none;padding-right:12px;width:100%;text-overflow:ellipsis;" onchange="window.filterBySelects()">
             <option value="">Origine ▼</option>
             <option value="direct">Diretto</option>
@@ -129,10 +196,10 @@
             <option value="supplier_change">Cambio fornitore</option>
           </select>
         </div>
-        <div style="display:flex;align-items:center;"><div>Template</div></div>
-        <div style="display:flex;align-items:center;"><div>Date</div></div>
+        <div style="display:flex;align-items:center;">DAL</div>
+        <div style="display:flex;align-items:center;">AL</div>
         <div style="display:flex;align-items:center;">
-          <select class="mac-header-select cl-col-header" id="ctr-filter-status" title="Filtra per stato" style="appearance:none;background:transparent;border:none;color:inherit;font:inherit;text-transform:uppercase;cursor:pointer;outline:none;padding-right:12px;max-width:150px;text-overflow:ellipsis;" onchange="window.filterBySelects()">
+          <select class="mac-header-select cl-col-header" id="ctr-filter-status" title="Filtra per stato" style="appearance:none;background:transparent;border:none;color:inherit;font:inherit;text-transform:uppercase;cursor:pointer;outline:none;padding-right:12px;text-overflow:ellipsis;" onchange="window.filterBySelects()">
             <option value="">Stato ▼</option>
             <option value="draft">Bozza</option>
             <option value="sent">Inviato/In Firma</option>
@@ -140,6 +207,7 @@
             <option value="archived">Archiviato</option>
           </select>
         </div>
+        <div style="display:flex;align-items:center;gap:6px;" class="mac-header-sort cl-col-header" data-sort="created_at">CREATO <i class="fas fa-sort" style="opacity:.3"></i></div>
         <div style="display:flex;align-items:center;justify-content:flex-end;"><div>Azioni</div></div>`;
     } else {
       el.className = 'mac-header-row tpl-row';
@@ -163,6 +231,7 @@
         </div>
         <div style="display:flex;align-items:center;"><div>Versione</div></div>
         <div style="display:flex;align-items:center;"><div>Lingua</div></div>
+        <div style="display:flex;align-items:center;"><div>Predefinito</div></div>
         <div style="display:flex;align-items:center;">
           <select class="mac-header-select cl-col-header" id="tpl-filter-status" title="Filtra per stato" style="appearance:none;background:transparent;border:none;color:inherit;font:inherit;text-transform:uppercase;cursor:pointer;outline:none;padding-right:12px;max-width:150px;text-overflow:ellipsis;" onchange="window.filterBySelects()">
             <option value="">Stato ▼</option>
@@ -170,7 +239,6 @@
             <option value="inactive">Inattivo</option>
           </select>
         </div>
-        <div style="display:flex;align-items:center;"><div>Predefinito</div></div>
         <div style="display:flex;align-items:center;justify-content:flex-end;"><div>Azioni</div></div>`;
     }
     
@@ -178,6 +246,7 @@
     if (activeView === 'contracts') {
        if ($('ctr-filter-origin')) $('ctr-filter-origin').value = activeTabCtr === 'all' ? '' : (['from_quote','supplier_change','direct'].includes(activeTabCtr) ? activeTabCtr : '');
        if ($('ctr-filter-status')) $('ctr-filter-status').value = activeTabCtr === 'all' ? '' : (!['from_quote','supplier_change','direct'].includes(activeTabCtr) ? activeTabCtr : '');
+       if ($('ctr-filter-renewal')) $('ctr-filter-renewal').value = '';
        populateSupplierFilterCtr();
     } else {
        if ($('tpl-filter-type')) $('tpl-filter-type').value = activeTabTpl === 'all' ? '' : (['service','maintenance','consulting','other'].includes(activeTabTpl) ? activeTabTpl : '');
@@ -216,26 +285,44 @@
     try {
       const res = await API.Contracts.list({}, force);
       const raw = Array.isArray(res) ? res : (res?.data ?? []);
-      ALL_CTR = raw.map(c => ({
-        ...c,
-        client_name:   c.clients?.name || c.clients?.email || c.onboarding?.company_name || c.onboarding?.email || '—',
-        template_name: c.document_templates?.name || '—',
-        supplier_name: c.companies?.name || '—',
-        origin:        c.origin || (c.quote_id ? 'from_quote' : 'direct'),
-      }));
+      ALL_CTR = raw.map(c => {
+        let alias = c.companies?.alias;
+        if (!alias) {
+           const n = c.companies?.name || 'INT';
+           const upper = n.toUpperCase();
+           if (upper.includes('DELOCA')) {
+               alias = 'DLC';
+           } else if (upper.includes('IT SERVICES')) {
+               alias = 'ITS';
+           } else {
+               alias = n !== 'INT' ? n.substring(0,3).toUpperCase() : 'INT';
+           }
+        }
+        return {
+          ...c,
+          client_name:   c.clients?.name || c.clients?.email || c.onboarding?.company_name || c.onboarding?.email || '—',
+          template_name: c.document_templates?.name || '—',
+          supplier_alias: alias,
+          supplier_name: c.companies?.name || 'INT',
+          origin:        c.origin || (c.quote_id ? 'from_quote' : 'direct'),
+        };
+      });
     } catch (e) {
       ALL_CTR = [];
       if (activeView === 'contracts') list.innerHTML = `<div class="ctr-empty">${UI.errorState('Impossibile caricare i contratti.', "window.loadContracts(true)")}</div>`;
     }
+    populateSupplierFilterCtr();
     pageCtr = 1;
     applyFiltersCtr();
   };
 
   function applyFiltersCtr() {
+    renderPills();
     const q = ($('ctr-search')?.value || '').toLowerCase().trim();
     const origin = $('ctr-filter-origin')?.value || '';
     const status = $('ctr-filter-status')?.value || '';
     const supplier = $('ctr-filter-supplier')?.value || '';
+    const renewal = $('ctr-filter-renewal')?.value || '';
 
     filteredCtr = ALL_CTR.filter(c => {
       // 1. Check Pills (Status only now)
@@ -244,6 +331,14 @@
         if (tab === 'sent') {
           // Sent groups sent and signing
           if (c.status !== 'sent' && c.status !== 'signing') return false;
+        } else if (tab === 'expiring') {
+          if (['draft', 'archived', 'error'].includes(c.status)) return false;
+          if (!c.valid_to) return false;
+          if (c.auto_renewal === 'monthly' || c.auto_renewal === 'yearly') return false; // i taciti rinnovi non scadono!
+          const now = new Date();
+          const future = new Date(); future.setDate(future.getDate() + 30);
+          const vTo = new Date(c.valid_to);
+          if (vTo > future || vTo < now) return false;
         } else {
           if (c.status !== tab) return false;
         }
@@ -252,6 +347,25 @@
       // 2. Check Selects
       if (origin && c.origin !== origin) return false;
       if (supplier && c.supplier_name !== supplier) return false;
+      if (renewal) {
+        const hasAuto = c.auto_renewal === 'monthly' || c.auto_renewal === 'yearly';
+        if (renewal === 'auto') {
+           if (!hasAuto) return false;
+        } else if (renewal === 'none') {
+           if (hasAuto || c.valid_to) return false;
+        } else if (renewal === 'expiring') {
+           if (hasAuto || !c.valid_to || ['draft', 'archived', 'error'].includes(c.status)) return false;
+           const now = new Date();
+           const future = new Date(); future.setDate(future.getDate() + 30);
+           const vTo = new Date(c.valid_to);
+           if (vTo < now || vTo > future) return false;
+        } else if (renewal === 'expired') {
+           if (hasAuto || !c.valid_to || ['draft', 'archived', 'error'].includes(c.status)) return false;
+           const now = new Date();
+           const vTo = new Date(c.valid_to);
+           if (vTo >= now) return false;
+        }
+      }
       if (status) {
          if (status === 'sent') {
             if (c.status !== 'signing' && c.status !== 'sent') return false;
@@ -280,11 +394,43 @@
     }
     const slice = filteredCtr.slice((pageCtr-1)*PER, pageCtr*PER);
     list.innerHTML = slice.map(c => {
+      let rowStyle = "";
+      let dateColor = "var(--gray-400)";
+      let warningText = "";
+      
+      let renewLbl = "";
+      if (c.auto_renewal === 'monthly') renewLbl = " Mensile";
+      else if (c.auto_renewal === 'yearly') renewLbl = " Annuale";
+
+      if (c.valid_to && !['draft', 'archived', 'error'].includes(c.status)) {
+        const now = new Date();
+        const vTo = new Date(c.valid_to);
+        const future = new Date(); future.setDate(future.getDate() + 30);
+
+        if (renewLbl) {
+           // Se ha tacito rinnovo, non mostriamo allarmi di scadenza manuale
+           warningText = `<div style="color:var(--brand-600); font-size:10px; margin-top:2px; font-weight:600;">Tacito Rinnovo${renewLbl} 🔁</div>`;
+        } else if (vTo < now) {
+           rowStyle = "background: #fef2f2;";
+           dateColor = "#dc2626; font-weight: bold"; 
+           warningText = `<div style="color:#dc2626; font-size:10px; margin-top:2px; font-weight:600;">Scaduto</div>`;
+        } else if (vTo <= future) {
+           rowStyle = "background: #fffbeb;";
+           dateColor = "#d97706; font-weight: bold";
+           warningText = `<div style="color:#d97706; font-size:10px; margin-top:2px; font-weight:600;">In scadenza</div>`;
+        }
+      } else if (renewLbl) {
+        warningText = `<div style="color:var(--brand-600); font-size:10px; margin-top:2px; font-weight:600;">Tacito Rinnovo${renewLbl} 🔁</div>`;
+      }
+
       const originBadge = originTag(c.origin);
       const sent   = c.sent_at   ? UI.date(c.sent_at)   : '';
       const signed = c.signed_at ? UI.date(c.signed_at) : '';
-      const totype = c.document_templates?.contract_type ? `<span style="font-size:11px;color:var(--gray-400);">${contractTypeLabel(c.document_templates.contract_type)}</span>` : '';
-      return `<div class="ctr-grid-row ctr-row fade-in" style="cursor:pointer;" onclick="editContract('${c.id}')" data-id="${c.id}">
+      
+      const dal = c.valid_from ? UI.date(c.valid_from) : '—';
+      const al = c.valid_to ? UI.date(c.valid_to) : '—';
+      
+      return `<div class="ctr-grid-row ctr-row fade-in" style="cursor:pointer; ${rowStyle}" onclick="editContract('${c.id}')" data-id="${c.id}">
         <div class="cl-col-identity">
           <div class="mac-select-btn" onclick="window.toggleSelection(event, '${c.id}', 'contracts')" style="flex-shrink:0;"><div class="mac-checkbox"></div></div>
           <div style="min-width:0;">
@@ -294,25 +440,21 @@
           </div>
         </div>
         <div>
-          <span style="font-size:12px; font-weight:600; color:var(--gray-700);">${escHtml(c.supplier_name)}</span>
+          <span style="display:inline-flex;align-items:center;background:var(--gray-100);color:var(--gray-700);padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;text-align:center;" title="${escHtml(c.supplier_name)}">${escHtml(c.supplier_alias)}</span>
         </div>
-        <div style="min-width:0;">
-          <div style="font-size:13px;font-weight:600;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(c.title||'')}">${c.title || 'Contratto senza titolo'}</div>
-        </div>
+        <div style="font-weight:600;color:var(--gray-800);">${escHtml(c.title)}</div>
         <div>${originBadge}</div>
-        <div style="min-width:0;">
-          <div style="font-size:12px;font-weight:600;color:var(--gray-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.template_name)}</div>
-          ${totype}
-        </div>
-        <div style="font-size:12px;color:var(--gray-600);">
-          ${sent ? `<div>Inv: <b>${sent}</b></div>` : ''}
-          ${signed ? `<div>Firm: <b>${signed}</b></div>` : ''}
-          ${(c.valid_to && !c.onboarding_id) ? `<div style="color:var(--gray-400);">Scade: ${UI.date(c.valid_to)}</div>` : ''}
-          ${!sent && !signed && !c.valid_to ? `<div style="color:var(--gray-300);">—</div>` : ''}
+        <div style="font-size:12px;">${dal}</div>
+        <div style="font-size:12px;color:${dateColor};">
+          ${al}
+          ${warningText}
         </div>
         <div>${UI.pill(c.status || 'draft')}</div>
+        <div style="font-size:12px;color:var(--gray-500);">${UI.date(c.created_at)}</div>
         <div class="row-actions">
           <button class="icon-btn-sm" onclick="event.stopPropagation(); viewContract('${c.id}')" title="Anteprima">👁</button>
+          ${c.pdf_url ? `<button class="icon-btn-sm" onclick="event.stopPropagation(); window.downloadContractPDF(event, '${c.id}', false)" title="Visualizza PDF" style="color:var(--brand-600);">📄</button>` : ''}
+          ${c.status !== 'draft' ? `<button class="icon-btn-sm" onclick="event.stopPropagation(); triggerUploadExistingContract('${c.id}')" title="Allega PDF firmato manualmente (sovrascrive o aggiunge PDF)" style="color:var(--brand-600);">📎</button>` : ''}
           ${c.status === 'draft' ? `<button class="icon-btn-sm" onclick="event.stopPropagation(); sendContract('${c.id}')" title="Invia per firma" style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0;">📤</button>` : ''}
           ${(c.status === 'sent'||c.status === 'signing') ? `<button class="icon-btn-sm" onclick="event.stopPropagation(); markSignedContract('${c.id}')" title="Segna come firmato">✅</button>` : ''}
           ${(c.status === 'signed'||c.status === 'active') ? `<button class="icon-btn-sm" onclick="event.stopPropagation(); openRegenDrawer('${c.id}')" title="Rigenera (cambio fornitore)">🔄</button>` : ''}
@@ -341,6 +483,7 @@
   };
 
   function applyFiltersTpl() {
+    renderPills();
     const q = ($('ctr-search')?.value || '').toLowerCase().trim();
     const type = $('tpl-filter-type')?.value || '';
     const status = $('tpl-filter-status')?.value || '';
@@ -388,10 +531,10 @@
           </div>
         </div>
         <div style="font-size:12px;color:var(--gray-600);">${typeLabel || '—'}</div>
-        <div style="font-size:12px;color:var(--gray-600);">${escHtml(t.version || '—')}</div>
-        <div style="font-size:12px;color:var(--gray-600);">${(t.lang||'').toUpperCase() || '—'}</div>
-        <div>${statusBadge}</div>
+        <div style="font-size:12px;color:var(--gray-600);"><div style="font-weight:600;color:var(--gray-800);">${escHtml(t.version || 'v1.0')}</div></div>
+        <div style="font-size:12px;color:var(--gray-600);">${(t.lang||'it').toUpperCase()}</div>
         <div>${t.is_default ? `<span style="font-size:11px;font-weight:700;color:#d97706;">★ Predefinito</span>` : '—'}</div>
+        <div>${statusBadge}</div>
         <div class="row-actions">
           <button class="icon-btn-sm" onclick="event.stopPropagation(); duplicateTemplate('${t.id}')" title="Duplica">📋</button>
           <button class="icon-btn-sm" onclick="event.stopPropagation(); toggleTemplateActive('${t.id}', ${!t.is_active})" title="${t.is_active ? 'Disattiva' : 'Attiva'}" style="${t.is_active ? 'color:#d97706' : 'color:#15803d'}">${t.is_active ? '⏸' : '▶'}</button>
@@ -482,7 +625,7 @@
 
   window.massDelete = async () => {
     if (!window.selectedIds.size) return;
-    if (!confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} element${window.selectedIds.size === 1 ? 'o' : 'i'}?`)) return;
+    if (!await UI.confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} element${window.selectedIds.size === 1 ? 'o' : 'i'}?`)) return;
     try {
       const list = Array.from(window.selectedIds);
       if (currentSelectionType === 'contracts') {
@@ -614,7 +757,11 @@
     // Prefill
     if (prefill.client_id && wc) wc.value = prefill.client_id;
     if (prefill.origin && wOrigin) wOrigin.value = prefill.origin;
-    if (!editId) { const ti = $('w-title'); if(ti) ti.value=''; return; }
+    if (!editId) { 
+      const ti = $('w-title'); if(ti) ti.value=''; 
+      const ar = $('w-auto-renewal'); if(ar) ar.value='none';
+      return; 
+    }
 
     // Edit mode
     try {
@@ -624,13 +771,17 @@
       if (d.onboarding_id && wc) wc.value = `onb:${d.onboarding_id}`;
       else if (d.client_id && wc) wc.value = d.client_id;
       if (d.template_id && wt) wt.value = d.template_id;
-      if (d.origin && wOrigin) wOrigin.value = d.origin;
+      
+      const deducedOrigin = d.origin || (d.quote_id ? 'from_quote' : 'direct');
+      if (wOrigin) wOrigin.value = deducedOrigin;
+      
       if (d.supplier_company_id && wSup) {
         wSup.value = d.supplier_company_id;
         renderSvc(d.supplier_company_id);
       }
       if (d.valid_from) { const vf=$('w-valid-from'); if(vf) vf.value=d.valid_from.substring(0,10); }
       if (d.valid_to)   { const vt=$('w-valid-to');   if(vt) vt.value=d.valid_to.substring(0,10); }
+      if ($('w-auto-renewal')) $('w-auto-renewal').value = d.auto_renewal || 'none';
       if (d.contract_services?.length) {
         const ids = d.contract_services.map(s => s.service_id);
         wsList?.querySelectorAll('.svc-cb').forEach(cb => { if(ids.includes(cb.value)) cb.checked = true; });
@@ -662,6 +813,7 @@
         title:      $('w-title')?.value?.trim() || '',
         valid_from: $('w-valid-from')?.value || null,
         valid_to:   $('w-valid-to')?.value   || null,
+        auto_renewal: $('w-auto-renewal')?.value || 'none',
         origin,
       };
       if ($('w-quote-id')) payload.quote_id = $('w-quote-id').value;
@@ -674,7 +826,13 @@
         UI.toast('Contratto generato', 'success');
       }
       $('modal-contract').classList.remove('open');
-      await loadContracts(true);
+      const searchParams = new URLSearchParams(window.location.search);
+      const returnUrl = searchParams.get('returnUrl');
+      if (returnUrl) {
+          window.location.href = returnUrl;
+      } else {
+          await loadContracts(true);
+      }
     } catch(e) { UI.toast(e?.message || 'Errore salvataggio', 'error'); }
     finally { btn.disabled = false; }
   });
@@ -757,7 +915,7 @@
   };
 
   window.deleteTemplate = async function(id) {
-    if (!confirm('Eliminare questo template? I contratti già creati restano invariati.')) return;
+    if (!await UI.confirm('Eliminare questo template? I contratti già creati restano invariati.')) return;
     try {
       await API.Contracts.deleteTemplate(id);
       ALL_TPL = ALL_TPL.filter(t => t.id !== id);
@@ -766,11 +924,11 @@
     } catch(e) { UI.toast(e?.message||'Errore eliminazione', 'error'); }
   };
 
-  /** Insert dynamic variable into textarea */
-  window.ctInsertVar = function(varName) {
+  /** Insert dynamic variable or HTML into textarea */
+  window.ctInsertVar = function(varName, isPageBreak = false) {
     const ta = document.getElementById('t-content');
     if(!ta) return;
-    const ins = `{{${varName}}}`;
+    const ins = isPageBreak ? '\n<div style="page-break-after: always;"></div>\n' : `{{${varName}}}`;
     const start = ta.selectionStart;
     const end = ta.selectionEnd;
     const text = ta.value;
@@ -934,7 +1092,7 @@
   };
 
   window.markSignedContract = async function(id) {
-    if (!confirm('Segnare il contratto come firmato manualmente?')) return;
+    if (!await UI.confirm('Segnare il contratto come firmato manualmente?')) return;
     try {
       await API.Contracts.markSigned(id);
       ALL_CTR = ALL_CTR.map(c => c.id===id ? {...c, status:'signed'} : c);
@@ -944,7 +1102,7 @@
   };
 
   window.archiveContract = async function(id) {
-    if (!confirm('Archiviare questo contratto?')) return;
+    if (!await UI.confirm('Archiviare questo contratto?')) return;
     try {
       await API.Contracts.update(id, {status:'archived'});
       ALL_CTR = ALL_CTR.map(c => c.id===id ? {...c, status:'archived'} : c);
@@ -954,7 +1112,7 @@
   };
 
   window.deleteContract = async function(id) {
-    if (!confirm('Eliminare questa bozza? L\'operazione non è reversibile.')) return;
+    if (!await UI.confirm('Eliminare questa bozza? L\'operazione non è reversibile.')) return;
     try {
       await API.Contracts.remove(id);
       ALL_CTR = ALL_CTR.filter(c => c.id !== id);
@@ -1003,6 +1161,11 @@
       await loadTemplates();
     }
 
+    const editId = params.get('id');
+    if (editId) {
+      setTimeout(() => openContractModal(editId), 300);
+    }
+
     if (fromQuoteId) {
       const prefill = { origin: 'from_quote', client_id: fromClientId || undefined };
       prefill.bannerHtml = '<div style="background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:10px 14px;font-size:13px;color:#5b21b6;margin-bottom:12px;">📋 <strong>Contratto da preventivo accettato.</strong> Il preventivo viene collegato automaticamente.</div>';
@@ -1014,10 +1177,38 @@
       }
     }
 
-    window.addEventListener('companyChanged', () => {
+    if (window._ctrCompanyListener) window.removeEventListener('companyChanged', window._ctrCompanyListener);
+    window._ctrCompanyListener = () => {
       loadContracts(true);
       if (activeView === 'templates') loadTemplates(true);
-    });
+    };
+    window.addEventListener('companyChanged', window._ctrCompanyListener);
   });
+
+    window.triggerUploadExistingContract = function(contractId) {
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = 'application/pdf';
+      inp.style.display = 'none';
+      inp.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const fd = new FormData();
+        fd.append('file', file);
+        
+        try {
+          UI.toast('Caricamento in corso...', 'info');
+          await API.Contracts.uploadSignedExisting(contractId, fd);
+          UI.toast('Condratto PDF aggiornato con successo!', 'success');
+          loadContracts();
+        } catch (err) {
+          UI.toast(err.message || 'Errore durante l\'upload', 'error');
+        }
+      };
+      document.body.appendChild(inp);
+      inp.click();
+      setTimeout(() => document.body.removeChild(inp), 1000);
+    };
 
 })();

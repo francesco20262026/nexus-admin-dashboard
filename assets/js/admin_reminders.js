@@ -55,7 +55,9 @@
   }
 
   /* ── Company switch ─────────────────────────────────────────── */
-  window.addEventListener('companyChanged', () => load());
+  if (window._rmdCompanyListener) window.removeEventListener('companyChanged', window._rmdCompanyListener);
+  window._rmdCompanyListener = () => { if (document.getElementById('reminders-tbody')) load(); };
+  window.addEventListener('companyChanged', window._rmdCompanyListener);
 
   /* ── Load ───────────────────────────────────────────────────── */
   window._retryReminders = load;
@@ -231,7 +233,7 @@
   };
 
   window.retrySend = async (id) => {
-    if (!confirm("Tentare nuovamente l'invio di questo promemoria?")) return;
+    if (!await UI.confirm("Tentare nuovamente l'invio di questo promemoria?")) return;
     try {
       window.showToast?.('Invio in corso...', 'info');
       const res = await API.post(`/reminders/${id}/retry`);

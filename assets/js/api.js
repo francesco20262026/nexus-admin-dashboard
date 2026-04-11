@@ -49,11 +49,8 @@ window.ApiError = ApiError;
 //   Never mutates the caller's object.
 //   Strips null / undefined values before serialising.
 //
-function _buildQuery(params, addCompany) {
-  const merged = addCompany
-    ? { company_id: API.getCompanyId() || undefined, page_size: 200, ...params }
-    : { page_size: 200, ...params };
-
+function _buildQuery(params) {
+  const merged = { page_size: 200, ...params };
   const clean = Object.fromEntries(
     Object.entries(merged).filter(([, v]) => v != null)
   );
@@ -73,23 +70,6 @@ const API = {
     const t = this.getToken();
     if (t) h['Authorization'] = `Bearer ${t}`;
     return h;
-  },
-
-  // ─── Company context ─────────────────────────────────────────
-  getCompanyId() {
-    let cid = localStorage.getItem('nexus_active_company_id')
-           || localStorage.getItem('nexus_active_company');
-           
-    if (cid === '__all__') return null;
-
-    if (!cid && window.Auth?.getPayload) {
-      const p = Auth.getPayload();
-      if (p?.active_company_id) {
-        cid = p.active_company_id;
-        localStorage.setItem('nexus_active_company_id', cid);
-      }
-    }
-    return cid || null;
   },
 
   // ─── Cache ──────────────────────────────────────────────────
@@ -242,8 +222,7 @@ const API = {
   // ─────────────────────────────────────────────────────────────
   //  NAMESPACED ENDPOINTS
   //  Public interface keep stable.
-  //  All list() calls use _buildQuery(params, true) so company_id
-  //  is injected automatically without mutating caller objects.
+  //  All list() calls use _buildQuery(params) directly.
   // ─────────────────────────────────────────────────────────────
 
   Auth: {
@@ -255,7 +234,7 @@ const API = {
   },
 
   Users: {
-    list:   (p = {}, f = false) => API.get('/users?' + _buildQuery(p, true), f),
+    list:   (p = {}, f = false) => API.get('/users?' + _buildQuery(p), f),
     invite: (body)     => API.post('/users/invite', body),
     update: (id, body) => API.patch(`/users/${id}`, body),
   },
@@ -271,7 +250,7 @@ const API = {
   },
 
   Clients: {
-    list:          (p = {}, f = false) => API.get('/clients/?' + _buildQuery(p, true), f),
+    list:          (p = {}, f = false) => API.get('/clients/?' + _buildQuery(p), f),
     get:           (id)       => API.get(`/clients/${id}`),
     create:        (body)     => API.post('/clients/', body),
     update:        (id, body) => API.put(`/clients/${id}`, body),
@@ -285,11 +264,11 @@ const API = {
     invoices:      (id)       => API.get(`/clients/${id}/invoices`),
     contracts:     (id)       => API.get(`/clients/${id}/contracts`),
     documents:     (id)       => API.get(`/clients/${id}/documents`),
-    quotes:        (id)       => API.get('/quotes/?' + _buildQuery({ client_id: id }, true)),
+    quotes:        (id)       => API.get('/quotes/?' + _buildQuery({ client_id: id })),
   },
 
   Invoices: {
-    list:          (p = {}, f = false) => API.get('/invoices/?' + _buildQuery(p, true), f),
+    list:          (p = {}, f = false) => API.get('/invoices/?' + _buildQuery(p), f),
     get:           (id)            => API.get(`/invoices/${id}`),
     create:        (body)          => API.post('/invoices/', body),
     update:        (id, body)      => API.put(`/invoices/${id}`, body),
@@ -300,13 +279,13 @@ const API = {
     submitProof:   (id, body)      => API.post(`/invoices/${id}/submit-proof`, body),
     markPending:   (id)            => API.post(`/invoices/${id}/mark-pending-payment`, {}),
     paymentInfo:   (id)            => API.get(`/invoices/${id}/payment-info`),
-    overdue:       ()              => API.get('/invoices/overdue?' + _buildQuery({}, true)),
-    report:        (p = {})        => API.get('/invoices/report?' + _buildQuery(p, true)),
+    overdue:       ()              => API.get('/invoices/overdue?' + _buildQuery({})),
+    report:        (p = {})        => API.get('/invoices/report?' + _buildQuery(p)),
     sendReminder:  (id)            => API.post(`/invoices/${id}/send-reminder`, {}),
   },
 
   Services: {
-    catalog:       (activeOnly = true, f = false) => API.get('/services/catalog?' + _buildQuery({ active_only: activeOnly }, true), f),
+    catalog:       (activeOnly = true, f = false) => API.get('/services/catalog?' + _buildQuery({ active_only: activeOnly }), f),
     createService: (body)              => API.post('/services/catalog', body),
     updateService: (id, body)          => API.put(`/services/catalog/${id}`, body),
     deleteService: (id)                => API.del(`/services/catalog/${id}`),
@@ -316,14 +295,14 @@ const API = {
     create:        (body)              => API.post('/services/catalog', body),
     update:        (id, body)          => API.put(`/services/catalog/${id}`, body),
     remove:        (id)                => API.del(`/services/catalog/${id}`),
-    subscriptions: (p = {})            => API.get('/services/subscriptions?' + _buildQuery(p, true)),
+    subscriptions: (p = {})            => API.get('/services/subscriptions?' + _buildQuery(p)),
     subscribe:     (body)              => API.post('/services/subscriptions', body),
     updateSub:     (id, body)          => API.put(`/services/subscriptions/${id}`, body),
     cancelSub:     (id)                => API.del(`/services/subscriptions/${id}`),
   },
 
   Contracts: {
-    list:      (p = {}, f = false) => API.get('/contracts/?' + _buildQuery(p, true), f),
+    list:      (p = {}, f = false) => API.get('/contracts/?' + _buildQuery(p), f),
     get:       (id)          => API.get(`/contracts/${id}`),
     create:    (body)        => API.post('/contracts/', body),
     update:    (id, body)    => API.put(`/contracts/${id}`, body),
@@ -332,7 +311,8 @@ const API = {
     send:      (id, body = {}) => API.post(`/contracts/${id}/send-sign`, body),
     compile:   (id)          => API.post(`/contracts/${id}/compile`, {}),
     uploadSigned: (fd)       => API.upload('/contracts/upload-signed', fd),
-    templates:        (p={}) => API.get('/contracts/templates/list?' + _buildQuery(p, true)),
+    uploadSignedExisting: (id, fd) => API.upload(`/contracts/${id}/upload-signed`, fd),
+    templates:        (p={}) => API.get('/contracts/templates/list?' + _buildQuery(p)),
     createTemplate:   (body) => API.post('/contracts/templates', body),
     updateTemplate:   (id, body) => API.put(`/contracts/templates/${id}`, body),
     deleteTemplate:   (id)   => API.del(`/contracts/templates/${id}`),
@@ -341,7 +321,7 @@ const API = {
   },
 
   Documents: {
-    list:     (p = {}, f = false) => API.get('/documents/?' + _buildQuery(p, true), f),
+    list:     (p = {}, f = false) => API.get('/documents/?' + _buildQuery(p), f),
     get:      (id)       => API.get(`/documents/${id}`),
     update:   (id, body) => API.put(`/documents/${id}`, body),
     remove:   (id)       => API.del(`/documents/${id}`),
@@ -352,13 +332,13 @@ const API = {
   },
 
   Reminders: {
-    list:    (p = {}, f = false) => API.get('/reminders/?' + _buildQuery(p, true), f),
+    list:    (p = {}, f = false) => API.get('/reminders/?' + _buildQuery(p), f),
     send:    (invoiceId, level) => API.post(`/reminders/${invoiceId}/send?` + _buildQuery({ level })),
     history: (invoiceId)        => API.get(`/reminders/${invoiceId}/history`),
   },
 
   Renewals: {
-    list:         (p = {}, f = false) => API.get('/renewals/?' + _buildQuery(p, true), f),
+    list:         (p = {}, f = false) => API.get('/renewals/?' + _buildQuery(p), f),
     create:       (body)     => API.post('/renewals/', body),
     update:       (id, body) => API.put(`/renewals/${id}`, body),
     alert:        (id)       => API.post(`/renewals/${id}/alert`, {}),
@@ -366,7 +346,7 @@ const API = {
   },
 
   Onboarding: {
-    list:     (p = {}, forceRefresh = false) => API.get('/onboarding/?' + _buildQuery(p, true), forceRefresh),
+    list:     (p = {}, forceRefresh = false) => API.get('/onboarding/?' + _buildQuery(p), forceRefresh),
     get:      (id)        => API.get(`/onboarding/${id}`),
     create:   (body)      => API.post('/onboarding/', body),
     update:   (id, body)  => API.put(`/onboarding/${id}`, body),
@@ -384,7 +364,7 @@ const API = {
 
 
   Quotes: {
-    list:          (p = {}, f = false) => API.get('/quotes/?' + _buildQuery(p, true), f),
+    list:          (p = {}, f = false) => API.get('/quotes/?' + _buildQuery(p), f),
     get:           (id)         => API.get(`/quotes/${id}`),
     create:        (body)       => API.post('/quotes/', body),
     update:        (id, body)   => API.put(`/quotes/${id}`, body),
@@ -401,9 +381,9 @@ const API = {
   },
 
   Dashboard: {
-    kpi:            (f = false)  => API.get('/dashboard/kpi?' + _buildQuery({}, true), f),
-    revenueChart:   (months = 6, f = false) => API.get('/dashboard/revenue-chart?' + _buildQuery({ months }, true), f),
-    activity:       (limit = 20, f = false) => API.get('/dashboard/recent-activity?' + _buildQuery({ limit }, true), f),
+    kpi:            (f = false)  => API.get('/dashboard/kpi?' + _buildQuery({}), f),
+    revenueChart:   (months = 6, f = false) => API.get('/dashboard/revenue-chart?' + _buildQuery({ months }), f),
+    activity:       (limit = 20, f = false) => API.get('/dashboard/recent-activity?' + _buildQuery({ limit }), f),
     clientActivity: (limit = 20, f = false) => API.get('/dashboard/client/recent-activity?' + _buildQuery({ limit }), f),
   },
 
@@ -421,10 +401,10 @@ const API = {
   },
 
   Payments: {
-    list: (p = {}) => API.get('/payments/?' + _buildQuery(p, true)),
+    list: (p = {}) => API.get('/payments/?' + _buildQuery(p)),
     get:  (id)     => API.get(`/payments/${id}`),
     match:(id)     => API.post(`/payments/${id}/match`, {}),
-    logs: (p = {}) => API.get('/payments/logs?' + _buildQuery(p, true)),
+    logs: (p = {}) => API.get('/payments/logs?' + _buildQuery(p)),
   },
 
   Windoc: {

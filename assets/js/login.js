@@ -26,13 +26,6 @@
       if (!res.ok) throw new Error(data.detail || 'Token exchange failed');
       
       localStorage.setItem('nexus_token', data.token);
-      if (data.active_company_id) {
-        localStorage.setItem('nexus_active_company_id', data.active_company_id);
-        localStorage.setItem('nexus_active_company',    data.active_company_id);
-      }
-      if (Array.isArray(data.companies)) {
-        localStorage.setItem('nexus_companies', JSON.stringify(data.companies));
-      }
       
       // Automatically navigate to dashboard
       window.location.href = '/client_dash.html';

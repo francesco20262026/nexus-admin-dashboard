@@ -170,7 +170,7 @@ def _require_onboarding(onboarding_id: UUID, user: CurrentUser) -> dict:
         supabase.table("onboarding")
         .select("*")
         .eq("id", str(onboarding_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
@@ -197,7 +197,7 @@ def _check_onboarding_duplicates(
     if not any([company_name, email, vat_number]):
         return
 
-    q = supabase.table("onboarding").select("id,company_name,email,vat_number").eq("company_id", company_id)
+    q = supabase.table("onboarding").select("id,company_name,email,vat_number").eq("company_id", user.tenant)
     if exclude_id:
         q = q.neq("id", exclude_id)
 
@@ -234,7 +234,7 @@ def _require_client(client_id: str, company_id: str) -> dict:
         supabase.table("clients")
         .select("id, name, status")
         .eq("id", client_id)
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
@@ -275,15 +275,15 @@ async def list_onboarding(
     user: CurrentUser = Depends(require_admin),
 ):
     q = (
-        supabase.table("onboarding")
-        .select("*, clients(name, company_name, email), companies(name)", count="exact")
+        supabase.table("v_onboarding")
+        .select("*", count="exact")
         .order("created_at", desc=True)
     )
     if user.is_admin:
         if company_id:
-            q = q.eq("company_id", company_id)
+            q = q.eq("company_id", user.tenant)
     else:
-        q = q.eq("company_id", str(user.active_company_id))
+        q = q.eq("company_id", user.tenant)
 
     if status_filter:
         if status_filter not in _VALID_STATUSES:
@@ -312,7 +312,7 @@ async def get_onboarding(
         supabase.table("onboarding")
         .select("*, clients(name, company_name, email, status), companies(name)")
         .eq("id", str(onboarding_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
@@ -488,7 +488,7 @@ async def delete_onboarding(
     # Soft delete (force=False)
     supabase.table("onboarding").update({
         "status": "cancelled",
-    }).eq("id", str(onboarding_id)).eq("company_id", company_id).execute()
+    }).eq("id", str(onboarding_id)).eq("company_id", user.tenant).execute()
     
     _audit(company_id, str(user.user_id), str(onboarding_id), "soft_delete", new={"status": "cancelled"})
     return {
@@ -514,7 +514,7 @@ async def cancel_onboarding(
         return {"cancelled": True, "message": "Pratica già annullata."}
     supabase.table("onboarding").update({"status": "cancelled"}).eq(
         "id", str(onboarding_id)
-    ).eq("company_id", company_id).execute()
+    ).eq("company_id", user.tenant).execute()
     _audit(company_id, str(user.user_id), str(onboarding_id), "cancel", new={"status": "cancelled"})
     return {"cancelled": True, "message": "Pratica annullata con successo."}
 
@@ -602,7 +602,7 @@ async def convert_onboarding(
             "status":          "converted_to_client",
             "client_id":       client_id,
             "steps_completed": steps_total,
-        }).eq("id", str(onboarding_id)).eq("company_id", company_id).execute()
+        }).eq("id", str(onboarding_id)).eq("company_id", user.tenant).execute()
     except Exception as exc:
         logger.error("convert: onboarding update failed: %s", exc)
         # Client was created — log but don't fail (can be fixed manually)
@@ -613,7 +613,7 @@ async def convert_onboarding(
         supabase.table("user_company_permissions").update({
             "client_id":     client_id,
             "onboarding_id": None,
-        }).eq("onboarding_id", str(onboarding_id)).eq("company_id", company_id).execute()
+        }).eq("onboarding_id", str(onboarding_id)).eq("company_id", user.tenant).execute()
     except Exception as exc:
         logger.warning("convert: permissions update failed: %s", exc)
 
@@ -621,7 +621,7 @@ async def convert_onboarding(
     try:
         supabase.table('client_contacts').update({
             'client_id': client_id,
-        }).eq('onboarding_id', str(onboarding_id)).eq('company_id', company_id).execute()
+        }).eq('onboarding_id', str(onboarding_id)).eq("company_id", user.tenant).execute()
     except Exception as exc:
         logger.warning('convert: contacts migration failed: %s', exc)
 
@@ -631,7 +631,7 @@ async def convert_onboarding(
             supabase.table(table).update({
                 "client_id": client_id,
                 "onboarding_id": None
-            }).eq("onboarding_id", str(onboarding_id)).eq("company_id", company_id).execute()
+            }).eq("onboarding_id", str(onboarding_id)).eq("company_id", user.tenant).execute()
         except Exception as exc:
             logger.warning("convert: failed to reparent %s for onboarding %s: %s", table, onboarding_id, exc)
 
@@ -667,7 +667,7 @@ async def abandon_onboarding(
         supabase.table("onboarding")
         .update({"status": "abandoned"})
         .eq("id", str(onboarding_id))
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -692,7 +692,7 @@ async def cancel_onboarding(
         supabase.table("onboarding")
         .update({"status": "cancelled"})
         .eq("id", str(onboarding_id))
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -797,7 +797,7 @@ async def invite_portal_user(
                 "portal_email": body.email,
             })
             .eq("id", str(onboarding_id))
-            .eq("company_id", company_id)
+            .eq("company_id", user.tenant)
             .execute()
         )
         if not res.data:
@@ -870,7 +870,7 @@ async def list_onboarding_contacts(
         supabase.table('client_contacts')
         .select('*')
         .eq('onboarding_id', str(onboarding_id))
-        .eq('company_id', str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .order('is_primary', desc=True)
         .execute()
     )
@@ -914,7 +914,7 @@ async def update_onboarding_contact(
         .select("id")
         .eq("id", str(contact_id))
         .eq("onboarding_id", str(onboarding_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
@@ -948,11 +948,11 @@ async def delete_onboarding_contact(
         .select('id')
         .eq('id', str(contact_id))
         .eq('onboarding_id', str(onboarding_id))
-        .eq('company_id', str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
     if not existing.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, 'Contact not found')
     
-    supabase.table('client_contacts').delete().eq('id', str(contact_id)).eq('company_id', str(user.active_company_id)).execute()
+    supabase.table('client_contacts').delete().eq('id', str(contact_id)).eq("company_id", user.tenant).execute()

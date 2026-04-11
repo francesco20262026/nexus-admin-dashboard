@@ -72,6 +72,23 @@ def build_token(user_id: str, email: str, active_company_id: str,
 
 @router.post("/login")
 async def login(body: LoginRequest):
+    try:
+        return await _do_login(body)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        import traceback
+        tb = traceback.format_exc()
+        logger.error("UNHANDLED LOGIN CRASH for %s:\n%s", body.email, tb)
+        try:
+            with open("E:/App/crm/backend/login_crash.txt", "a") as f:
+                f.write(f"\n=== LOGIN CRASH {body.email} ===\n{tb}\n")
+        except Exception:
+            pass
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Login error: {exc}")
+
+
+async def _do_login(body: LoginRequest):
     # 1. Authenticate with Supabase Auth
     # Use the dedicated auth client so sign_in session does NOT contaminate
     # the shared service client used by all other routers.
@@ -101,6 +118,11 @@ async def login(body: LoginRequest):
             status.HTTP_404_NOT_FOUND,
             "Account non trovato nel sistema. Contattare l'amministratore.",
         )
+
+    # 2.5 Update last_login (Removed because column does not exist)
+    # supabase_service.table("users").update(
+    #     {"last_login": datetime.now(timezone.utc).isoformat()}
+    # ).eq("id", user_id).execute()
 
     # 3. Fetch company permissions using service client
     perms = (
@@ -154,19 +176,26 @@ async def login(body: LoginRequest):
         onboarding_id=default_perm.get("onboarding_id"),
     )
 
-    return {
-        "token":             token,
-        "user":              user_row.data,
-        "companies": [
-            {
-                "company_id": p["company_id"],
-                "name":       companies_meta.get(p["company_id"], p["company_id"]),
-                "role":       p["role"],
-            }
-            for p in perms.data
-        ],
-        "active_company_id": default_perm["company_id"],
-    }
+    try:
+        res_data = {
+            "token":             token,
+            "user":              user_row.data,
+            "companies": [
+                {
+                    "company_id": p["company_id"],
+                    "name":       companies_meta.get(p["company_id"], p["company_id"]),
+                    "role":       p["role"],
+                }
+                for p in perms.data
+            ],
+            "active_company_id": default_perm["company_id"],
+        }
+        return res_data
+    except Exception as e:
+        import traceback
+        with open('E:/App/crm/backend/login_error.txt', 'w') as err_file:
+            traceback.print_exc(file=err_file)
+        raise e
 
 
 # ── Exchange Token (Magic Link) ──────────────────────────────
@@ -204,6 +233,11 @@ async def exchange_token(body: ExchangeRequest):
     )
     if not user_row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Account non trovato nel sistema.")
+
+    # Update last_login (Removed because column does not exist)
+    # supabase_service.table("users").update(
+    #     {"last_login": datetime.now(timezone.utc).isoformat()}
+    # ).eq("id", user_id).execute()
 
     # Fetch permissions
     perms = supabase_service.table("user_company_permissions").select("*").eq("user_id", user_id).execute()

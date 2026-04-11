@@ -163,7 +163,9 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
 
   /* ── Refresh + company switch ───────────────────────────────── */
   btnRefresh?.addEventListener('click', () => { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
-  window.addEventListener('companyChanged', () => load(true));
+  if (window._onboardingCmpListener) window.removeEventListener('companyChanged', window._onboardingCmpListener);
+  window._onboardingCmpListener = () => load(true);
+  window.addEventListener('companyChanged', window._onboardingCmpListener);
 
   /* ── New onboarding ─────────────────────────────────────────── */
   btnNew?.addEventListener('click', () => openForm(null));
@@ -173,37 +175,27 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
 
   /* ── Preload form selects (once per session) ────────────────── */
   async function loadFormSelects() {
-    try {
-      if (!_companies) {
-        const res = await API.Companies.list();
-        _companies = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
-      }
-    } catch(e) { _companies = _companies || []; }
-
-    try {
-      if (!_services) {
-        const res = await API.Services.catalog(true);
-        _services = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
-      }
-    } catch(e) { _services = _services || []; }
-
-    try {
-      if (!_users) {
-        const res = await API.Users.list();
-        _users = Array.isArray(res) ? res : (res?.items ?? res?.users ?? res?.data ?? []);
-      }
-    } catch(e) { _users = _users || []; }
+    // Fire all requests in parallel
+    const pComp = !_companies ? API.Companies.list().catch(()=>[]) : Promise.resolve(_companies);
+    const pSrv  = !_services  ? API.Services.catalog(true).catch(()=>[]) : Promise.resolve(_services);
+    const pUsr  = !_users     ? API.Users.list().catch(()=>[]) : Promise.resolve(_users);
+    
+    const [comp, srv, usr] = await Promise.all([pComp, pSrv, pUsr]);
+    if (!_companies) _companies = Array.isArray(comp) ? comp : (comp?.items ?? comp?.data ?? []);
+    if (!_services)  _services  = Array.isArray(srv)  ? srv  : (srv?.items  ?? srv?.data  ?? []);
+    if (!_users)     _users     = Array.isArray(usr)  ? usr  : (usr?.items  ?? usr?.users ?? usr?.data ?? []);
   }
 
   async function load(force = false) {
-    // Always load form selects for the edit modals
-    await loadFormSelects();
-
     if (!list) return;
     list.innerHTML = UI.skeletonCardList(5);
 
     try {
-      const res = await API.Onboarding.list({}, force);
+      // Load dependencies AND the main list concurrently
+      const [_, res] = await Promise.all([
+        loadFormSelects(),
+        API.Onboarding.list({}, force)
+      ]);
       ALL = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
     } catch (e) {
       console.error('[onboarding] load error:', e);
@@ -227,7 +219,9 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
         if (filterDateTo) filterDateTo.value = '';
         if (filterAssignee) filterAssignee.value = '';
         const filterSupplier = document.getElementById('onb-filter-supplier');
+        const filterActivity = document.getElementById('onb-filter-activity');
         if (filterSupplier) filterSupplier.value = '';
+        if (filterActivity) filterActivity.value = '';
         currentPage = 1;
         applyFilters();
       });
@@ -318,9 +312,9 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
   window.massDelete = async (force = false) => {
     if (!window.selectedIds.size) return;
     if (force) {
-      if (!confirm(`ATTENZIONE: Eliminare DEFINITIVAMENTE ${window.selectedIds.size} pratiche e tutto il loro storico?`)) return;
+      if (!await UI.confirm(`ATTENZIONE: Eliminare DEFINITIVAMENTE ${window.selectedIds.size} pratiche e tutto il loro storico?`)) return;
     } else {
-      if (!confirm(`Archiviare ${window.selectedIds.size} pratiche (Soft Delete)?`)) return;
+      if (!await UI.confirm(`Archiviare ${window.selectedIds.size} pratiche (Soft Delete)?`)) return;
     }
     
     if (window.UI) window.UI.toast('Operazione in corso...', 'info');
@@ -426,7 +420,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
   function populateSupplierFilter() {
     const filterSupplier = document.getElementById('onb-filter-supplier');
     if (filterSupplier) {
-      const names = [...new Set(ALL.map(r => r.companies?.name || 'Nova CRM').filter(Boolean))].sort();
+      const names = [...new Set(ALL.map(r => r.company_name_ref || r.companies?.name || 'Nova CRM').filter(Boolean))].sort();
       const currentVal = filterSupplier.value;
       filterSupplier.innerHTML = '<option value="">Fornitore ▼</option>' +
         names.map(n => `<option value="${n}">${n}</option>`).join('');
@@ -435,6 +429,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
   }
 
   /* ── Apply filters ──────────────────────────────────────────── */
+  window.applyFilters = applyFilters;
   function applyFilters() {
     const text     = (searchEl?.value || '').toLowerCase().trim();
     const priority = filterPriority?.value || '';
@@ -464,7 +459,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       if (priority && r.priority    !== priority) return false;
       if (assignee && r.assigned_to !== assignee) return false;
       
-      const supName = r.companies?.name || 'Nova CRM';
+      const supName = r.company_name_ref || r.companies?.name || 'Nova CRM';
       if (supplier && supName !== supplier) return false;
       
       const cDate = r.created_at ? new Date(r.created_at) : null;
@@ -475,6 +470,17 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
           .filter(Boolean).join(' ').toLowerCase();
         if (!hay.includes(text)) return false;
       }
+      
+      const filterActivityHeader = document.getElementById('onb-filter-activity')?.value || '';
+      if (filterActivityHeader) {
+          const actDate = r.created_at || r.updated_at ? new Date(r.created_at || r.updated_at) : null;
+          if (!actDate) return false;
+          const nowMs = Date.now();
+          if (filterActivityHeader === '24h' && nowMs - actDate.getTime() > 86400000) return false;
+          if (filterActivityHeader === '7d' && nowMs - actDate.getTime() > 7 * 86400000) return false;
+          if (filterActivityHeader === '30d' && nowMs - actDate.getTime() > 30 * 86400000) return false;
+      }
+
       return true;
     });
 
@@ -547,8 +553,76 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       ? `<div style="font-size:11px;color:var(--gray-500);display:flex;align-items:center;gap:4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>${r.assigned_to}</div>` 
       : '';
 
+    const getActivityEmoji = (type) => {
+      if (!type) return '';
+      switch(type) {
+        case 'quote_accepted': return '<span title="Preventivo Accettato" style="margin-left:4px;">👍</span>';
+        case 'quote_rejected': return '<span title="Preventivo Rifiutato" style="margin-left:4px;">👎</span>';
+        case 'quote_opened':   return '<span title="Preventivo Visualizzato" style="margin-left:4px;">👁️</span>';
+        case 'quote_sent':     return '<span title="Preventivo Inviato" style="margin-left:4px;">⏳</span>';
+        case 'first_login':       return '<span title="Primo Accesso Portale" style="margin-left:4px;">😉</span>';
+        case 'contract_signed':   return '<span title="Contratto Firmato" style="margin-left:4px;">✍️</span>';
+        case 'service_activated': return '<span title="Servizio Attivato" style="margin-left:4px;">✅</span>';
+        case 'system':            return '<span title="Log di Sistema" style="margin-left:4px;">⚙️</span>';
+        case 'status_changed':    return '<span title="Aggiornamento Stato" style="margin-left:4px;">🔄</span>';
+        case 'stage_changed':     return '<span title="Avanzamento Pratica" style="margin-left:4px;">⏭️</span>';
+        case 'quote_opened':      return '<span title="Preventivo Visualizzato" style="margin-left:4px;">👁️</span>';
+        case 'quote_sent':        return '<span title="Preventivo Inviato" style="margin-left:4px;">✉️</span>';
+        case 'quote_accepted':    return '<span title="Preventivo Accettato" style="margin-left:4px;">🎉</span>';
+        case 'quote_rejected':    return '<span title="Preventivo Rifiutato" style="margin-left:4px;">❌</span>';
+        case 'lead_created':      return '<span title="Lead Creato" style="margin-left:4px;">🌱</span>';
+        case 'email_sent':        return '<span title="Email Inviata" style="margin-left:4px;">✉️</span>';
+        case 'invoice_issued':    return '<span title="Fattura Emessa" style="margin-left:4px;">🧾</span>';
+        case 'proforma_issued':   return '<span title="Proforma Emessa" style="margin-left:4px;">📄</span>';
+        case 'payment_received':  return '<span title="Pagamento Ricevuto" style="margin-left:4px;">💰</span>';
+        case 'document_uploaded': return '<span title="Documento Caricato" style="margin-left:4px;">📁</span>';
+        case 'contract_generated': return '<span title="Contratto Generato" style="margin-left:4px;">📝</span>';
+        case 'note':              return '<span title="Nota" style="margin-left:4px;">🗒️</span>';
+        case 'call':              return '<span title="Chiamata" style="margin-left:4px;">📞</span>';
+        case 'meeting':           return '<span title="Incontro" style="margin-left:4px;">🤝</span>';
+        case 'task':              return '<span title="Task" style="margin-left:4px;">✅</span>';
+        default: return '<span title="Attività Variabile" style="margin-left:4px;">📌</span>';
+      }
+    };
+
+    const getActivityLabel = (type) => {
+      if (!type) return 'Inserimento';
+      switch(type) {
+        case 'quote_accepted':    return 'Prev. Accettato';
+        case 'quote_rejected':    return 'Prev. Rifiutato';
+        case 'quote_opened':      return 'Prev. Visualizzato';
+        case 'quote_sent':        return 'Prev. Inviato';
+        case 'first_login':       return 'Accesso Portale';
+        case 'contract_signed':   return 'Contr. Firmato';
+        case 'service_activated': return 'Servizio Attivato';
+        case 'system':            return 'Sistema';
+        case 'status_changed':    return 'Stato Aggiornato';
+        case 'stage_changed':     return 'Avanz. Pratica';
+        case 'lead_created':      return 'Lead Creato';
+        case 'email_sent':        return 'Email Inviata';
+        case 'invoice_issued':    return 'Fattura Emessa';
+        case 'proforma_issued':   return 'Proforma Emessa';
+        case 'payment_received':  return 'Pagam. Ricevuto';
+        case 'document_uploaded': return 'Doc. Caricato';
+        case 'contract_generated':return 'Contratto Generato';
+        case 'note':              return 'Nota Aggiunta';
+        case 'call':              return 'Chiamata Registrata';
+        case 'meeting':           return 'Incontro Fissato';
+        case 'task':              return 'Task Creato';
+        default:                  return type.replace(/_/g, ' ');
+      }
+    };
+
+    const supName = r.company_name_ref || r.companies?.name || 'Nova CRM';
+    let supBadge = 'INT';
+    if (supName) {
+      if (supName.toUpperCase().includes('IT SERVICES')) supBadge = 'ITS';
+      else if (supName.toUpperCase().includes('DELOCA')) supBadge = 'DLC';
+      else supBadge = supName.substring(0, 3).toUpperCase();
+    }
+
     return `
-    <div class="cl-row fade-in" onclick="onbOpenDetail('${r.id}')" style="display: grid; grid-template-columns: 1.6fr 1.2fr 1.4fr 1.2fr 1fr 1fr 100px; gap: 16px; padding: 10px 24px; min-height: 54px; align-items: center; border-bottom: 1px solid var(--border); cursor: pointer;">
+    <div class="cl-row fade-in" onclick="onbOpenDetail('${r.id}')" style="display: grid; grid-template-columns: 2.8fr 1.4fr 1.4fr 1.2fr 1fr 1fr 100px; gap: 16px; padding: 10px 24px; min-height: 54px; align-items: center; border-bottom: 1px solid var(--border); cursor: pointer;">
       
       <!-- 1. Ragione Sociale -->
       <div class="cl-col cl-col-1" style="min-width: 0;">
@@ -558,9 +632,11 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
           </div>
           <div class="avatar cl-row-avatar" style="background:${sm.color}; color:#ffffff; flex-shrink:0;">${avatarInitial}</div>
           <div class="cl-row-identity-body" style="min-width:0;">
-            <div class="cl-row-name truncate" title="${companyLine}">${companyLine}</div>
-            <div class="cl-row-meta" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:2px;">
-              ${email !== 'Senza contatti' ? `<a class="cl-row-chip cl-row-link truncate" href="mailto:${email}" onclick="event.stopPropagation()" style="color:#3b82f6; max-width: 150px;">${email}</a>` : ''}
+            <div class="cl-row-name truncate" title="${companyLine}">
+              ${companyLine}
+            </div>
+            <div class="cl-row-meta" style="display:flex; flex-direction:column; gap:4px; margin-top:4px; align-items:flex-start;">
+              ${email !== 'Senza contatti' ? `<a class="cl-row-chip cl-row-link truncate" href="mailto:${email}" onclick="event.stopPropagation()" style="color:#3b82f6; max-width: 100%;">${email}</a>` : ''}
               ${r.phone ? `<a class="cl-row-chip cl-row-link" href="tel:${r.phone}" onclick="event.stopPropagation()">${r.phone}</a>` : ''}
             </div>
           </div>
@@ -568,8 +644,8 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       </div>
 
       <!-- 2. Fornitore -->
-      <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center;">
-        <div class="cl-data-val truncate" style="color:var(--gray-700); font-weight:500;">${r.companies?.name || 'Nova CRM'}</div>
+      <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
+        <div title="${supName}" style="font-size:11px;font-weight:700;color:var(--gray-600);background:var(--gray-100);padding:2px 6px;border-radius:4px;cursor:help;">${supBadge}</div>
       </div>
 
       <!-- 3. Dati Base -->
@@ -593,7 +669,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
 
       <!-- 6. Attività -->
       <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
-        <div class="cl-data-lbl">Inseimento</div>
+        <div class="cl-data-lbl" style="display:flex;align-items:center;gap:4px;">${getActivityEmoji(r.last_activity_type)}${getActivityLabel(r.last_activity_type)}</div>
         <div class="cl-data-val truncate">${r.created_at ? new Date(r.created_at).toLocaleDateString('it-IT') : 'N/D'}</div>
       </div>
 
@@ -787,6 +863,10 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
     const macContent = document.getElementById('onb-mac-content');
     if (!macContent) return '';
 
+    const totalReq = pFields.length;
+    const presentReq = pFields.filter(f => f.val).length;
+    const reqPct = Math.round((presentReq / totalReq) * 100);
+
     macContent.innerHTML = `
       <div class="mac-section">
         <div class="mac-section-title">Flusso di Lavoro</div>
@@ -796,18 +876,21 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       <div class="mac-divider"></div>
 
       <div class="mac-section">
-        <div class="mac-section-title">
-          <span>Requisiti Anagrafica (Proforma)</span>
+        <div class="mac-section-title" style="display:flex; align-items:center; gap:8px;">
+          <div style="width:18px;height:18px;border-radius:50%;background:conic-gradient(#3b82f6 ${reqPct}%, #e2e8f0 0%);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.05);">
+             ${reqPct === 100 ? `<svg xmlns="http://www.w3.org/2000/svg" style="width:12px;height:12px;color:#fff;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>` : `<div style="width:14px;height:14px;border-radius:50%;background:#f8fafc;"></div>`}
+          </div>
+          <span style="flex-grow:1;">Requisiti Anagrafica (Proforma)</span>
           ${allReady
-            ? `<span class="mac-status-pill-complete" style="font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:12px;text-transform:none;letter-spacing:0;">Completa</span>`
-            : `<span style="font-size:11.5px;font-weight:600;color:#d97706;background:#fef3c7;padding:3px 10px;border-radius:12px;text-transform:none;letter-spacing:0;">Dati mancanti</span>`}
+            ? `<span style="font-size:11px;font-weight:600;color:#10b981;background:#d1fae5;padding:2px 8px;border-radius:12px;text-transform:none;letter-spacing:0;">Completa</span>`
+            : `<span style="font-size:11px;font-weight:600;color:#d97706;background:#fef3c7;padding:2px 8px;border-radius:12px;text-transform:none;letter-spacing:0;">Dati mancanti</span>`}
         </div>
-        <div class="mac-chk-grid">
+        <div class="mac-chk-grid" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
           ${pFields.map(f => `
-            <div class="mac-chk-item ${f.val ? 'ok' : 'miss'}">
+            <div style="display:flex; align-items:center; gap:4px; font-weight:600; font-size:11px; padding:3px 10px; border-radius:12px; ${f.val ? 'color:#10b981; background:#d1fae5;' : 'color:#dc2626; background:#fee2e2;'}">
               ${f.val
-                ? '<svg style="color:#3b82f6;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
-                : '<svg style="color:#d1d5db;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>'}
+                ? '<svg xmlns="http://www.w3.org/2000/svg" transform="translate(0,0)" style="width:14px;height:14px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>'
+                : '<svg xmlns="http://www.w3.org/2000/svg" transform="translate(0,0)" style="width:14px;height:14px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>'}
               ${f.label}
             </div>`).join('')}
         </div>
@@ -847,7 +930,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
 
   // Mark blocked
   window.onbMarkBlocked = async (id) => {
-    if (!confirm(I18n.t('onb.confirm_block') || 'Segnare questa pratica come bloccata?')) return;
+    if (!await UI.confirm(I18n.t('onb.confirm_block') || 'Segnare questa pratica come bloccata?')) return;
     try {
       await API.Onboarding.update(id, { status: 'blocked' });
       ALL = ALL.map(x => x.id === id ? { ...x, status: 'blocked' } : x);
@@ -876,7 +959,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
 
   // Convert to client
   window.onbConvert = async (id) => {
-    if (!confirm(I18n.t('onb.confirm_convert') || 'Convertire questo lead in cliente attivo?\nViene creato il record anagrafico ufficiale.')) return;
+    if (!await UI.confirm(I18n.t('onb.confirm_convert') || 'Convertire questo lead in cliente attivo?\nViene creato il record anagrafico ufficiale.')) return;
     try {
       const res = await API.Onboarding.convert(id);
       const clientId = res?.client_id || res?.id || null;
@@ -892,7 +975,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
 
   // ── Cancel practice ──────────────────────────────────────────
   window.onbCancel = async (id) => {
-    if (!confirm('Annullare questa pratica? L\'operazione non può essere annullata.')) return;
+    if (!await UI.confirm('Annullare questa pratica? L\'operazione non può essere annullata.')) return;
     try {
       await API.Onboarding.cancel(id);
       ALL = ALL.map(x => x.id === id ? { ...x, status: 'cancelled' } : x);
@@ -905,7 +988,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
 
   // ── Delete practice ────────────────────────────────────────────
   window.onbDelete = async (id) => {
-    if (!confirm('Eliminare definitivamente questa pratica? Tutti i dati verranno rimossi.')) return;
+    if (!await UI.confirm('Eliminare definitivamente questa pratica? Tutti i dati verranno rimossi.')) return;
     try {
       // force=true required for cancelled records (backend hard-deletes only with force)
       await API.Onboarding.remove(id, true);
@@ -921,7 +1004,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
   };
 
   // ── Invite user to portal ──────────────────────────────────────
-  window.onbInviteUser = (id) => {
+  window.onbInviteUser = async (id) => {
     const r = ALL.find(x => x.id === id);
     if (!r) return;
     const email = r.email || r._client_email || '';
@@ -936,7 +1019,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
     } else {
       // Fallback: quick confirm
       if (!email) { UI.toast('Email mancante - inserisci un email prima di inviare l\'invito', 'warning'); return; }
-      if (confirm(`Inviare invito portale a: ${email}?`)) {
+      if (await UI.confirm(`Inviare invito portale a: ${email}?`)) {
         UI.toast(`Invito inviato a ${email}`, 'success');
       }
     }
@@ -1130,7 +1213,12 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
         UI.toast(I18n.t('onb.updated_ok') || 'Pratica aggiornata', 'success');
       } else {
         const created = await API.Onboarding.create(body);
-        if (created) ALL.unshift(created);
+        if (created) {
+          // Inject relation so the UI doesn't fallback to "Nova CRM" immediately after creation
+          const compName = _companies?.find(c => String(c.id) === String(body.company_id))?.name;
+          if (compName) created.companies = { name: compName };
+          ALL.unshift(created);
+        }
         UI.toast(I18n.t('onb.created_ok') || 'Onboarding creato con successo', 'success');
       }
       closeOnbForm();
@@ -1144,7 +1232,7 @@ filterDateTo?.addEventListener('change',   () => { currentPage = 1; applyFilters
       const msg = e?.message || '';
       if (!editingId && msg.startsWith('SOFT:')) {
         const clean = msg.replace(/^SOFT:/, '').trim();
-        if (confirm(clean)) {
+        if (await UI.confirm(clean)) {
           try {
             const created = await API.Onboarding.create({ ...body, force_create: true });
             if (created) ALL.unshift(created);

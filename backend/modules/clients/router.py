@@ -132,7 +132,7 @@ def _require_client(client_id: UUID, user: CurrentUser) -> dict:
         supabase.table("v_clients")
         .select("*")
         .eq("id", str(client_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
@@ -217,9 +217,9 @@ async def list_clients(
     
     if user.is_admin:
         if company_id:
-            q = q.eq("company_id", company_id)
+            q = q.eq("company_id", user.tenant)
     else:
-        q = q.eq("company_id", str(user.active_company_id))
+        q = q.eq("company_id", user.tenant)
         if not user.client_id:
             return {"data": [], "total": 0, "page": page, "page_size": page_size}
         q = q.eq("id", str(user.client_id))
@@ -325,7 +325,7 @@ async def update_own_client_profile(
         supabase.table("clients")
         .update(updates)
         .eq("id", str(user.client_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -386,7 +386,7 @@ async def list_windoc_contacts(
     # Mark already-imported windoc_ids
     existing = supabase.table("clients") \
         .select("windoc_id") \
-        .eq("company_id", company_id) \
+        .eq("company_id", user.tenant) \
         .not_.is_("windoc_id", "null") \
         .execute()
     imported_ids = {str(r["windoc_id"]) for r in (existing.data or [])}
@@ -441,7 +441,7 @@ async def import_clients_from_windoc(
         # Skip already-imported contacts
         existing = supabase.table("clients") \
             .select("id") \
-            .eq("company_id", company_id) \
+            .eq("company_id", user.tenant) \
             .eq("windoc_id", item.windoc_id) \
             .maybe_single() \
             .execute()
@@ -554,7 +554,7 @@ async def delete_client(
     try:
         unpaid = supabase.table("invoices").select("id").eq(
             "client_id", str(client_id)
-        ).eq("company_id", company_id).in_("status", ["sent", "overdue"]).limit(1).execute()
+        ).eq("company_id", user.tenant).in_("status", ["sent", "overdue"]).limit(1).execute()
         if unpaid.data:
             raise HTTPException(
                 status.HTTP_409_CONFLICT,
@@ -570,7 +570,7 @@ async def delete_client(
         # Soft delete: cease the client
         supabase.table("clients").update({"status": "ceased"}).eq(
             "id", str(client_id)
-        ).eq("company_id", company_id).execute()
+        ).eq("company_id", user.tenant).execute()
         _audit(user, str(client_id), "soft_delete", old={"status": old.get("status")}, new={"status": "ceased"})
         return {
             "deleted": False,
@@ -633,7 +633,7 @@ async def cease_client(
     try:
         unpaid = supabase.table("invoices").select("id").eq(
             "client_id", str(client_id)
-        ).eq("company_id", company_id).in_("status", ["sent", "overdue"]).limit(1).execute()
+        ).eq("company_id", user.tenant).in_("status", ["sent", "overdue"]).limit(1).execute()
         if unpaid.data:
             raise HTTPException(
                 status.HTTP_409_CONFLICT,
@@ -646,7 +646,7 @@ async def cease_client(
 
     supabase.table("clients").update({"status": "ceased"}).eq(
         "id", str(client_id)
-    ).eq("company_id", company_id).execute()
+    ).eq("company_id", user.tenant).execute()
     _audit(user, str(client_id), "cease", old={"status": old.get("status")}, new={"status": "ceased"})
     return {"message": "Cliente cessato con successo", "status": "ceased"}
 
@@ -712,7 +712,7 @@ async def update_contact(
         .select("id")
         .eq("id", str(contact_id))
         .eq("client_id", str(client_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
@@ -746,13 +746,13 @@ async def delete_contact(
         .select("id")
         .eq("id", str(contact_id))
         .eq("client_id", str(client_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
     if not existing.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Contact not found")
-    supabase.table("client_contacts").delete().eq("id", str(contact_id)).eq("company_id", str(user.active_company_id)).execute()
+    supabase.table("client_contacts").delete().eq("id", str(contact_id)).eq("company_id", user.tenant).execute()
 
 
 # ── Related data shortcuts ────────────────────────────────────

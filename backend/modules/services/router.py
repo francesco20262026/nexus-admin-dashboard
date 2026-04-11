@@ -200,7 +200,7 @@ async def list_catalog(
     )
     if not user.is_admin:
         company_id = str(user.active_company_id)
-        q = q.eq("company_id", company_id)
+        q = q.eq("company_id", user.tenant)
         
     if active_only:
         q = q.eq("is_active", True)
@@ -300,7 +300,7 @@ async def duplicate_catalog_service(
     user: CurrentUser = Depends(require_admin),
 ):
     """Duplicate a catalog service entry with a (Copia) suffix."""
-    original = _require_catalog_service(service_id, str(user.active_company_id))
+    original = _require_catalog_service(service_id, user.tenant)
     exclude_keys = {"id", "created_at", "updated_at"}
     new_row = {k: v for k, v in original.items() if k not in exclude_keys}
     new_row["name"] = f"{original.get('name', 'Servizio')} (Copia)"
@@ -324,7 +324,7 @@ async def get_catalog_service_usages(
         supabase.table("client_services")
         .select("*, clients(id,company_name,name)")
         .eq("service_id", str(service_id))
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .order("created_at", desc=True)
         .execute()
     )
@@ -356,7 +356,7 @@ async def list_subscriptions(
     
     # Clients can only see their own subscriptions
     if not user.is_admin:
-        q = q.eq("company_id", company_id)
+        q = q.eq("company_id", user.tenant)
         if user.client_id:
             or_conds = [f"client_id.eq.{user.client_id}"]
             if user.onboarding_id:
@@ -373,7 +373,7 @@ async def list_subscriptions(
         elif onboarding_id:
             q = q.eq("onboarding_id", str(onboarding_id))
         else:
-            q = q.eq("company_id", company_id)
+            q = q.eq("company_id", user.tenant)
 
     if status_filter:
         q = q.eq("status", status_filter)
@@ -402,7 +402,7 @@ async def create_subscription(
             .eq("id", str(body.client_id))
         )
         if not user.is_admin:
-            client_check = client_check.eq("company_id", company_id)
+            client_check = client_check.eq("company_id", user.tenant)
             
         res = client_check.maybe_single().execute()
         if not res or getattr(res, "data", None) is None:
@@ -416,7 +416,7 @@ async def create_subscription(
             .eq("id", str(body.onboarding_id))
         )
         if not user.is_admin:
-            onb_check = onb_check.eq("company_id", company_id)
+            onb_check = onb_check.eq("company_id", user.tenant)
             
         res = onb_check.maybe_single().execute()
         if not res or getattr(res, "data", None) is None:
@@ -475,9 +475,7 @@ async def delete_subscription(
     user: CurrentUser = Depends(require_admin),
 ):
     _require_subscription(sub_id, str(user.active_company_id))
-    supabase.table("client_services").delete().eq("id", str(sub_id)).eq(
-        "company_id", str(user.active_company_id)
-    ).execute()
+    supabase.table("client_services").delete().eq("id", str(sub_id)).eq("company_id", user.tenant).execute()
 
 
 @router.post("/subscriptions/{sub_id}/duplicate", status_code=status.HTTP_201_CREATED)

@@ -12,6 +12,7 @@ window.ActivityTimeline = (function () {
     task:              { icon: '✅', label: 'Task',              color: '#10b981' },
     email_sent:        { icon: '✉️',  label: 'Email inviata',    color: '#f59e0b' },
     quote_sent:        { icon: '📄', label: 'Preventivo inviato', color: '#3b82f6' },
+    quote_opened:      { icon: '👀', label: 'Preventivo visionato', color: '#8b5cf6' },
     quote_accepted:    { icon: '✅', label: 'Preventivo accettato', color: '#10b981' },
     quote_rejected:    { icon: '❌', label: 'Preventivo rifiutato', color: '#ef4444' },
     invoice_issued:    { icon: '🧾', label: 'Fattura emessa',    color: '#f97316' },

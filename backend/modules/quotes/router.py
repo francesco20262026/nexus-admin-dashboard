@@ -173,7 +173,7 @@ def _resolve_onboarding_id(quote: dict, company_id: str) -> Optional[str]:
             res = (
                 supabase.table("onboarding")
                 .select("id")
-                .eq("company_id", company_id)
+                .eq("company_id", user.tenant)
                 .eq("client_id", str(quote["client_id"]))
                 .not_.in_("status", ["converted_to_client", "abandoned", "cancelled"])
                 .order("created_at", desc=True)
@@ -208,7 +208,7 @@ def _require_quote(quote_id: UUID, user: CurrentUser, select: str = "*") -> dict
         supabase.table("quotes")
         .select(select)
         .eq("id", str(quote_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
@@ -275,7 +275,7 @@ async def list_quotes(
         if supplier_company_id:
             q = q.eq("company_id", str(supplier_company_id))
     else:
-        q = q.eq("company_id", str(user.active_company_id))
+        q = q.eq("company_id", user.tenant)
     if not user.is_admin:
         if not user.client_id and not user.onboarding_id:
             return {"data": [], "total": 0, "page": page, "page_size": page_size}
@@ -305,7 +305,7 @@ async def list_quotes(
 async def get_quote(quote_id: UUID, user: CurrentUser = Depends(get_current_user)):
     q = supabase.table("quotes").select("*, quote_lines(*), clients(name, email)").eq("id", str(quote_id))
     if not user.is_admin:
-        q = q.eq("company_id", str(user.active_company_id))
+        q = q.eq("company_id", user.tenant)
 
     res = q.maybe_single().execute()
     if not res.data:
@@ -350,9 +350,9 @@ async def create_quote(
         except Exception:
             pass
 
-    # Generazione numero preventivo progressivo
+    # Generazione numero preventivo progressivo globale (ignora l'azienda per evitare doppioni logici)
     year = datetime.now(timezone.utc).year
-    q_count = supabase.table("quotes").select("id", count="exact").eq("company_id", company_id).gte("created_at", f"{year}-01-01").execute()
+    q_count = supabase.table("quotes").select("id", count="exact").gte("created_at", f"{year}-01-01").execute()
     count = q_count.count or 0
     quote_number = f"PREV-{year}-{(count + 1):03d}"
 
@@ -408,7 +408,7 @@ async def duplicate_quote(quote_id: UUID, user: CurrentUser = Depends(require_ad
     
     company_id = q_full.get("company_id") or str(user.active_company_id)
     year = datetime.now(timezone.utc).year
-    q_count = supabase.table("quotes").select("id", count="exact").eq("company_id", company_id).gte("created_at", f"{year}-01-01").execute()
+    q_count = supabase.table("quotes").select("id", count="exact").gte("created_at", f"{year}-01-01").execute()
     count = q_count.count or 0
     quote_number = f"PREV-{year}-{(count + 1):03d}"
     
@@ -756,7 +756,7 @@ async def send_quote_notify(quote_id: UUID, user: CurrentUser = Depends(require_
             lang="it",
             variables={
                 "client_name": client_name,
-                "quote_number": str(q_full.get("id"))[:8].upper(),
+                "quote_number": q_full.get("number") or "Senza Numero",
                 "quote_date": datetime.now(timezone.utc).strftime("%d/%m/%Y"),
                 "expiry_date": date.fromisoformat(q_full["valid_until"]).strftime("%d/%m/%Y") if q_full.get("valid_until") else "N/A",
                 "total_amount": f"{q_full.get('total', 0.0):.2f}",
@@ -868,7 +868,7 @@ async def delete_quote(quote_id: UUID, user: CurrentUser = Depends(require_admin
         supabase.table("quote_lines").delete().eq("quote_id", str(quote_id)).execute()
         
         # 2. Delete the quote itself
-        supabase.table("quotes").delete().eq("id", str(quote_id)).eq("company_id", company_id).execute()
+        supabase.table("quotes").delete().eq("id", str(quote_id)).eq("company_id", user.tenant).execute()
 
         # 3. Check if onboarding still has other active quotes → if not, revert status
         if onboarding_id:
@@ -876,7 +876,7 @@ async def delete_quote(quote_id: UUID, user: CurrentUser = Depends(require_admin
                 supabase.table("quotes")
                 .select("id")
                 .eq("onboarding_id", str(onboarding_id))
-                .eq("company_id", company_id)
+                .eq("company_id", user.tenant)
                 .in_("status", ["draft", "sent"])
                 .execute()
             )
@@ -902,7 +902,7 @@ async def client_quotes_summary(client_id: UUID, user: CurrentUser = Depends(req
     res = (
         supabase.table("quotes")
         .select("id,title,status,total,currency,valid_until,created_at")
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .eq("client_id", str(client_id))
         .order("created_at", desc=True)
         .execute()
@@ -925,7 +925,25 @@ async def get_public_quote(token: UUID):
     if not res.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Preventivo non trovato")
         
-    return res.data
+    q_data = res.data
+    # Log timeline event that the client opened the quote
+    try:
+        from modules.activity.router import log_timeline_event
+        log_timeline_event(
+            company_id=str(q_data.get("company_id")),
+            user_id=None,  # Public access
+            event_type="quote_opened",
+            title="Preventivo visualizzato",
+            client_id=str(q_data.get("client_id")) if q_data.get("client_id") else None,
+            onboarding_id=str(q_data.get("onboarding_id")) if q_data.get("onboarding_id") else None,
+            body=f"Il cliente ha aperto il link del preventivo {q_data.get('number') or q_data.get('title')}.",
+        )
+    except Exception as e:
+        import traceback
+        import logging
+        logging.getLogger(__name__).warning(f"Failed to log quote_viewed event: {e}")
+
+    return q_data
 
 
 @router.post("/public/{token}/accept")
@@ -974,15 +992,35 @@ async def accept_public_quote(token: UUID):
     if onbid:
         from automation import auto_advance_onboarding
         admin = supabase.table("users").select("id").limit(1).execute()
-        system_user = admin.data[0]["id"] if admin.data else None
-        if system_user:
+        system_user_id = admin.data[0]["id"] if admin.data else None
+        if system_user_id:
             try:
                 auto_advance_onboarding(
-                    q["company_id"], system_user, str(onbid), 
+                    q["company_id"], system_user_id, str(onbid), 
                     "quote_accepted", "Preventivo accettato online dal prospect"
                 )
             except Exception as e:
                 logger.error(f"Auto-advance failed on public quote: {e}")
+
+    # ── Auto-generate Contract ─────────────────────────────────
+    try:
+        from auth.middleware import CurrentUser
+        # Attempt to get an admin ID to masquerade as the system user
+        admin = supabase.table("users").select("id").limit(1).execute()
+        sys_id = admin.data[0]["id"] if admin.data else "00000000-0000-0000-0000-000000000000"
+        
+        system_user = CurrentUser(
+            user_id=sys_id,
+            active_company_id=q["company_id"],
+            role="super_admin",
+            client_id=None,
+            email="system@local",
+            onboarding_id=None
+        )
+        await _trigger_contract_on_quote_acceptance(token, system_user, q)
+    except Exception as e:
+        import traceback
+        logger.error(f"Auto-generate contract failed on public quote: {e}\n{traceback.format_exc()}")
 
     return {"message": "Preventivo accettato"}
 

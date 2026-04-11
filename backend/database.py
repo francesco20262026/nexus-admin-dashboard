@@ -1,5 +1,23 @@
 from supabase import create_client, Client
 from config import settings
+from postgrest.base_request_builder import BaseFilterRequestBuilder
+
+# ── Dynamic Tenant Bypass Patch ───────────────────────────────
+
+original_eq = BaseFilterRequestBuilder.eq
+
+def patched_eq(self, column, value):
+    """
+    Se la query cerca di filtrare per company_id usando la stringa speciale
+    'BYPASS_RLS_SUPERADMIN', ignora il filtro permettendo query inter-tenant 
+    per il super_admin senza rompere il chain design pattern di postgrest-py.
+    """
+    if column == "company_id" and value == "BYPASS_RLS_SUPERADMIN":
+        return self
+    return original_eq(self, column, value)
+
+BaseFilterRequestBuilder.eq = patched_eq
+
 
 # ── Clients ───────────────────────────────────────────────────
 

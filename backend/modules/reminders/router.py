@@ -30,7 +30,7 @@ def _can_send_reminder(invoice_id: str, company_id: str, level: int) -> tuple[bo
         supabase.table("invoices")
         .select("status")
         .eq("id", invoice_id)
-        .eq("company_id", company_id)   # tenant guard
+        .eq("company_id", user.tenant)   # tenant guard
         .maybe_single()
     ).data
     if not invoice:
@@ -45,7 +45,7 @@ def _can_send_reminder(invoice_id: str, company_id: str, level: int) -> tuple[bo
         supabase.table("reminders")
         .select("id,sent_at,status")
         .eq("invoice_id", invoice_id)
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .eq("level", level)
         .execute()
     ).data or []
@@ -57,7 +57,7 @@ def _can_send_reminder(invoice_id: str, company_id: str, level: int) -> tuple[bo
         supabase.table("reminders")
         .select("sent_at")
         .eq("invoice_id", invoice_id)
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .eq("status", "sent")
         .order("sent_at", desc=True)
         .limit(1)
@@ -100,7 +100,7 @@ async def list_reminders(
     q = (
         supabase.table("reminders")
         .select("*, invoices(number,total,due_date,clients(name,email))", count="exact")
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
     )
     if invoice_id:
         q = q.eq("invoice_id", str(invoice_id))
@@ -129,7 +129,7 @@ async def send_reminder(
         supabase.table("invoices")
         .select("*, clients(name,email,lang)")
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
     ).data
     if not inv:
@@ -163,7 +163,7 @@ async def reminder_history(
         supabase.table("invoices")
         .select("id")
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
     )
     if not inv_check.data:
@@ -173,7 +173,7 @@ async def reminder_history(
         supabase.table("reminders")
         .select("*")
         .eq("invoice_id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))   # tenant guard
+        .eq("company_id", user.tenant)   # tenant guard
         .order("level")
         .execute()
     )
@@ -193,7 +193,7 @@ async def retry_reminder(
         supabase.table("reminders")
         .select("*")
         .eq("id", str(reminder_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
     ).data
     if not rem:
@@ -215,7 +215,7 @@ async def retry_reminder(
         supabase.table("invoices")
         .select("*, clients(name,email,lang)")
         .eq("id", invoice_id)
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
     ).data
     if not inv:
@@ -227,7 +227,7 @@ async def retry_reminder(
         supabase.table("reminders").update({
             "status":          "skipped",
             "delivery_result": f"Fattura già {inv_status}",
-        }).eq("id", str(reminder_id)).eq("company_id", str(user.active_company_id)).execute()
+        }).eq("id", str(reminder_id)).eq("company_id", user.tenant).execute()
         return {"message": f"Retry annullato: la fattura è già {inv_status}.", "status": "skipped"}
 
     # 5. Send
@@ -247,7 +247,7 @@ async def retry_reminder(
         "status":          new_status,
         "sent_at":         now if success else None,
         "delivery_result": delivery_result,
-    }).eq("id", str(reminder_id)).eq("company_id", str(user.active_company_id)).execute()
+    }).eq("id", str(reminder_id)).eq("company_id", user.tenant).execute()
 
     _audit(user, str(reminder_id), "retry_dispatched",
            new={"status": new_status, "invoice_id": invoice_id})

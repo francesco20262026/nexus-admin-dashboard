@@ -30,7 +30,13 @@ body {
   background: #ffffff;
   border-bottom: 1px solid var(--detail-border);
   margin-bottom: 0;
+  flex-wrap: wrap;
 }
+
+#onb-pipeline-header-container::-webkit-scrollbar {
+  display: none;
+}
+
 
 .detail-page-header-left {
   display: flex;
@@ -264,7 +270,7 @@ body {
 }
 
 /* Icons inside Card Headers */
-.detail-section-label svg {
+.detail-section-label > svg:first-child {
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -281,7 +287,7 @@ body {
 #sec-anagrafica {
   border-left: 5px solid #3b82f6;
 }
-#sec-anagrafica .detail-section-label svg {
+#sec-anagrafica .detail-section-label > svg:first-child {
   background: #3b82f6;
   box-shadow: 0 2px 5px rgba(59,130,246,0.3);
 }
@@ -289,7 +295,7 @@ body {
 #sec-contatti { border-left: 5px solid #22c55e; }
 #sec-servizi { border-left: 5px solid #f97316; }
 /* Indirizzo falls under Anagrafica usually, let's style the second inner header */
-.card .detail-section-header:nth-of-type(2) .detail-section-label svg {
+.card .detail-section-header:nth-of-type(2) .detail-section-label > svg:first-child {
     background: #f97316;
     box-shadow: 0 2px 5px rgba(249,115,22,0.3);
 }
@@ -453,6 +459,7 @@ body {
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
+  min-width: 600px;
 }
 
 .mac-pipeline-line {
@@ -603,4 +610,136 @@ body {
     gap: 16px;
     padding: 16px 24px;
     border-bottom: 1px solid #f1f5f9;
+}
+
+/* macOS Style Custom Dropdown */
+.mac-custom-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.mac-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+  min-height: 36px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all 0.1s ease;
+}
+
+.mac-dropdown-trigger:hover {
+  background: #f9fafb;
+}
+
+.mac-custom-dropdown.open .mac-dropdown-trigger {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+}
+
+.mac-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  padding: 5px 0;
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.98) translateY(-4px);
+  transform-origin: top;
+  transition: opacity 0.1s ease-out, transform 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mac-custom-dropdown.open .mac-dropdown-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+.mac-action-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 24px 5px 8px;
+  margin: 1px 4px;
+  border-radius: 5px;
+  cursor: default;
+  transition: none;
+  color: #111827;
+  font-size: 13.5px;
+  font-weight: 400;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mac-action-item:hover {
+  background-color: #007aff;
+  color: #ffffff;
+}
+
+.mac-action-item:hover .mac-action-label,
+.mac-action-item:hover .mac-action-check svg {
+  color: #ffffff;
+}
+
+.mac-action-check {
+  width: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  visibility: hidden;
+  color: #111827;
+}
+
+.mac-action-item.selected .mac-action-check {
+  visibility: visible;
+}
+
+.mac-action-item:hover {
+  background-color: #3b82f6; /* macOS blue */
+  color: #ffffff;
+}
+
+.mac-action-check {
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent; /* hidden by default */
+}
+
+/* When selected, show check and make text explicitly bold */
+.mac-action-item.selected .mac-action-check {
+  color: inherit;
+}
+.mac-action-item.selected {
+  font-weight: 600;
+}
+
+.mac-action-icon {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mac-action-label {
+  flex: 1;
 }

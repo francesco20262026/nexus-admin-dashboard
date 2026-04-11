@@ -24,9 +24,18 @@ async def trigger_renewal_alerts(user: CurrentUser = Depends(get_current_user)):
     await run_renewal_alerts(company_id=str(user.active_company_id))
     return {"status": "ok", "message": "Job renewal_alerts avviato per la tua azienda."}
 
-@router.post("/trigger-gdrive-poller", dependencies=[Depends(require_admin)])
-async def trigger_gdrive_poller():
-    """Manually trigger the GDrive PDF poller job."""
-    from jobs.gdrive_pdf_poller import run_gdrive_pdf_poller
-    await run_gdrive_pdf_poller()
-    return {"status": "ok", "message": "Scansione GDrive avviata manualmente."}
+from fastapi import BackgroundTasks
+
+@router.post("/trigger-invoices-poller", dependencies=[Depends(require_admin)])
+async def trigger_invoices_poller(background_tasks: BackgroundTasks):
+    """Manually trigger the GDrive Invoices PDF poller job in background."""
+    from jobs.gdrive_pdf_poller import poll_invoices_dropzone
+    background_tasks.add_task(poll_invoices_dropzone)
+    return {"status": "ok", "message": "Scansione GDrive Fatture avviata."}
+
+@router.post("/trigger-documents-poller", dependencies=[Depends(require_admin)])
+async def trigger_documents_poller(background_tasks: BackgroundTasks):
+    """Manually trigger the GDrive Wiki/Corporate Documents PDF poller job in background."""
+    from jobs.gdrive_pdf_poller import poll_documents_dropzone
+    background_tasks.add_task(poll_documents_dropzone)
+    return {"status": "ok", "message": "Scansione GDrive Documenti Aziendali avviata."}

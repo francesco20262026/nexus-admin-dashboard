@@ -68,7 +68,7 @@ async def list_communications(
         q = (
             supabase.table("client_communications")
             .select("*")
-            .eq("company_id", str(user.active_company_id))
+            .eq("company_id", user.tenant)
             .eq("client_id",  str(client_id))
             .order("sent_at",  desc=True)
             .limit(limit)

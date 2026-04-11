@@ -37,7 +37,7 @@ def _require_renewal(renewal_id: UUID, company_id: str, select: str = "*") -> di
         supabase.table("renewals")
         .select(select)
         .eq("id", str(renewal_id))
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
@@ -59,7 +59,7 @@ async def list_renewals(
     q = (
         supabase.table("renewals")
         .select("*, clients(name,email), client_services(*, services_catalog(name))", count="exact")
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
     )
     if renewal_status:
         q = q.eq("status", renewal_status)
@@ -121,7 +121,7 @@ async def update_renewal(
         supabase.table("renewals")
         .update(updates)
         .eq("id", str(renewal_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -179,7 +179,7 @@ async def send_renewal_alert(
     supabase.table("renewals").update({
         "status":        "alerted",
         "alert_sent_at": now,
-    }).eq("id", str(renewal_id)).eq("company_id", str(user.active_company_id)).execute()
+    }).eq("id", str(renewal_id)).eq("company_id", user.tenant).execute()
 
     return {"message": "Renewal alert sent"}
 
@@ -267,7 +267,7 @@ async def generate_invoice_for_renewal(
         .update({"invoice_id": new_inv_id, "status": "renewed",
                  "renewed_at": datetime.now(timezone.utc).isoformat()})
         .eq("id", str(renewal_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .is_("invoice_id", "null")
         .execute()
     )

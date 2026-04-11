@@ -49,7 +49,7 @@ async def list_calls(
         q = (
             supabase.table("client_calls")
             .select("*")
-            .eq("company_id", str(user.active_company_id))
+            .eq("company_id", user.tenant)
             .eq("client_id", str(client_id))
             .order("scheduled_at", desc=False)
         )
@@ -74,7 +74,7 @@ async def overdue_calls(
         res = (
             supabase.table("client_calls")
             .select("*")
-            .eq("company_id", str(user.active_company_id))
+            .eq("company_id", user.tenant)
             .eq("client_id", str(client_id))
             .eq("status", "scheduled")
             .lt("scheduled_at", now)
@@ -127,7 +127,7 @@ async def update_call(
         supabase.table("client_calls")
         .update(patch)
         .eq("id", str(call_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -144,7 +144,7 @@ async def delete_call(
         supabase.table("client_calls")
         .delete()
         .eq("id", str(call_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:

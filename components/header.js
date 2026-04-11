@@ -13,35 +13,21 @@
    + '<div id="lang-switcher-slot"></div>'
    + '<div class="divider-v"></div>'
 
-   + '<div class="dropdown-wrap">'
-   + '<button class="company-selector" data-dropdown-trigger>'
-   + '<div class="company-dot" id="company-dot">A</div>'
-   + '<span id="company-label">-</span>'
-   + '<svg class="company-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>'
-   + '</button>'
-   + '<div class="dropdown-menu" style="min-width:220px;">'
-   + '<div style="padding:6px 10px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);" data-i18n="header.switch_company">Cambia azienda</div>'
-   + '<div id="company-list"></div>'
-   + '<div class="dropdown-divider"></div>'
-   + '<button class="dropdown-item" onclick="location.href=\'admin_settings.html\'">'
-   + '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>'
-   + '<span data-i18n="header.add_company">Aggiungi azienda</span>'
-   + '</button>'
-   + '</div>'
-   + '</div>'
+    
 
    + '<div class="divider-v"></div>'
 
-   + '<div class="dropdown-wrap">'
-   + '<button class="icon-btn" data-dropdown-trigger title="Notifiche">'
+   + '<div class="dropdown-wrap" id="notif-dropdown-wrap">'
+   + '<button class="icon-btn" id="btn-notif-trigger" data-dropdown-trigger title="Notifiche">'
    + '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>'
-   + '<span class="notif-dot" id="notif-dot" style="display:none;"></span>'
+   + '<span class="notif-dot" id="notif-badge-count" style="display:none;"></span>'
    + '</button>'
    + '<div class="dropdown-menu notif-panel">'
    + '<div class="notif-panel-header">'
    + '<span class="notif-panel-title" data-i18n="notif.title">Notifiche</span>'
-   + '<button class="btn btn-ghost btn-sm" data-i18n="notif.mark_all">Segna tutte come lette</button>'
+   + '<button class="btn btn-ghost btn-sm" id="btn-mark-all-read" data-i18n="notif.mark_all">Segna tutte come lette</button>'
    + '</div>'
+   + '<div id="notif-list-container"></div>'
    + '<div class="notif-empty" id="notif-empty" data-i18n="notif.empty">Nessuna notifica recente</div>'
    + '</div>'
    + '</div>'
@@ -83,5 +69,21 @@
         ? document.currentScript.insertAdjacentHTML('afterend', headerHTML)
         : document.body.insertAdjacentHTML('beforeend', headerHTML);
     }
+  }
+
+  // Inject AI Agent Script safely so the browser executes it
+  if (!document.getElementById('ai-agent-script')) {
+      var script = document.createElement('script');
+      script.id = 'ai-agent-script';
+      script.src = 'assets/js/ai_agent_widget.js?v=1000';
+      document.body.appendChild(script);
+  }
+
+  // Inject Notifications module
+  if (!document.getElementById('notifications-script')) {
+      var notifScript = document.createElement('script');
+      notifScript.id = 'notifications-script';
+      notifScript.src = 'assets/js/notifications.js?v=1000';
+      document.body.appendChild(notifScript);
   }
 })();

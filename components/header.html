@@ -15,27 +15,6 @@
     <div id="lang-switcher-slot"></div>
     <div class="divider-v"></div>
 
-    <!-- Company Selector (Moved to Right) -->
-    <div class="dropdown-wrap">
-      <button class="company-selector" data-dropdown-trigger>
-        <div class="company-dot" id="company-dot">A</div>
-        <span id="company-label">-</span>
-        <svg class="company-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-      </button>
-      <div class="dropdown-menu" style="min-width:220px;">
-        <div style="padding:6px 10px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);" data-i18n="header.switch_company">Cambia azienda</div>
-        <div id="company-list">
-          <!-- populated dynamically by dash.js from JWT permissions -->
-        </div>
-        <div class="dropdown-divider"></div>
-        <button class="dropdown-item" onclick="location.href='admin_settings.html'">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-          <span data-i18n="header.add_company">Aggiungi azienda</span>
-        </button>
-      </div>
-    </div>
-    <div class="divider-v"></div>
-
     <!-- Notifiche -->
     <div class="dropdown-wrap">
       <button class="icon-btn" data-dropdown-trigger title="Notifiche">

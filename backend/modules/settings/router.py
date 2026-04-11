@@ -106,7 +106,7 @@ async def update_company_settings(body: CompanySettingsUpdate, user: CurrentUser
 async def get_integrations_status(user: CurrentUser = Depends(require_admin)):
     """Return integration metadata. token_app is returned (non-secret), token is never exposed."""
     company_id = str(user.active_company_id)
-    res = supabase.table("integrations").select("type, is_active, config").eq("company_id", company_id).execute()
+    res = supabase.table("integrations").select("type, is_active, config").eq("company_id", user.tenant).execute()
 
     result: dict[str, Any] = {
         "windoc": {"configured": False},
@@ -150,7 +150,7 @@ async def update_integration(integration_type: str, body: IntegrationUpdate, use
             cfg = WindocConfig(**body.config)
             # If token is omitted (None / empty), preserve the stored one
             if not cfg.token:
-                existing_row = supabase.table("integrations").select("config").eq("company_id", company_id).eq("type", "windoc").execute()
+                existing_row = supabase.table("integrations").select("config").eq("company_id", user.tenant).eq("type", "windoc").execute()
                 stored_token = (existing_row.data[0]["config"] or {}).get("token") if existing_row and existing_row.data else None
                 valid_config = {"token_app": cfg.token_app, "token": stored_token or ""}
             else:
@@ -164,7 +164,7 @@ async def update_integration(integration_type: str, body: IntegrationUpdate, use
             smtp_cfg = SmtpConfig(**body.config)
             # Preserve stored password if omitted
             if not smtp_cfg.password:
-                existing_row = supabase.table("integrations").select("config").eq("company_id", company_id).eq("type", "smtp").execute()
+                existing_row = supabase.table("integrations").select("config").eq("company_id", user.tenant).eq("type", "smtp").execute()
                 stored_pw = (existing_row.data[0]["config"] or {}).get("password") if existing_row and existing_row.data else None
                 valid_config = smtp_cfg.model_dump(exclude={"password"})
                 valid_config["password"] = stored_pw or ""
@@ -177,7 +177,7 @@ async def update_integration(integration_type: str, body: IntegrationUpdate, use
     except Exception as e:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Configurazione non valida: {str(e)}")
 
-    existing = supabase.table("integrations").select("id").eq("company_id", company_id).eq("type", integration_type).execute()
+    existing = supabase.table("integrations").select("id").eq("company_id", user.tenant).eq("type", integration_type).execute()
 
     if existing and existing.data:
         supabase.table("integrations").update({
@@ -220,7 +220,7 @@ async def test_windoc_connection(body: dict, user: CurrentUser = Depends(require
 
     if not token_app or not token:
         # Load from stored integration
-        row = supabase.table("integrations").select("config").eq("company_id", company_id).eq("type", "windoc").execute()
+        row = supabase.table("integrations").select("config").eq("company_id", user.tenant).eq("type", "windoc").execute()
         if row and row.data:
             cfg = row.data[0].get("config") or {}
             token_app = token_app or cfg.get("token_app", "")

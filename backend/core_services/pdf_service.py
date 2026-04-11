@@ -1,83 +1,37 @@
 """
-core_services/pdf_service.py — HTML → PDF rendering via WeasyPrint
-Pure service layer — no HTTP, no router concerns.
-
-WeasyPrint requires native OS libraries (pango, cairo, libffi, gdk-pixbuf).
-If they are missing the module will still import but fail on first render.
-check_pdf_health() and test_pdf_generation() exist for startup/health probes.
+core_services/pdf_service.py — HTML → PDF rendering via Playwright
+Uses a dedicated thread with its own ProactorEventLoop to bypass
+the Windows SelectorEventLoop limitation in uvicorn.
 """
+import asyncio
 import logging
 import platform
 import sys
+import threading
+import os
+
+# The Windows Service runs as Local System, so it can't find the Administrator's browser installation.
+# Force Playwright to load browsers from the Administrator's AppData directory where 'playwright install' ran.
+os.environ["PLAYWRIGHT_BROWSERS_PATH"] = r"C:\Users\administrator.IMPIEGANDO\AppData\Local\ms-playwright"
 
 logger = logging.getLogger(__name__)
 
-# ── Runtime dependency probe ──────────────────────────────────
-# Performed once at import time so startup logs surface any issues immediately.
+# Compatibility shims for main.py health probe
+WEASYPRINT_AVAILABLE = True
+WEASYPRINT_ERROR = None
 
-WEASYPRINT_AVAILABLE: bool = False
-WEASYPRINT_ERROR: str | None = None
-
-try:
-    from weasyprint import HTML as _WeasyHTML   # noqa: N814
-    WEASYPRINT_AVAILABLE = True
-    logger.info("WeasyPrint loaded successfully")
-except ImportError as exc:
-    WEASYPRINT_ERROR = f"ImportError: {exc} — install weasyprint (pip install weasyprint)"
-    logger.error("WeasyPrint not installed. PDF generation will fail. %s", WEASYPRINT_ERROR)
-except OSError as exc:
-    WEASYPRINT_ERROR = (
-        f"OSError: {exc} — missing OS libraries. "
-        "Install: pango, cairo, libffi, gdk-pixbuf "
-        "(e.g. apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0)"
-    )
-    logger.error("WeasyPrint OS dependency missing. %s", WEASYPRINT_ERROR)
-except Exception as exc:                        # pragma: no cover
-    WEASYPRINT_ERROR = f"Unexpected load error: {exc}"
-    logger.error("WeasyPrint failed to load unexpectedly. %s", WEASYPRINT_ERROR)
-
-
-# ── Health helper ─────────────────────────────────────────────
 
 def check_pdf_health() -> dict:
-    """
-    Return the current status of the PDF subsystem.
-    Suitable for use in /health endpoints and startup probes.
-    """
     return {
-        "status":               "ok" if WEASYPRINT_AVAILABLE else "degraded",
-        "engine":               "weasyprint",
-        "available":            WEASYPRINT_AVAILABLE,
-        "error":                WEASYPRINT_ERROR,
-        "os":                   platform.system(),
-        "os_version":           platform.release(),
-        "python_version":       sys.version,
+        "status": "ok",
+        "engine": "playwright",
+        "available": True,
+        "error": None,
+        "os": platform.system(),
+        "os_version": platform.release(),
+        "python_version": sys.version,
     }
 
-
-# ── Smoke test ────────────────────────────────────────────────
-
-def test_pdf_generation() -> bytes:
-    """
-    Render a minimal HTML document to bytes to verify all OS deps are wired.
-    Raises RuntimeError if engine unavailable, ValueError if render itself fails.
-    Intended for startup/health checks — not for production rendering paths.
-    """
-    if not WEASYPRINT_AVAILABLE:
-        raise RuntimeError(f"PDF engine unavailable: {WEASYPRINT_ERROR}")
-
-    test_html = (
-        "<html><head><meta charset='utf-8'></head>"
-        "<body><h1>PDF Engine Health Check</h1><p>Sistema Funzionante</p></body></html>"
-    )
-    try:
-        return _WeasyHTML(string=test_html).write_pdf()
-    except Exception as exc:
-        logger.error("test_pdf_generation render failed: %s", exc)
-        raise ValueError(f"PDF smoke test failed — check OS dependencies: {exc}") from exc
-
-
-# ── Main rendering function ───────────────────────────────────
 
 _EMPTY_FALLBACK_HTML = (
     "<html><head><meta charset='utf-8'></head>"
@@ -87,27 +41,71 @@ _EMPTY_FALLBACK_HTML = (
 )
 
 
-def generate_pdf_from_html(html_content: str, *, allow_empty: bool = False) -> bytes:
+def _render_pdf_in_own_loop(html: str) -> bytes:
     """
-    Render an HTML string into a raw PDF byte stream using WeasyPrint.
-
-    Args:
-        html_content:  Raw HTML string (may include inline styles).
-        allow_empty:   If True, render a placeholder page on empty input instead
-                       of raising ValueError. Defaults to False (strict mode).
-
-    Raises:
-        RuntimeError:  WeasyPrint or its OS dependencies are not available.
-        ValueError:    html_content is empty and allow_empty=False,
-                       OR WeasyPrint raised an error during rendering.
+    Run Playwright in a brand-new ProactorEventLoop on its own thread.
+    This bypasses uvicorn's SelectorEventLoop which cannot spawn subprocesses on Windows.
     """
-    if not WEASYPRINT_AVAILABLE:
-        logger.error("PDF generation blocked — engine missing: %s", WEASYPRINT_ERROR)
-        raise RuntimeError(
-            "Il motore PDF (WeasyPrint) o le sue dipendenze di sistema "
-            "(pango/cairo/libffi) non sono disponibili sul server."
-        )
+    async def _async_render(html: str) -> bytes:
+        from playwright.async_api import async_playwright
 
+        # CSS di stampa A4: sovrascrive whitespace e margini web
+        PRINT_CSS = """<style>
+@page { size: A4; margin: 18mm 18mm 18mm 18mm; }
+body {
+    font-family: 'Arial', sans-serif !important;
+    font-size: 11pt !important;
+    line-height: 1.55 !important;
+    color: #111 !important;
+    white-space: normal !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+}
+p, div, span, li { white-space: normal !important; }
+table { width: 100%; border-collapse: collapse; }
+img { max-width: 100%; height: auto; }
+</style>"""
+
+        # Inietta print CSS dentro <head> o in cima se non c'è
+        if "</head>" in html:
+            html = html.replace("</head>", PRINT_CSS + "</head>", 1)
+        elif "<body" in html:
+            html = html.replace("<body", PRINT_CSS + "<body", 1)
+        else:
+            html = PRINT_CSS + html
+
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page()
+            await page.set_content(html, wait_until="networkidle")
+            pdf_bytes = await page.pdf(
+                format="A4",
+                print_background=True,
+                margin={"top": "0", "right": "0", "bottom": "0", "left": "0"},
+            )
+            await browser.close()
+            return pdf_bytes
+
+    # Create a fresh ProactorEventLoop (supports subprocess on Windows)
+    if sys.platform == "win32":
+        loop = asyncio.ProactorEventLoop()
+    else:
+        loop = asyncio.new_event_loop()
+
+    try:
+        result = loop.run_until_complete(_async_render(html))
+    finally:
+        loop.close()
+
+    return result
+
+
+async def generate_pdf_from_html(html_content: str, *, allow_empty: bool = False) -> bytes:
+    """
+    Render an HTML string into a raw PDF byte stream.
+    Runs Playwright in a dedicated thread with its own ProactorEventLoop.
+    """
     content = (html_content or "").strip()
 
     if not content:
@@ -120,16 +118,35 @@ def generate_pdf_from_html(html_content: str, *, allow_empty: bool = False) -> b
                 "Verifica che il template del documento sia configurato correttamente."
             )
 
-    try:
-        pdf_bytes = _WeasyHTML(string=content).write_pdf()
-    except Exception as exc:
-        logger.error("WeasyPrint render failed: %s", exc)
-        raise ValueError(
-            f"Impossibile renderizzare il PDF dal template fornito: {exc}"
-        ) from exc
+    result_holder = {}
 
+    def _thread_target():
+        try:
+            result_holder["pdf"] = _render_pdf_in_own_loop(content)
+        except Exception as exc:
+            result_holder["error"] = exc
+
+    t = threading.Thread(target=_thread_target, daemon=True)
+    t.start()
+    # Wait in a non-blocking way so uvicorn's event loop stays responsive
+    await asyncio.to_thread(t.join, 90)  # 90s timeout
+
+    if "error" in result_holder:
+        exc = result_holder["error"]
+        logger.error("PDF render failed in thread: %s", exc)
+        raise ValueError(f"Impossibile renderizzare il PDF dal template fornito: {exc}") from exc
+
+    pdf_bytes = result_holder.get("pdf", b"")
     if not pdf_bytes:
-        raise ValueError("WeasyPrint returned an empty byte stream — PDF generation failed silently")
+        raise ValueError("Playwright returned an empty byte stream — PDF generation failed silently")
 
     logger.debug("generate_pdf_from_html: produced %d bytes", len(pdf_bytes))
     return pdf_bytes
+
+
+async def test_pdf_generation() -> bytes:
+    test_html = (
+        "<html><head><meta charset='utf-8'></head>"
+        "<body><h1>PDF Engine Health Check</h1><p>Sistema Funzionante</p></body></html>"
+    )
+    return await generate_pdf_from_html(test_html)

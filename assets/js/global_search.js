@@ -112,7 +112,7 @@
     // Parallel API calls
     const results = await Promise.allSettled(
       CATEGORIES.map(cat =>
-        API.get(`${cat.endpoint}?search=${encodeURIComponent(q)}&limit=${MAX_PER_CAT}&company_id=${API.getCompanyId() || ''}`)
+        API.get(`${cat.endpoint}?search=${encodeURIComponent(q)}&limit=${MAX_PER_CAT}&company_id=${localStorage.getItem('adminCompanyId') || ''}`)
           .then(res => ({
             cat,
             items: Array.isArray(res) ? res : (res?.items ?? res?.data ?? []),

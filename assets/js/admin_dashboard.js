@@ -88,21 +88,19 @@
     }
 
     if (els.kpi.clients) {
-      const count = kpis.active_clients ?? kpis.total_clients ?? 0;
+      const count = kpis.clients?.active ?? kpis.clients?.total ?? 0;
       els.kpi.clients.innerHTML = `<span class="fade-in">${count}</span>`;
-      const newM = kpis.new_clients_month || 0;
+      const newM = 0; // Not available locally right now
       if (els.kpi.clientsMeta) {
-        els.kpi.clientsMeta.innerHTML = newM
-          ? `<span class="fade-in"><span style="color:var(--success-text)">+${newM}</span> questo mese</span>`
-          : `<span class="fade-in">Clienti con stato attivo</span>`;
+        els.kpi.clientsMeta.innerHTML = `<span class="fade-in">Clienti con stato attivo</span>`;
       }
     }
 
     if (els.kpi.openInvoices) {
-      const open = kpis.unpaid_invoices ?? 0;
+      const open = kpis.invoices?.unpaid_count ?? 0;
       els.kpi.openInvoices.innerHTML = `<span class="fade-in">${open}</span>`;
       if (els.kpi.openInvoicesMeta) {
-        const amount = kpis.unpaid_amount;
+        const amount = kpis.invoices?.unpaid;
         els.kpi.openInvoicesMeta.innerHTML = amount != null
           ? `<span class="fade-in"><span style="color:var(--warning-text)">${UI.currency(amount)}</span> da incassare</span>`
           : `<span class="fade-in">Fatture non ancora pagate</span>`;
@@ -115,12 +113,12 @@
     }
 
     if (els.kpi.contracts) {
-      els.kpi.contracts.innerHTML = `<span class="fade-in">${kpis.contracts_pending_signature ?? 0}</span>`;
+      els.kpi.contracts.innerHTML = `<span class="fade-in">${kpis.contracts_pending ?? 0}</span>`;
       if (els.kpi.contractsMeta) els.kpi.contractsMeta.innerHTML = `<span class="fade-in">In attesa di firma</span>`;
     }
 
     if (els.kpi.renewals) {
-      els.kpi.renewals.innerHTML = `<span class="fade-in">${kpis.renewals_expiring_30d ?? 0}</span>`;
+      els.kpi.renewals.innerHTML = `<span class="fade-in">${kpis.renewals_due_30d ?? 0}</span>`;
       if (els.kpi.renewalsMeta) els.kpi.renewalsMeta.innerHTML = `<span class="fade-in">In scadenza nei prossimi 30 giorni</span>`;
     }
   }
@@ -134,18 +132,34 @@
       console.warn('[admin_dashboard] Chart load failed:', e.message);
     }
 
-    if (chartData && chartData.length && window.renderBarChart) {
-      const totalRev = chartData.reduce((acc, d) => acc + (d.amount || 0), 0);
+    if (chartData && window.renderBarChart) {
+      if (!chartData.length) {
+        // Generate trailing 6 months filled with 0s for a beautiful empty state
+        for(let i = 5; i >= 0; i--) {
+          const d = new Date();
+          d.setMonth(d.getMonth() - i);
+          chartData.push({
+            month: d.toISOString().slice(0, 7),
+            revenue: 0
+          });
+        }
+      }
+      
+      const totalRev = chartData.reduce((acc, d) => acc + (d.revenue || 0), 0);
       if (els.chartTotal) els.chartTotal.innerHTML = `<span class="fade-in">${UI.currency(totalRev)}</span>`;
-      if (els.chartMeta)  els.chartMeta.innerHTML  = `<span class="fade-in">${I18n.t('dash.chart_last6')}</span>`;
+      
+      let metaText = I18n.t('dash.chart_last6') || 'Andamento mensile';
+      if (!metaText || metaText === 'null') metaText = 'Andamento mensile';
+      if (els.chartMeta) els.chartMeta.innerHTML = `<span class="fade-in">${metaText}</span>`;
+      
       window.renderBarChart('revenue-chart', chartData.map(d => ({
-        label: d.month_label,
-        value: d.amount,
-        secondary: d.secondary || false,
+        label: d.month,
+        value: d.revenue,
+        secondary: false,
       })));
     } else {
       if (els.chartTotal) els.chartTotal.innerHTML = `<span class="fade-in">0</span>`;
-      if (els.chartMeta)  els.chartMeta.innerHTML  = `<span class="fade-in">${I18n.t('dash.chart_no_data')}</span>`;
+      if (els.chartMeta)  els.chartMeta.innerHTML  = `<span class="fade-in">Nessun dato disponibile</span>`;
     }
   }
 
@@ -216,7 +230,7 @@
       const overdue = overdueRes.value?.items || overdueRes.value?.data || [];
       overdue.forEach(inv => items.push({
         color: 'red',
-        text:  `${I18n.t('dash.overdue_invoice')} <strong>${inv.invoice_number}</strong> ${UI.currency(inv.total_amount || 0, inv.currency)}`,
+        text:  `${I18n.t('dash.overdue_invoice') || 'Fattura Scaduta'} <strong>${inv.invoice_number}</strong> ${UI.currency(inv.total_amount || 0, inv.currency)}`,
         href:  `admin_invoices.html?highlight=${inv.id}`,
       }));
     }
@@ -261,7 +275,7 @@
       const res     = await API.Clients.list({ limit: 5 });
       const clients = res?.items || res?.data || [];
       if (!clients.length) {
-        els.clientsTbody.innerHTML = `<div class="list-card"><div class="empty-state" style="padding:40px;text-align:center;color:var(--gray-500);">${I18n.t('common.no_data')}</div></div>`;
+        els.clientsTbody.innerHTML = `<div class="list-card"><div class="empty-state" style="padding:40px;text-align:center;color:var(--gray-500);">${I18n.t('common.no_data') || 'Nessun dato'}</div></div>`;
         return;
       }
       els.clientsTbody.innerHTML = clients.map(c => {
@@ -280,7 +294,7 @@
           <div class="list-card-body">
             <div class="list-card-meta" title="Email" style="width:100%;">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
-              ${c.email || I18n.t('common.no_data')}
+              ${c.email || I18n.t('common.no_data') || 'Nessun dato'}
             </div>
             <div class="list-card-meta" title="Settore">
               <span data-col="sector" style="font-weight:500;">${c.sector || ''}</span>
@@ -313,11 +327,11 @@
       const invoices = res?.items || res?.data || [];
       if (els.invoicesSubtitle) {
         els.invoicesSubtitle.textContent = invoices.length
-          ? `${invoices.length} ${I18n.t('dash.open_invoices_count')}`
-          : I18n.t('dash.no_open_invoices');
+          ? `${invoices.length} ${I18n.t('dash.open_invoices_count') || 'fatture aperte'}`
+          : (I18n.t('dash.no_open_invoices') || 'Nessuna fattura aperta');
       }
       if (!invoices.length) {
-        els.invoicesTbody.innerHTML = `<div class="list-card"><div class="empty-state" style="padding:40px;text-align:center;color:var(--gray-500);">${I18n.t('dash.no_open_invoices')}</div></div>`;
+        els.invoicesTbody.innerHTML = `<div class="list-card"><div class="empty-state" style="padding:40px;text-align:center;color:var(--gray-500);">${I18n.t('dash.no_open_invoices') || 'Nessuna fattura aperta'}</div></div>`;
         return;
       }
       els.invoicesTbody.innerHTML = invoices.map(inv => {
@@ -338,7 +352,7 @@
           <div class="list-card-body">
             <div class="list-card-meta" title="Cliente" style="width:100%;">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-              <a href="admin_client_detail.html?id=${inv.client_id}" class="hover-link" style="color:var(--brand-600);font-weight:500;">${inv.client_name || I18n.t('common.no_data')}</a>
+              <a href="admin_client_detail.html?id=${inv.client_id}" class="hover-link" style="color:var(--brand-600);font-weight:500;">${inv.client_name || I18n.t('common.no_data') || 'Nessun dato'}</a>
             </div>
             <div class="list-card-meta" title="Importo">
               <span style="font-weight:600;color:${isOverdue ? 'var(--error-text)' : 'var(--gray-900)'};">${amountFormatted}</span>
@@ -363,13 +377,86 @@
   window.markPaid = async (id) => {
     try {
       await API.Invoices.markPaid(id);
-      window.showToast?.(I18n.t('dash.invoice_paid_ok'), 'success');
+      window.showToast?.(I18n.t('dash.invoice_paid_ok') || 'Fattura saldata', 'success');
       loadInvoices();
       loadKpis();
     } catch (e) {
       console.error('[admin_dashboard] markPaid error:', e);
       window.showToast?.(I18n.t('error.generic'), 'error');
     }
+  };
+
+  // ── Render Bar Chart (Business Intelligence) ───────────────
+  let chartInstance = null;
+  window.renderBarChart = (canvasId, dataPoints) => {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+    
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+    
+    const labels = dataPoints.map(d => d.label);
+    const dataAmount = dataPoints.map(d => d.value);
+
+    // Primary gradient
+    const ctx2d = ctx.getContext('2d');
+    const gradient = ctx2d.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(30, 64, 175, 0.9)'); // brand mid
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.4)'); // brand light
+
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Fatturato Mensile (€)',
+          data: dataAmount,
+          backgroundColor: gradient,
+          borderRadius: 6,
+          borderWidth: 0,
+          barPercentage: 0.6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            titleFont: { family: 'Inter', size: 13 },
+            bodyFont: { family: 'Inter', size: 14, weight: 'bold' },
+            padding: 12,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: {
+              label: function(context) {
+                let value = context.raw || 0;
+                return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value);
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: '#f1f5f9', drawBorder: false },
+            ticks: {
+              font: { family: 'Inter', size: 11 },
+              color: '#64748b',
+              callback: function(val) { return '€ ' + val; }
+            },
+            border: { display: false }
+          },
+          x: {
+            grid: { display: false, drawBorder: false },
+            ticks: { font: { family: 'Inter', size: 12 }, color: '#64748b' },
+            border: { display: false }
+          }
+        }
+      }
+    });
   };
 
   // ── Dashboard init ──────────────────────────────────────────
@@ -389,11 +476,13 @@
   }
 
   // Company switch canonical event name
-  window.addEventListener('companyChanged', () => {
+  if (window._dashCompanyListener) window.removeEventListener('companyChanged', window._dashCompanyListener);
+  window._dashCompanyListener = () => {
     if (!document.getElementById('dash-subtitle')) return; // Esci se non siamo in pagina
     renderSubtitle();
     loadDashboard();
-  });
+  };
+  window.addEventListener('companyChanged', window._dashCompanyListener);
 
   window.onPageReady(async () => {
     await I18n.init('lang-switcher-slot');

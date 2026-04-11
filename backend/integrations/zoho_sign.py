@@ -221,7 +221,7 @@ async def send_contract_for_signature(contract: dict, company_id: str) -> str:
 
     from core_services.pdf_service import generate_pdf_from_html
     try:
-        pdf_bytes = generate_pdf_from_html(html_content)
+        pdf_bytes = await generate_pdf_from_html(html_content)
     except Exception as exc:
         logger.error("PDF generation failed contract=%s: %s", contract["id"], exc)
         raise ValueError(f"Impossibile generare il PDF dal template del contratto: {exc}")

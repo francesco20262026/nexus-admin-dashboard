@@ -23,7 +23,24 @@ class CurrentUser:
 
     @property
     def is_admin(self) -> bool:
-        return self.role in ("admin", "super_admin")
+        return self.role in ("super_admin", "admin")
+
+    @property
+    def cid(self) -> str | None:
+        """company_id for READ filters. None = super_admin sees all companies."""
+        return None if self.role == "super_admin" else str(self.active_company_id)
+
+    @property
+    def tenant(self) -> str:
+        """usato nel monkey patch postgrest per bypassare il controllo per super_admin"""
+        return "BYPASS_RLS_SUPERADMIN" if self.role == "super_admin" else str(self.active_company_id)
+
+
+def apply_cid(q, user: "CurrentUser"):
+    """Conditionally apply company_id filter. Skips for super_admin."""
+    if user.cid:
+        return q.eq("company_id", user.cid)
+    return q
 
 
 def get_current_user(

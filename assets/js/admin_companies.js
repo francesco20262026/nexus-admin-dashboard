@@ -165,7 +165,7 @@
   
   window.massDelete = async function() {
     if (window.selectedIds.size === 0) return;
-    if (!confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} aziende selezionate? L'operazione è IRREVERSIBILE.`)) return;
+    if (!await UI.confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} aziende selezionate? L'operazione è IRREVERSIBILE.`)) return;
     
     let success = 0;
     try {
@@ -266,11 +266,12 @@
   window.toggleCompanyActive = async (id, isActive) => {
     try {
       await API.patch(`/companies/${id}/set-active`, { is_active: isActive });
+      ALL = ALL.map(c => c.id === id ? { ...c, is_active: isActive } : c);
       UI.toast(isActive ? 'Azienda attivata' : 'Azienda disabilitata', 'success');
     } catch(e) {
       UI.toast(e.message, 'error');
-      // Reload strictly instead of passing e directly
-      setTimeout(() => location.reload(), 1000);
+      // Soft reload instead of passing e directly
+      setTimeout(() => load(), 1000);
     }
   };
 
@@ -415,5 +416,5 @@
   });
 
   // Re-render when active company changes (company switcher in header)
-  window.addEventListener('nexusCompanyChanged', () => render());
+  window._cmpNexusListener = () => { if (document.getElementById('comp-list')) render(); };
 })();

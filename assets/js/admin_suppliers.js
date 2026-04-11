@@ -135,7 +135,7 @@ window.toggleSupplierStatus = async function(id, currentStatus) {
 }
 
 window.deleteSupplier = async function(id) {
-    if(!confirm("Sicuro di voler eliminare questo fornitore e tutto il suo storico?")) return;
+    if(!await UI.confirm("Sicuro di voler eliminare questo fornitore e tutto il suo storico?")) return;
     try {
         // True flag means force delete logic if backend supports it.
         await API.del('/clients/' + id + '/?force=true');

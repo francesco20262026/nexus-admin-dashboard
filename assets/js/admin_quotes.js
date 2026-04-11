@@ -57,7 +57,9 @@
     el?.addEventListener('change', () => { pg = 1; applyFilters(); });
   });
 
-  window.addEventListener('companyChanged', load);
+  if (window._quotesCmpListener) window.removeEventListener('companyChanged', window._quotesCmpListener);
+  window._quotesCmpListener = () => load();
+  window.addEventListener('companyChanged', window._quotesCmpListener);
   window._reloadQuotes = load;
 
   window.selectedIds = new Set();
@@ -210,7 +212,7 @@
         : '';
 
       const onbStr = q.onboarding_id
-        ? `<span style="font-size:11px; font-weight:600; color:var(--brand-500);">Onboarding #${q.onboarding_id.slice(0,5)}</span>`
+        ? `<span style="font-size:11px; font-weight:600; color:var(--brand-500);">Origine: Onboarding</span>`
         : '';
         
       const numberStr = q.number ? `<span style="font-size:12px; font-weight:700; color:var(--brand-600); margin-right:6px;">${q.number}</span>` : '';
@@ -226,7 +228,7 @@
       if (q.status === 'draft' || q.status === 'sent' || q.status === 'accepted') {
         const isAcc = q.status === 'accepted';
         actions += `
-          <div title="${isAcc ? 'Accettato a voce' : 'Accetta a voce'}" style="width:36px; height:20px; border-radius:20px; background:${isAcc?'#34c759':'#e5e5ea'}; position:relative; cursor:${isAcc?'default':'pointer'}; transition:.3s; margin-right:4px;" onclick="event.stopPropagation(); ${isAcc ? '' : `if(confirm('Accettare il preventivo a voce?')) window.acceptVerbalQuote('${q.id}')`}">
+          <div title="${isAcc ? 'Accettato a voce' : 'Accetta a voce'}" style="width:36px; height:20px; border-radius:20px; background:${isAcc?'#34c759':'#e5e5ea'}; position:relative; cursor:${isAcc?'default':'pointer'}; transition:.3s; margin-right:4px;" onclick="event.stopPropagation(); ${isAcc ? '' : `window.acceptVerbalQuote('${q.id}')`}">
             <div style="width:16px; height:16px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px; transform:${isAcc?'translateX(16px)':'none'}; transition:.3s; box-shadow:0 1px 2px rgba(0,0,0,.2);"></div>
           </div>
         `;
@@ -238,10 +240,18 @@
         actions += `<div title="Rifiuta" style="cursor:pointer; font-size:16px; margin-right:4px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="event.stopPropagation();window.rejectQuote('${q.id}')">⛔</div>`;
       }
       
+      actions += `<a href="/public_quote.html?token=${q.id}" target="_blank" title="Vedi Anteprima" style="cursor:pointer; font-size:16px; margin-right:4px; opacity:0.8; transition:opacity 0.2s; text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="event.stopPropagation();">👁️</a>`;
       actions += `<div title="Duplica Preventivo" style="cursor:pointer; font-size:16px; margin-right:4px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="event.stopPropagation();window.duplicateQuote('${q.id}')">📄</div>`;
       actions += `<div title="Elimina" style="cursor:pointer; font-size:16px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="window.deleteQuote(event, '${q.id}')">🗑️</div>`;
 
-      return `<div class="cl-row fade-in" data-id="${q.id}" onclick="window.editQuote('${q.id}')" style="cursor:pointer; display:grid; grid-template-columns: 1.8fr 1.5fr 1.5fr 1.2fr 1.2fr 140px; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--border); transition:background 0.1s;">
+      const supName = q.supplier_company?.name || q.tenant_company?.name || q.supplier_name || 'Nova CRM';
+      let supBadge = 'INT';
+      if (supName && supName !== '—') {
+        const alias = q.supplier_company?.alias || q.tenant_company?.alias || supName.substring(0,3).toUpperCase();
+        supBadge = alias;
+      }
+
+      return `<div class="cl-row fade-in" data-id="${q.id}" onclick="window.editQuote('${q.id}')" style="cursor:pointer; display:grid; grid-template-columns: 2.8fr 1.4fr 1.4fr 1.2fr 1fr 1fr 170px; gap: 16px; padding: 10px 24px; min-height: 54px; align-items: center; border-bottom: 1px solid var(--border); transition: background 0.1s;">
         
         <!-- Colonna 1: Cliente -->
         <div class="cl-col cl-col-1" style="min-width:0;">
@@ -262,29 +272,37 @@
         </div>
 
         <!-- Colonna 2: Fornitore -->
-        <div class="cl-col truncate" style="min-width:0; font-size:13px; font-weight:500; color:var(--gray-700);" title="${(q.supplier_name||'—').replace(/"/g, '&quot;')}">
-          ${q.supplier_name || '—'}
+        <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
+          <div title="${supName}" style="font-size:11px;font-weight:700;color:var(--gray-600);background:var(--gray-100);padding:2px 6px;border-radius:4px;cursor:help;">
+            ${supBadge}
+          </div>
         </div>
 
         <!-- Colonna 3: Preventivo -->
         <div class="cl-col" style="min-width:0;">
-          <div class="cl-data-val truncate" style="font-size:13px; font-weight:600; color:var(--gray-900);" title="${(q.title||'').replace(/"/g, '&quot;')}">${numberStr} ${q.title||''}</div>
-          <div style="margin-top:2px;">${channelStr}</div>
+          <a href="/public_quote.html?token=${q.id}" target="_blank" style="text-decoration:none;" title="Clicca per vedere l'anteprima pubblica" onclick="event.stopPropagation();">
+            <div style="font-size:13px; font-weight:600; color:var(--brand-600);">${q.number||''}</div>
+            ${q.title ? `<div style="font-size:13px; font-weight:500; color:var(--gray-900); margin-top:2px; white-space:normal; word-break:break-word; line-height:1.3;">${q.title}</div>` : ''}
+          </a>
         </div>
 
-        <!-- Colonna 3: Date -->
+        <!-- Colonna 4: Date -->
         <div class="cl-col" style="min-width:0;">
           <div class="cl-data-val" style="font-size:13px; color:var(--gray-700);">${dateStr}</div>
           ${acceptedInfo}
         </div>
 
-        <!-- Colonna 4: Importo e Stato -->
-        <div class="cl-col" style="min-width:0; display:flex; flex-direction:column; align-items:flex-start;">
+        <!-- Colonna 5: Importo -->
+        <div class="cl-col" style="min-width:0; align-items:flex-start;">
           <div class="cl-data-val" style="font-size:14px; font-weight:700; color:var(--gray-900);">${UI.currency(q.total || 0)}</div>
-          <div style="margin-top:2px;">${statusPill}</div>
         </div>
 
-        <!-- Colonna 5: Azioni -->
+        <!-- Colonna 6: Stato -->
+        <div class="cl-col" style="min-width:0; align-items:flex-start;">
+          ${statusPill}
+        </div>
+
+        <!-- Colonna 7: Azioni -->
         <div class="cl-col cl-col-actions" style="display:flex; flex-direction:row; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:6px;">
           ${actions}
         </div>
@@ -367,7 +385,7 @@
 
   window.massDelete = async () => {
     if (!window.selectedIds.size) return;
-    if (!confirm('Sei sicuro di voler eliminare ' + window.selectedIds.size + ' preventivi? Quest\'azione è irreversibile.')) return;
+    if (!await UI.confirm('Sei sicuro di voler eliminare ' + window.selectedIds.size + ' preventivi? Quest\'azione è irreversibile.')) return;
     
     if (window.UI) window.UI.toast('Eliminazione in corso...', 'info');
     try {
@@ -384,7 +402,7 @@
 
   window.deleteQuote = async (e, id) => {
     e.stopPropagation();
-    if (!confirm('Sei sicuro di voler eliminare questo preventivo? Quest\'azione è irreversibile.')) return;
+    if (!await UI.confirm('Sei sicuro di voler eliminare questo preventivo? Quest\'azione è irreversibile.')) return;
     if (window.UI) window.UI.toast('Eliminazione in corso...', 'info');
     try {
       await API.Quotes.remove(id);
@@ -570,8 +588,8 @@
         // Pre-select from preset (e.g., coming from onboarding detail)
         if (preset?.onboarding_id && onbSel)  onbSel.value    = preset.onboarding_id;
         if (preset?.client_id    && clientSel) clientSel.value = preset.client_id;
-        // Default: 30 days validity
-        const d = new Date(); d.setDate(d.getDate() + 30);
+        // Default: 7 days validity
+        const d = new Date(); d.setDate(d.getDate() + 7);
         const el = $('q-valid-until'); if (el) el.value = d.toISOString().split('T')[0];
         // Start with one empty line
         addLineRow();
@@ -688,7 +706,7 @@
     try {
       const pf = await API.Quotes.preflight(id);
 
-      // 1. Warn if proforma data is incomplete (non-blocking, but very visible)
+      // Warn if proforma data is incomplete (non-blocking)
       if (!pf.proforma_data_complete && pf.missing_fields?.length) {
         const missingList = pf.missing_fields.join(', ');
         UI.toast(
@@ -697,23 +715,10 @@
           8000
         );
       }
+    } catch (_) { /* ignore preflight errors */ }
 
-      // 2. If user not yet invited, ask if we should proceed anyway
-      if (!pf.user_invited) {
-        const goAhead = confirm(
-          '⚠️ L\'utente cliente non è ancora stato invitato al portale.\n\n' +
-          'Inviando il preventivo verrà creato automaticamente il suo accesso.\n\n' +
-          'Vuoi procedere con l\'invio del preventivo?'
-        );
-        if (!goAhead) return;
-      } else {
-        // Standard confirm
-        if (!confirm('Inviare il preventivo al cliente?')) return;
-      }
-    } catch (_) {
-      // If preflight fails, fall back to normal confirm (never block send)
-      if (!confirm('Segnare il preventivo come inviato al cliente?')) return;
-    }
+    // Standard confirm before sending
+    if (!await UI.confirm('Inviare il preventivo al cliente?')) return;
     // ── Send ────────────────────────────────────────────────────
     try {
       await API.Quotes.send(id);
@@ -723,7 +728,7 @@
   };
 
   window.acceptQuote = async id => {
-    if (!confirm('Segnare il preventivo come accettato dal cliente? Questo genererà e invierà automaticamente il contratto via email.')) return;
+    if (!await UI.confirm('Segnare il preventivo come accettato dal cliente? Questo genererà e invierà automaticamente il contratto via email.')) return;
     try {
       const res = await API.Quotes.accept(id);
       ALL = ALL.map(q => q.id===id ? {...q, status:'accepted', accepted_at:new Date().toISOString()} : q);
@@ -735,7 +740,7 @@
   };
 
   window.acceptVerbalQuote = async id => {
-    if (!confirm('Segnare il preventivo come accettato verbalmente? Potrai generare o collegare un contratto in seguito dalla pagina di dettaglio.')) return;
+    if (!await UI.confirm('Segnare il preventivo come accettato verbalmente? Potrai generare o collegare un contratto in seguito dalla pagina di dettaglio.')) return;
     try {
       await API.Quotes.acceptVerbal(id);
       ALL = ALL.map(q => q.id===id ? {...q, status:'accepted', accepted_at:new Date().toISOString()} : q);
@@ -744,7 +749,7 @@
   };
 
   window.rejectQuote = async id => {
-    if (!confirm('Segnare il preventivo come rifiutato?')) return;
+    if (!await UI.confirm('Segnare il preventivo come rifiutato?')) return;
     try {
       await API.Quotes.reject(id);
       ALL = ALL.map(q => q.id===id ? {...q, status:'rejected', rejected_at:new Date().toISOString()} : q);
@@ -753,7 +758,7 @@
   };
 
   window.expireQuote = async id => {
-    if (!confirm('Segnare il preventivo come scaduto?')) return;
+    if (!await UI.confirm('Segnare il preventivo come scaduto?')) return;
     try {
       await API.Quotes.expire(id);
       ALL = ALL.map(q => q.id===id ? {...q, status:'expired'} : q);
@@ -762,21 +767,12 @@
   };
   
   window.duplicateQuote = async id => {
-    if (!confirm('Vuoi davvero duplicare questo preventivo? Verrà generata una copia esatta in bozza.')) return;
+    if (!await UI.confirm('Vuoi davvero duplicare questo preventivo? Verrà generata una copia esatta in bozza.')) return;
     try {
       await API.Quotes.duplicate(id);
       UI.toast('Preventivo duplicato correttamente.', 'success');
       await load();
     } catch(e) { UI.toast(e?.message || 'Errore. Impossibile duplicare', 'error'); }
-  };
-
-  window.deleteQuote = async id => {
-    if (!confirm('Eliminare definitivamente questo preventivo in bozza?')) return;
-    try {
-      await API.Quotes.remove(id);
-      ALL = ALL.filter(q => q.id !== id);
-      updateKpis(); applyFilters(); UI.toast('Preventivo eliminato','success');
-    } catch(e) { UI.toast(e?.message||'Errore','error'); }
   };
 
   window.onPageReady(async () => {

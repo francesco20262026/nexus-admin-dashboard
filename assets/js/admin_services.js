@@ -76,7 +76,9 @@
 
   /* ── Refresh ─────────────────────────────────────────────── */
   btnRefresh?.addEventListener('click', () => load(true));
-  window.addEventListener('companyChanged', () => load(true));
+  if (window._srvCompanyListener) window.removeEventListener('companyChanged', window._srvCompanyListener);
+  window._srvCompanyListener = () => { if (document.getElementById('srv-list')) load(true); };
+  window.addEventListener('companyChanged', window._srvCompanyListener);
   let _companies = [];
 
   window._reloadServices = () => load(true);
@@ -136,6 +138,7 @@
     set('kpi-srv-no_usages',    noUsages);
   }
 
+  window.applyFilters = applyFilters;
   function applyFilters() {
     const text = (searchEl?.value || '').toLowerCase().trim();
     const supEl = document.getElementById('srv-filter-supplier');
@@ -250,7 +253,7 @@
 
   window.massDelete = async function() {
     if (window.selectedIds.size === 0) return;
-    if (!confirm(`Eliminare ${window.selectedIds.size} servizi selezionati? I servizi in uso non verranno eliminati.`)) return;
+    if (!await UI.confirm(`Eliminare ${window.selectedIds.size} servizi selezionati? I servizi in uso non verranno eliminati.`)) return;
     let success = 0;
     UI.toast('Eliminazione in corso...', 'info');
     for (const id of window.selectedIds) {
@@ -285,8 +288,8 @@
     const page   = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
     const cyMap  = CYCLE_LABEL();
 
-    // 6 columns: [1.5fr minmax(200px, 1.2fr) 1fr 1fr 110px 140px]
-    const GRID = '1.5fr minmax(180px, 1.2fr) 1fr 1.2fr 110px 140px';
+    // 6 columns: [2.8fr 1.4fr 1.4fr 1.2fr 1fr 170px]
+    const GRID = '2.8fr 1.4fr 1.4fr 1.2fr 1fr 170px';
 
     list.innerHTML = page.map(s => {
       const isSelected   = window.selectedIds.has(s.id);
@@ -312,9 +315,15 @@
 
       const canDelete = totalSubs === 0;
 
+      let supBadge = 'INT';
+      if (supplierName && supplierName !== '—') {
+        const alias = s.companies?.alias || supplierName.substring(0,3).toUpperCase();
+        supBadge = alias;
+      }
+
       return `
       <div class="cl-row fade-in ${isSelected ? 'selected' : ''}" data-id="${s.id}"
-        style="display:grid;grid-template-columns:${GRID};align-items:center;gap:12px;padding:12px 24px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;"
+        style="display:grid;grid-template-columns:${GRID};gap:16px;padding:10px 24px;min-height:54px;align-items:center;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;"
         onclick="window.editService('${s.id}')">
 
         <!-- Col 1: Identity -->
@@ -330,8 +339,10 @@
         </div>
 
         <!-- Col 2: Fornitore -->
-        <div style="font-size:13px;font-weight:500;color:#374151;" class="truncate" title="${supplierName}">
-          ${supplierName}
+        <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
+          <div title="${supplierName}" style="font-size:11px;font-weight:700;color:var(--gray-600);background:var(--gray-100);padding:2px 6px;border-radius:4px;cursor:help;">
+            ${supBadge}
+          </div>
         </div>
 
         <!-- Col 3: Info & Ciclo -->
@@ -346,7 +357,7 @@
         </div>
 
         <!-- Col 5: Stato -->
-        <div>${UI.pill(isActive ? 'active' : 'inactive')}</div>
+        <div class="cl-col" style="min-width:0; align-items:flex-start;">${UI.pill(isActive ? 'active' : 'inactive')}</div>
 
         <!-- Col 6: Azioni (Mac style) -->
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;" onclick="event.stopPropagation()">
@@ -401,7 +412,9 @@
     }
 
     const tv = svc?.template_vars || {};
-    $('fs-clauses').value     = tv.servizio_clausole   || '';
+    $('fs-clauses').value         = tv.servizio_clausole   || '';
+    $('fs-durata-recesso').value  = tv.servizio_durata_recesso || '';
+    $('fs-pagamenti').value       = tv.servizio_pagamenti || '';
 
     const vq = $('fs-visible-quotes');
     const vo = $('fs-visible-onboarding');
@@ -419,7 +432,15 @@
     if (isNaN(price) || price < 0) { UI.toast('Prezzo non valido', 'warning'); return; }
 
     btnSave.disabled = true;
-    const tvClauses = $('fs-clauses')?.value?.trim() || '';
+    const tvClauses   = $('fs-clauses')?.value?.trim() || '';
+    const tvDurata    = $('fs-durata-recesso')?.value?.trim() || '';
+    const tvPagamenti = $('fs-pagamenti')?.value?.trim() || '';
+    
+    let tvObj = {};
+    if (tvClauses) tvObj.servizio_clausole = tvClauses;
+    if (tvDurata)  tvObj.servizio_durata_recesso = tvDurata;
+    if (tvPagamenti) tvObj.servizio_pagamenti = tvPagamenti;
+
     const payload = {
       name,
       description:              $('fs-desc')?.value?.trim()          || null,
@@ -435,7 +456,7 @@
       visible_in_onboarding:    $('fs-visible-onboarding')?.checked  ?? true,
       notes:                    $('fs-notes')?.value?.trim()         || null,
       is_active:                true,
-      template_vars:            tvClauses ? { servizio_clausole: tvClauses } : null,
+      template_vars:            Object.keys(tvObj).length > 0 ? tvObj : null,
     };
     // remove null standard_duration_months if empty
     if (!payload.standard_duration_months) delete payload.standard_duration_months;
@@ -469,7 +490,7 @@
   window.toggleService = async (id, isCurrentlyActive) => {
     const newActive = !isCurrentlyActive;
     const label = isCurrentlyActive ? 'Disattivare' : 'Attivare';
-    if (!confirm(`${label} questo servizio?`)) return;
+    if (!await UI.confirm(`${label} questo servizio?`)) return;
     try {
       await API.Services.updateService(id, { is_active: newActive });
       ALL_CATALOG = ALL_CATALOG.map(s => s.id === id ? { ...s, is_active: newActive } : s);
@@ -480,7 +501,7 @@
   };
 
   window.duplicateService = async (id, name) => {
-    if (!confirm(`Duplicare "${name}"? Verrà creata una copia inattiva.`)) return;
+    if (!await UI.confirm(`Duplicare "${name}"? Verrà creata una copia inattiva.`)) return;
     try {
       UI.toast('Duplicazione in corso...', 'info');
       const created = await API.Services.duplicate(id);
@@ -492,7 +513,7 @@
   };
 
   window.deleteService = async (id, name) => {
-    if (!confirm(`Eliminare definitivamente "${name}"? L'operazione non è reversibile.`)) return;
+    if (!await UI.confirm(`Eliminare definitivamente "${name}"? L'operazione non è reversibile.`)) return;
     try {
       await API.Services.remove(id);
       ALL_CATALOG = ALL_CATALOG.filter(s => s.id !== id);

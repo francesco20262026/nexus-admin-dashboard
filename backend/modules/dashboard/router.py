@@ -49,7 +49,7 @@ async def get_kpi(user: CurrentUser = Depends(require_admin)):
     # Clients
     clients_data, ok = _safe_query(
         "clients",
-        lambda: supabase.table("clients").select("status").eq("company_id", company_id).execute(),
+        lambda: supabase.table("clients").select("status").eq("company_id", user.tenant).execute(),
     )
     if not ok:
         errors.append("clients")
@@ -61,7 +61,7 @@ async def get_kpi(user: CurrentUser = Depends(require_admin)):
     # Invoices
     invoices_data, ok = _safe_query(
         "invoices",
-        lambda: supabase.table("invoices").select("status,total").eq("company_id", company_id).execute(),
+        lambda: supabase.table("invoices").select("status,total").eq("company_id", user.tenant).execute(),
     )
     if not ok:
         errors.append("invoices")
@@ -89,7 +89,7 @@ async def get_kpi(user: CurrentUser = Depends(require_admin)):
     subs_data, ok = _safe_query(
         "client_services",
         lambda: supabase.table("client_services")
-            .select("id").eq("company_id", company_id).eq("status", "active").execute(),
+            .select("id").eq("company_id", user.tenant).eq("status", "active").execute(),
     )
     if not ok:
         errors.append("subscriptions")
@@ -102,7 +102,7 @@ async def get_kpi(user: CurrentUser = Depends(require_admin)):
         "renewals",
         lambda: supabase.table("renewals")
             .select("id,renewal_date,status")
-            .eq("company_id", company_id)
+            .eq("company_id", user.tenant)
             .gte("renewal_date", today)
             .lte("renewal_date", in_30)
             .neq("status", "renewed")
@@ -117,7 +117,7 @@ async def get_kpi(user: CurrentUser = Depends(require_admin)):
         "monthly_revenue",
         lambda: supabase.table("invoices")
             .select("total")
-            .eq("company_id", company_id)
+            .eq("company_id", user.tenant)
             .eq("status", "paid")
             .gte("paid_at", first_of_month)
             .execute(),
@@ -155,7 +155,7 @@ async def revenue_chart(
         "revenue_chart",
         lambda: supabase.table("invoices")
             .select("paid_at,total")
-            .eq("company_id", company_id)
+            .eq("company_id", user.tenant)
             .eq("status", "paid")
             .gte("paid_at", since)
             .execute(),
@@ -189,7 +189,7 @@ async def recent_activity(
         "recent_activity",
         lambda: supabase.table("audit_logs")
             .select("entity_type,entity_id,action,new_values,created_at,users(name,email)")
-            .eq("company_id", str(user.active_company_id))
+            .eq("company_id", user.tenant)
             .order("created_at", desc=True)
             .limit(limit)
             .execute(),
@@ -251,7 +251,7 @@ async def client_recent_activity(
         "client_audit_logs",
         lambda: supabase.table("audit_logs")
             .select("entity_type,entity_id,action,new_values,created_at")
-            .eq("company_id", company_id)
+            .eq("company_id", user.tenant)
             .in_("entity_id", all_ids)
             .order("created_at", desc=True)
             .limit(limit * 3)

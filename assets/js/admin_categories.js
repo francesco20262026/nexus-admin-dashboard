@@ -1,6 +1,6 @@
 let allCategories = [];
 
-document.addEventListener('DOMContentLoaded', () => {
+window.onPageReady(async () => {
     window.loadCategories();
 });
 
@@ -19,6 +19,7 @@ window.loadCategories = async function() {
 
 function renderCategories(cats) {
     const list = document.getElementById('cat-list');
+    if (!list) return;
     list.innerHTML = '';
     if(!cats.length) {
        list.innerHTML = `<div style="padding:24px; text-align:center; color:#6b7280; font-size:13px;">Nessuna categoria trovata.</div>`;
@@ -27,6 +28,7 @@ function renderCategories(cats) {
     
     cats.forEach(c => {
          const row = document.createElement('div');
+         row.className = "cl-row fade-in";
          row.style.cssText = "display:grid; grid-template-columns: 2fr 1fr 150px; align-items:center; gap:16px; padding:12px 24px; border-bottom:1px solid #e5e7eb; transition:background 0.15s; cursor:default;";
          row.onmouseover = () => row.style.background = "#f8fafc";
          row.onmouseout = () => row.style.background = "transparent";
@@ -114,7 +116,7 @@ window.toggleCategoryStatus = async function(id, isCurrentlyActive) {
 }
 
 window.duplicateCategory = async function(id) {
-    if(!confirm("Vuoi duplicare questa categoria?")) return;
+    if(!await UI.confirm("Vuoi duplicare questa categoria?")) return;
     const cat = allCategories.find(c => c.id === id);
     if (!cat) return;
 
@@ -125,7 +127,6 @@ window.duplicateCategory = async function(id) {
             color: cat.color
         });
         if (window.UI) window.UI.toast('Categoria duplicata con successo', 'success');
-        if (window.UI) window.UI.toast('Categoria duplicata con successo', 'success');
         window.loadCategories();
     } catch(err) {
         if (window.UI) window.UI.toast("Errore duplicazione categoria: " + err.message, "error");
@@ -133,11 +134,10 @@ window.duplicateCategory = async function(id) {
 }
 
 window.deleteCategory = async function(id) {
-    if(!confirm("Sicuro di voler eliminare questa categoria? Le fatture collegate perderanno la categoria.")) return;
+    if(!await UI.confirm("Sicuro di voler eliminare questa categoria? Le fatture collegate perderanno la categoria.")) return;
     try {
         if (window.UI) window.UI.toast('Eliminazione in corso...', 'info');
         await API.del('/categories/' + id);
-        if (window.UI) window.UI.toast('Categoria eliminata', 'success');
         if (window.UI) window.UI.toast('Categoria eliminata', 'success');
         window.loadCategories();
     } catch(err) {

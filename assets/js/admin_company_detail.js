@@ -289,7 +289,7 @@
   };
 
   window.deleteCtTemplate = async (id, name) => {
-    if (!confirm('Eliminare il template "' + name + '"?')) return;
+    if (!await UI.confirm('Eliminare il template "' + name + '"?')) return;
     try {
       await API.Contracts.deleteTemplate(id);
       UI.toast('Template eliminato', 'success');

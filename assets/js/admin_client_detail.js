@@ -104,14 +104,45 @@
     const fornitriceName = fornitriceLine ? fornitriceLine.name : '';
 
     // ── Backward compat IDs ──────────────────────────────────────
-    if ($('cd-title'))        $('cd-title').textContent = displayName;
+    if ($('cd-title')) $('cd-title').textContent = displayName;
     if ($('breadcrumb-name')) $('breadcrumb-name').textContent = displayName;
-    if ($('cd-status-pill'))  $('cd-status-pill').innerHTML = statusBadge(c.status);
+    if ($('cd-status-pill')) $('cd-status-pill').innerHTML = statusBadge(c.status);
     document.title = `${displayName} Nexus Admin`;
 
-    // Inject yellow badge for Fornitrice if present
-    if ($('cd-title') && fornitriceName) {
-      $('cd-title').innerHTML = `${displayName} <span style="font-size:12px;font-weight:700;background:#fffbeb;color:#92400e;border:1px solid #f59e0b;padding:2px 10px;border-radius:20px;margin-left:10px;vertical-align:middle;">${fornitriceName}</span>`;
+    // Modern macOS Identity Stack
+    const leftDiv = document.querySelector('.detail-page-header-left');
+    if (leftDiv) {
+      const avatarEl = leftDiv.querySelector('.detail-avatar');
+      if (avatarEl) {
+        avatarEl.style.width = '64px';
+        avatarEl.style.height = '64px';
+        avatarEl.style.fontSize = '24px';
+        avatarEl.style.fontWeight = '500';
+      }
+      
+      const identityContainer = leftDiv.children[1];
+      if (identityContainer) {
+        identityContainer.innerHTML = `
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom: 2px;">
+            <div style="font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: #000; line-height: 1.1;" id="cd-title">
+              ${displayName}
+            </div>
+            <div id="cd-status-pill-visible">
+              ${statusBadge(c.status)}
+            </div>
+          </div>
+          ${fornitriceName ? `
+            <div style="font-size: 14px; font-weight: 500; color: #6e6e73; display:flex; align-items:center; gap: 6px; margin-bottom: 4px;">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#86868b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+              </svg>
+              ${fornitriceName}
+            </div>` : ''}
+          <div id="cd-subtitle" style="font-size: 14px; color: #0066cc; font-weight: 400; margin-bottom: 2px;">
+            ${c.email ? `<a href="mailto:${c.email}" style="color:#0066cc;text-decoration:none;">${c.email}</a>` : ''}
+          </div>
+        `;
+      }
     }
 
     // Dynamic Breadcrumb for Suppliers vs Clients
@@ -122,14 +153,6 @@
       } else {
         $('cd-back-link').href = 'admin_clients.html';
         $('cd-back-text').textContent = 'Clienti';
-      }
-    }
-
-    if ($('cd-subtitle')) {
-      if (c.company_name && c.name && c.company_name !== c.name) {
-        $('cd-subtitle').textContent = `Referente: ${c.name}`;
-      } else {
-        $('cd-subtitle').textContent = c.email || '';
       }
     }
 
@@ -144,16 +167,6 @@
     // Mac topbar title
     const topbarLabel = $('mac-topbar-label');
     if (topbarLabel) topbarLabel.textContent = displayName;
-
-    // Status pill in sidebar (visible)
-    const statusPillVisible = $('cd-status-pill-visible');
-    if (statusPillVisible) statusPillVisible.innerHTML = statusBadge(c.status);
-
-    // Sidebar subtitle
-    const subEl = $('cd-subtitle');
-    if (subEl && c.email) {
-      subEl.innerHTML = `<a href="mailto:${c.email}" style="color:#3b82f6;text-decoration:none;">${c.email}</a>`;
-    }
 
     // Info strip: email, phone, city, VAT, created
     const strip = $('cd-info-strip');
@@ -181,6 +194,8 @@
         pill(createdIcon, createdStr ? `Cliente dal ${createdStr}` : null),
       ].filter(Boolean).join('');
     }
+    
+    if (window.renderPortalPipeline) window.renderPortalPipeline();
   }
 
   /* ── ① Anagrafica ───────────────────────────────────────────── */
@@ -562,22 +577,39 @@
         <thead><tr>
           <th>Titolo Contratto</th><th>Creato</th><th>Scadenza</th><th>Stato</th><th></th>
         </tr></thead>
-        <tbody>${data.map(c => `<tr class="hover-row" style="cursor:pointer;" onclick="location.href='admin_contracts.html?id=${c.id}'">
+        <tbody>${data.map(c => {
+          let warnObj = "";
+          let renewLbl = "";
+          if (c.auto_renewal === 'monthly') renewLbl = " 🔁 Mensile";
+          else if (c.auto_renewal === 'yearly') renewLbl = " 🔁 Annuale";
+          const dTo = c.valid_to || c.expires_at;
+          if (dTo && !['draft', 'archived', 'error'].includes(c.status)) {
+             const now = new Date();
+             const vTo = new Date(dTo);
+             const future = new Date(); future.setDate(future.getDate() + 30);
+             if (vTo < now) {
+               warnObj = `<div style="color:#dc2626; font-size:10px; margin-top:2px; font-weight:600;">${renewLbl ? "Da Rinnovare" + renewLbl : "Scaduto"}</div>`;
+             } else if (vTo <= future) {
+               warnObj = `<div style="color:#d97706; font-size:10px; margin-top:2px; font-weight:600;">In scadenza${renewLbl}</div>`;
+             } else if (renewLbl) {
+               warnObj = `<div style="color:var(--brand-600); font-size:10px; margin-top:2px; font-weight:600;">Rinnovo${renewLbl.replace(' 🔁','')} 🔁</div>`;
+             }
+           }
+          const retUrl = encodeURIComponent(window.location.href);
+          return `<tr class="hover-row" style="cursor:pointer;" onclick="location.href='admin_contracts.html?id=${c.id}&returnUrl=${retUrl}'">
           <td class="z-rt-name">${c.title || I18n.t('nav.contracts') || 'Contratto'}</td>
           <td class="z-rt-date">${c.created_at ? UI.date(c.created_at) : '-'}</td>
-          <td class="z-rt-date">${c.expires_at ? UI.date(c.expires_at) : '-'}</td>
+          <td class="z-rt-date">${dTo ? UI.date(dTo) : '-'}${warnObj}</td>
           <td>${UI.pill(c.status)}</td>
-          <td>
-            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
-              <button class="btn btn-ghost btn-xs text-primary" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.duplicateContract(event, '${c.id}')" title="Duplica">
-                <span style="font-size:16px;line-height:1;">📄</span>
-              </button>
+              ${(c.pdf_url || c.status === 'signed') ? `
+              <button class="btn btn-ghost btn-xs text-primary" style="padding:4px;" onclick="window.downloadContractPDF(event, '${c.id}', false)" title="Visualizza PDF">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg>
+              </button>` : ''}
+              ${c.status !== 'draft' ? `<button class="btn btn-ghost btn-xs" style="padding:4px;color:var(--brand-600);" onclick="event.stopPropagation(); window.triggerUploadExistingContract('${c.id}')" title="Allega PDF firmato manualmente (sovrascrive o aggiunge PDF)">📎</button>` : ''}
               <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.deleteContract(event, '${c.id}')" title="Elimina">
                 <span style="font-size:16px;line-height:1;">🗑️</span>
               </button>
-            </div>
-          </td>
-        </tr>`).join('')}</tbody>
+        </tr>`}).join('')}</tbody>
       </table>`;
     } catch {
       el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('error.generic') || 'Errore.')}</div>`;
@@ -585,6 +617,46 @@
   }
 
   /* ── ⑤ Documents ────────────────────────────────────────────── */
+  window.downloadContractPDF = async (event, id, forceDownload=false) => {
+    event.stopPropagation();
+    const btn = event.currentTarget;
+    const txt = btn.innerHTML;
+    btn.innerHTML = '...';
+    btn.disabled = true;
+
+    // Open synchronously to avoid browser popup blockers for Visualizza
+    let newWin = null;
+    if (!forceDownload) {
+      newWin = window.open('about:blank', '_blank');
+    }
+
+    try {
+      const res = await API.get(`/contracts/${id}/download-url`);
+      if (res && res.url) {
+        if (forceDownload) {
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = res.url;
+          a.download = 'contratto.pdf';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          newWin.location.href = res.url;
+        }
+      } else {
+        if (newWin) newWin.close();
+        throw new Error('URL non valido');
+      }
+    } catch(e) {
+      if (newWin) newWin.close();
+      UI.toast('Impossibile scaricare il contratto', 'error');
+    } finally {
+      btn.innerHTML = txt;
+      btn.disabled = false;
+    }
+  };
+
   window.downloadDocument = async (event, id, forceDownload=false) => {
     event.stopPropagation();
     const btn = event.currentTarget;
@@ -1247,26 +1319,66 @@
   /* ── Delete Client / Status Change Danger Zone ──────────────────────────────── */
   window.changeClientStatusFromDetail = () => {
     if (!CLIENT) return;
-    const select = document.getElementById('modal-status-select');
-    if (select) select.value = CLIENT.status || 'active';
-    document.getElementById('modal-change-status').classList.add('open');
-    // Confirm handler (attach once)
-    const btn = document.getElementById('modal-status-confirm');
-    const handler = async () => {
-      btn.removeEventListener('click', handler);
-      const newStatus = select?.value;
-      if (!newStatus) return;
-      document.getElementById('modal-change-status').classList.remove('open');
-      try {
-        await API.Clients.update(clientId, { status: newStatus });
-        UI.toast('Stato aggiornato', 'success');
-        loadClient();
-      } catch (e) {
-        UI.toast(e.message, 'error');
+    
+    const dropdown = document.getElementById('mac-custom-statusDropdown');
+    const trigger = document.getElementById('mac-dropdown-trigger');
+    const triggerValue = document.getElementById('mac-dropdown-value');
+    const items = document.querySelectorAll('#mac-status-list .mac-action-item');
+
+    // Initialize state
+    const currentStatus = CLIENT.status || 'active';
+    
+    items.forEach(item => {
+      if (item.dataset.value === currentStatus) {
+        item.classList.add('selected');
+        triggerValue.innerHTML = item.dataset.html;
+      } else {
+        item.classList.remove('selected');
+      }
+      
+      // Handle option click (Auto-save)
+      item.onclick = async (e) => {
+        e.stopPropagation();
+        const newStatus = item.dataset.value;
+        const newHtml = item.dataset.html;
+        triggerValue.innerHTML = newHtml;
+        
+        // Update selection UI
+        items.forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        dropdown.classList.remove('open');
+        
+        document.removeEventListener('click', window._outsideStatusClickListener);
+        document.getElementById('modal-change-status').classList.remove('open');
+
+        // Fire API call immediately
+        try {
+          await window.API.Clients.update(clientId, { status: newStatus });
+          window.UI.toast('Stato aggiornato', 'success');
+          loadClient();
+        } catch (e) {
+          window.UI.toast(e.message, 'error');
+        }
+      };
+    });
+
+    // Handle trigger click
+    trigger.onclick = (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+    };
+
+    // Close dropdown on outside click
+    window._outsideStatusClickListener = (e) => {
+      if (dropdown && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
       }
     };
-    btn.removeEventListener('click', handler); // safety clean
-    btn.addEventListener('click', handler);
+    
+    document.removeEventListener('click', window._outsideStatusClickListener);
+    document.addEventListener('click', window._outsideStatusClickListener);
+
+    document.getElementById('modal-change-status').classList.add('open');
   };
 
   window.deleteClientFromDetail = async (force = false) => {
@@ -1285,6 +1397,125 @@
       console.error(e);
       window.UI.toast(e.message || 'Errore durante l\'operazione', 'error');
     }
+  };
+
+  /* ── Attiva Portale Cliente ─────────────────────────────────── */
+  window.activateClientPortal = async () => {
+    const c = CLIENT;
+    if (!c) return;
+    const email = c.email;
+    if (!email) { UI.toast('Email cliente mancante. Aggiornala prima di attivare il portale.', 'warning'); return; }
+
+    const confirmed = await UI.confirm(
+      `Inviare l'invito al portale a:\n\n${email}\n\nIl cliente riceverà un'email per impostare la sua password.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await window.API.post('/users/invite', {
+        email,
+        name: c.company_name || c.name || '',
+        role: 'client',
+        client_id: clientId,
+        company_id: c.company_id || undefined,
+      });
+      window.UI.toast(`✓ Invito portale inviato a ${email}`, 'success');
+    } catch (e) {
+      window.UI.toast(e?.message || 'Errore durante l\'invio dell\'invito', 'error');
+    } finally {
+      if (window.renderPortalPipeline) window.renderPortalPipeline(); // reload pipeline immediately after invite
+    }
+  };
+
+  // Portal Pipeline visualization in the header
+  window.renderPortalPipeline = async () => {
+    const act = document.getElementById('portal-pipeline-container');
+    if (!act) return;
+    const c = CLIENT;
+    if (!c) return;
+
+    // Remove legacy portal button if it somehow still exists in page-actions
+    const oldBtn = document.getElementById('btn-activate-portal');
+    if (oldBtn) oldBtn.remove();
+    
+    // Determine states
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const hasEmail = !!(c.email && emailRegex.test(c.email));
+    
+    let hasPortalUser = false;
+    let isActiveUser = false;
+    let isLogged = false;
+
+    act.innerHTML = `<span style="font-size:12px;color:var(--gray-500);">Verifica stato portale...</span>`;
+
+    try {
+      const users = await window.API.Users.list();
+      const portalUser = users.find(u => 
+        (u.client_ids && u.client_ids.includes(clientId)) ||
+        (hasEmail && u.email.toLowerCase() === c.email.toLowerCase())
+      );
+
+      if (portalUser) {
+        hasPortalUser = true;
+        isActiveUser = portalUser.status === 'active';
+        isLogged = !!(portalUser.last_sign_in_at || portalUser.last_login);
+        
+        // No overrides: the client's CRM status remains its true CRM status (e.g. 'active').
+        // The portal user status is handled exclusively inside the pipeline logic below.
+      }
+    } catch(e) {
+      console.warn('Could not fetch users list for portal pipeline');
+    }
+
+    const nodeState = (isDone, isActive, isError) => {
+        if(isError) return { bg: '#fee2e2', color: '#dc2626', textStatus: '#dc2626', border: '#f87171' };
+        if(isDone) return { bg: '#10b981', color: '#fff', textStatus: '#111827', border: 'transparent' };
+        if(isActive) return { bg: '#eff6ff', color: '#3b82f6', textStatus: '#2563eb', border: '#3b82f6' };
+        return { bg: '#f3f4f6', color: '#9ca3af', textStatus: '#9ca3af', border: 'transparent' };
+    };
+
+    const s1 = nodeState(hasEmail, true, !hasEmail);
+    const s2 = nodeState(isLogged, hasEmail && !isLogged, false);
+
+    let html = `<div style="display:flex; align-items:center; gap:12px; background:#fff; padding:6px 14px; border-radius:12px; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.05);">`;
+    
+    // Node 1: Email
+    html += `
+       <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:${s1.bg};border:1.5px solid ${s1.border};display:flex;align-items:center;justify-content:center;color:${s1.color};">
+            ${hasEmail ? `<svg fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>` : `<svg fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`}
+          </div>
+          <span style="font-size:12px; font-weight:600; color:${s1.textStatus};">${hasEmail ? 'Dati Validi' : 'Email Assente/Errata'}</span>
+       </div>
+       <div style="height:2px; width:20px; background:${hasEmail ? '#10b981' : '#e5e7eb'}; border-radius:2px;"></div>
+    `;
+
+    // Node 2: Portal
+    html += `
+       <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:${s2.bg};border:1.5px solid ${s2.border};display:flex;align-items:center;justify-content:center;color:${s2.color};">
+            ${isLogged ? `<svg fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>` : `<span style="font-size:11px;font-weight:bold;">2</span>`}
+          </div>
+          <span style="font-size:12px; font-weight:600; color:${s2.textStatus};">Accesso Portale</span>
+       </div>
+    `;
+
+    // Action button separator
+    html += `<div style="height:18px; width:1px; background:#e5e7eb; margin:0 4px;"></div>`;
+    
+    // Action button
+    if (hasPortalUser && !isLogged) {
+        html += `<button class="btn btn-ghost" style="padding:4px 8px; font-size:11px; height:auto; color:var(--brand-600); border: 1px solid var(--brand-100);" onclick="window.activateClientPortal()">Reinvia Invito</button>`;
+    } else if (hasPortalUser && isLogged) {
+        html += `<button class="btn btn-ghost" style="padding:4px 8px; font-size:11px; height:auto; color:var(--brand-600); border: 1px solid var(--transparent);" disabled>Utente Attivo</button>`;
+    } else if (hasEmail) {
+        html += `<button class="btn btn-primary" style="padding:4px 12px; font-size:11px; height:auto; border-radius:6px; background:#3b82f6;" onclick="window.activateClientPortal()">Invia Invito</button>`;
+    } else {
+        html += `<button class="btn" style="padding:4px 12px; font-size:11px; height:auto; border-radius:6px; opacity:0.5; background:#f3f4f6; color:#9ca3af; cursor:not-allowed;" disabled title="Inserisci / Correggi l'email del cliente per inviare l'invito">Invia Invito</button>`;
+    }
+
+    html += `</div>`;
+    act.innerHTML = html;
   };
 
   /* ── Init ───────────────────────────────────────────────────── */
@@ -1324,6 +1555,32 @@
 
 
   });
+
+  window.triggerUploadExistingContract = function(contractId) {
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'application/pdf';
+    inp.style.display = 'none';
+    inp.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const fd = new FormData();
+      fd.append('file', file);
+      
+      try {
+        UI.toast('Caricamento in corso...', 'info');
+        await API.Contracts.uploadSignedExisting(contractId, fd);
+        UI.toast('Contratto PDF aggiornato con successo!', 'success');
+        if (typeof loadContracts === 'function') loadContracts();
+      } catch (err) {
+        UI.toast(err.message || 'Errore durante l\'upload', 'error');
+      }
+    };
+    document.body.appendChild(inp);
+    inp.click();
+    setTimeout(() => document.body.removeChild(inp), 1000);
+  };
 
 })();
 

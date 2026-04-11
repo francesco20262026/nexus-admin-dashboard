@@ -40,7 +40,9 @@
     el?.addEventListener('change', () => { pg=1; applyFilters(); });
   });
 
-  window.addEventListener('companyChanged', load);
+  if (window._renewalsCmpListener) window.removeEventListener('companyChanged', window._renewalsCmpListener);
+  window._renewalsCmpListener = () => load();
+  window.addEventListener('companyChanged', window._renewalsCmpListener);
   window._reloadRenewals = load;
 
   async function load() {
@@ -192,7 +194,7 @@
   
   window.massDelete = async function() {
     if (window.selectedIds.size === 0) return;
-    if (!confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} rinnovi selezionati?`)) return;
+    if (!await UI.confirm(`Sei sicuro di voler eliminare ${window.selectedIds.size} rinnovi selezionati?`)) return;
     
     let success = 0;
     try {
@@ -334,7 +336,7 @@
     catch(e) { UI.toast(e?.message||'Errore','error'); }
   };
   window.markLost = async id => {
-    if (!confirm('Segnare come non rinnovato?')) return;
+    if (!await UI.confirm('Segnare come non rinnovato?')) return;
     try { await API.Renewals.update(id, {status:'lost'}); ALL=ALL.map(r=>r.id===id?{...r,status:'lost'}:r); updateKpis(); applyFilters(); UI.toast('Segnato come non rinnovato','info'); }
     catch(e) { UI.toast(e?.message||'Errore','error'); }
   };

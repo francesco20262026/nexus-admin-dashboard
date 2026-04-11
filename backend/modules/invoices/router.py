@@ -44,6 +44,7 @@ class InvoiceCreate(BaseModel):
     total_amount:   Optional[float]  = None    # frontend alias
     amount:         Optional[float]  = None
     vat_amount:     Optional[float]  = None
+    abbuono:        Optional[float]  = 0.0
     currency:       str              = "EUR"
     payment_method: Optional[str]    = None
     description:    Optional[str]    = None
@@ -68,6 +69,7 @@ class InvoiceUpdate(BaseModel):
     due_date:       Optional[date]  = None
     notes:          Optional[str]   = None
     number:         Optional[str]   = None
+    abbuono:        Optional[float] = None
 
     @field_validator("payment_method")
     @classmethod
@@ -86,10 +88,12 @@ class InvoiceUpdate(BaseModel):
 
 class InvoiceLineCreate(BaseModel):
     description: str
-    quantity:    float           = 1.0
-    unit_price:  float
-    vat_rate:    float           = 22.0
-    service_id:  Optional[UUID] = None
+    quantity:       float           = 1.0
+    unit_price:     float
+    vat_rate:       float           = 22.0
+    discount:       Optional[float] = 0.0
+    revenue_center: Optional[str]   = None
+    service_id:     Optional[UUID]  = None
 
 
 class MarkPaidRequest(BaseModel):
@@ -154,7 +158,7 @@ def _require_invoice(invoice_id: UUID, user: CurrentUser, select: str = "*") -> 
         supabase.table("invoices")
         .select(select)
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     )
@@ -167,6 +171,27 @@ def _require_invoice(invoice_id: UUID, user: CurrentUser, select: str = "*") -> 
             return res_any.data
 
     raise HTTPException(status.HTTP_404_NOT_FOUND, "Fattura non trovata")
+
+@router.get("/windoc-dictionary")
+async def get_windoc_dictionary(user: CurrentUser = Depends(require_admin)):
+    """Fetch live dictionaries (taxes, payment methods) from WindDoc."""
+    q_integ = supabase.table("integrations").select("config").eq("company_id", str(user.active_company_id)).eq("type", "windoc").maybe_single().execute()
+    integ = q_integ.data if q_integ else None
+    if not integ or not integ.get("config"):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Integrazione Winddoc non configurata per l'azienda.")
+    
+    token = integ["config"].get("windoc_token")
+    token_app = integ["config"].get("windoc_token_app")
+    
+    from utils.windoc_sync import call_windoc_api
+    res_taxes = await call_windoc_api("imposte_lista", token, token_app, {})
+    res_pay = await call_windoc_api("pagamenti_lista", token, token_app, {})
+    
+    return {
+        "success": True,
+        "taxes": res_taxes.get("data", []) if isinstance(res_taxes, dict) else [],
+        "payment_methods": res_pay.get("data", []) if isinstance(res_pay, dict) else []
+    }
 
 
 # ── List ─────────────────────────────────────────────────────
@@ -193,7 +218,7 @@ async def list_invoices(
         if company_id:
             q = q.eq("company_id", str(company_id))
     else:
-        q = q.eq("company_id", str(user.active_company_id))
+        q = q.eq("company_id", user.tenant)
 
     if not user.is_admin:
         if not user.client_id:
@@ -230,7 +255,7 @@ async def get_invoices_report(
         if company_id:
             q = q.eq("company_id", str(company_id))
     else:
-        q = q.eq("company_id", str(user.active_company_id))
+        q = q.eq("company_id", user.tenant)
 
     # Fetch invoices for the requested year
     start_date = f"{year}-01-01"
@@ -298,6 +323,7 @@ async def create_invoice(
         "total":          effective_total,
         "amount":         body.amount,
         "vat_amount":     body.vat_amount,
+        "abbuono":        body.abbuono,
         "currency":       body.currency,
         "number":         body.number or body.invoice_number,
         "issue_date":     body.issue_date.isoformat() if body.issue_date else None,
@@ -317,7 +343,9 @@ async def create_invoice(
                 "quantity":    ln.quantity,
                 "unit_price":  ln.unit_price,
                 "vat_rate":    ln.vat_rate,
-                "total":       round(ln.quantity * ln.unit_price * (1 + ln.vat_rate / 100.0), 2),
+                "discount":    ln.discount or 0.0,
+                "revenue_center": ln.revenue_center,
+                "total":       round(max((ln.quantity * ln.unit_price) - (ln.discount or 0.0), 0) * (1 + ln.vat_rate / 100.0), 2),
                 "service_id":  str(ln.service_id) if ln.service_id else None,
             }
             for ln in lines
@@ -369,7 +397,7 @@ async def generate_proforma(
         supabase.table("onboarding")
         .select("*, clients(id, name, address, city, zip_code, province, country, vat_number, pec, dest_code)")
         .eq("id", str(onboarding_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
     )
     onb = safe_single(q_onb).data
@@ -395,7 +423,7 @@ async def generate_proforma(
     q_count = (
         supabase.table("invoices")
         .select("id", count="exact")
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .eq("is_proforma", True)
         .gte("issue_date", f"{year}-01-01")
         .execute()
@@ -505,7 +533,7 @@ async def get_overdue(user: CurrentUser = Depends(require_admin)):
     res = (
         supabase.table("invoices")
         .select("*, clients(name,email)")
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .eq("status", "overdue")
         .order("due_date")
         .execute()
@@ -522,7 +550,7 @@ async def payment_report(
     q = (
         supabase.table("invoices")
         .select("status,payment_status,is_proforma,total,currency")
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
     )
     if from_date: q = q.gte("issue_date", from_date.isoformat())
     if to_date:   q = q.lte("issue_date", to_date.isoformat())
@@ -561,7 +589,7 @@ async def get_invoice(invoice_id: UUID, user: CurrentUser = Depends(get_current_
             supabase.table("invoices")
             .select("*, invoice_lines(*), clients(name,email,company_name,alias), contracts(id,title), companies!invoices_supplier_company_id_fkey(name), invoice_categories(name,color)")
             .eq("id", str(invoice_id))
-            .eq("company_id", str(user.active_company_id))
+            .eq("company_id", user.tenant)
             .maybe_single()
             .execute()
         )
@@ -623,7 +651,7 @@ async def update_invoice(
         supabase.table("invoices")
         .update(updates)
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -647,7 +675,7 @@ async def mark_paid(
         supabase.table("invoices")
         .update({"status": "paid", "paid_at": paid_at, "payment_status": "paid"})
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -965,7 +993,7 @@ async def review_payment(
         supabase.table("invoices")
         .update(updates)
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -1045,7 +1073,7 @@ async def confirm_payment_and_sync(
         supabase.table("invoices")
         .update(updates)
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -1122,7 +1150,7 @@ async def submit_payment_proof(
         supabase.table("invoices")
         .update(updates)
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -1166,7 +1194,7 @@ async def mark_pending_payment(
         supabase.table("invoices")
         .update({"payment_status": "proof_uploaded"})
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     _audit(user, str(invoice_id), "update",
@@ -1243,7 +1271,7 @@ async def send_manual_reminder(
         supabase.table("invoices")
         .select("*, clients(name,email,lang)")
         .eq("id", str(invoice_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .maybe_single()
         .execute()
     ).data
@@ -1358,7 +1386,7 @@ class CategoryCreate(BaseModel):
 
 @router.get("/categories/list")
 async def get_invoice_categories(user: CurrentUser = Depends(get_current_user)):
-    res = supabase.table("invoice_categories").select("*").eq("company_id", str(user.active_company_id)).order("name").execute()
+    res = supabase.table("invoice_categories").select("*").eq("company_id", user.tenant).order("name").execute()
     return res.data or []
 
 @router.post("/categories")
@@ -1379,7 +1407,7 @@ class CategoryUpdate(BaseModel):
 
 @router.delete("/categories/{cat_id}")
 async def delete_invoice_category(cat_id: UUID, user: CurrentUser = Depends(get_current_user)):
-    res = supabase.table("invoice_categories").delete().eq("id", str(cat_id)).eq("company_id", str(user.active_company_id)).execute()
+    res = supabase.table("invoice_categories").delete().eq("id", str(cat_id)).eq("company_id", user.tenant).execute()
     if not res.data:
          raise HTTPException(status.HTTP_404_NOT_FOUND, "Categoria non trovata")
     return {"message": "Eliminata"}
@@ -1390,7 +1418,7 @@ async def update_invoice_category(cat_id: UUID, data: CategoryUpdate, user: Curr
     if not updates:
         return {"message": "Nessuna modifica."}
     
-    res = supabase.table("invoice_categories").update(updates).eq("id", str(cat_id)).eq("company_id", str(user.active_company_id)).execute()
+    res = supabase.table("invoice_categories").update(updates).eq("id", str(cat_id)).eq("company_id", user.tenant).execute()
     if not res.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Categoria non trovata")
     return res.data[0]

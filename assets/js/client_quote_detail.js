@@ -134,7 +134,7 @@
   }
 
   window.acceptQuote = async (id) => {
-    if (!confirm('Sei sicuro di voler accettare questo preventivo?')) return;
+    if (!await UI.confirm('Sei sicuro di voler accettare questo preventivo?')) return;
     try {
       UI.toast('Elaborazione in corso...', 'info');
       await API.post(`/quotes/${id}/accept`);
@@ -146,7 +146,7 @@
   };
 
   window.rejectQuote = async (id) => {
-    if (!confirm('Sei sicuro di voler rifiutare questo preventivo?')) return;
+    if (!await UI.confirm('Sei sicuro di voler rifiutare questo preventivo?')) return;
     try {
       UI.toast('Elaborazione in corso...', 'info');
       await API.post(`/quotes/${id}/reject`);

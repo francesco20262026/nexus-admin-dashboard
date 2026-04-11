@@ -10,7 +10,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 from typing import List, Tuple
 
-from database import supabase
+from database import supabase, safe_single
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -95,24 +95,48 @@ DEFAULT_TEMPLATES = {
         </body>
         </html>
         """
+    },
+    "password_reset": {
+        "subject": "Ripristino Password - {company_name}",
+        "body_html": """
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #0a9669; border-bottom: 2px solid #0a9669; padding-bottom: 10px;">
+                    Ripristino Password
+                </h2>
+                <p>Gentile <strong>{client_name}</strong>,</p>
+                <p>Abbiamo ricevuto una richiesta di ripristino password per il tuo account.</p>
+                <p>Clicca sul pulsante qui sotto per impostare una nuova password:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{magic_link}" style="background-color: #0a9669; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                        👉 Imposta Nuova Password
+                    </a>
+                </div>
+                <p>Se non hai richiesto il ripristino, ignora questa email.</p>
+                <p>A presto,<br><strong>Il team di {company_name}</strong></p>
+            </div>
+        </body>
+        </html>
+        """
     }
 }
 
 
 async def get_email_template(company_id: str, template_type: str, lang: str) -> dict:
     """Fetch template from DB with fallback to DEFAULT_TEMPLATES."""
-    company = supabase.table("companies").select("default_lang").eq("id", company_id).maybe_single().execute().data
+    company_res = safe_single(supabase.table("companies").select("default_lang").eq("id", company_id).maybe_single())
+    company = company_res.data
     company_lang = company.get("default_lang", "it") if company else "it"
 
     for try_lang in [lang, company_lang, "it"]:
-        res = (
+        res = safe_single(
             supabase.table("email_templates")
             .select("*")
             .eq("company_id", company_id)
             .eq("type", template_type)
             .eq("lang", try_lang)
             .maybe_single()
-            .execute()
         )
         if res.data:
             return res.data
@@ -177,18 +201,21 @@ def send_email_smtp_core(
                 msg.attach(MIMEText(text_body, "plain"))
             msg.attach(MIMEText(html_body, "html"))
 
-        # Attach files
+        # Attach files (supports both file paths and raw bytes)
         if attachments:
-            for filename, filepath in attachments:
+            for filename, content in attachments:
                 try:
-                    with open(filepath, "rb") as f:
-                        part = MIMEBase("application", "octet-stream")
-                        part.set_payload(f.read())
+                    part = MIMEBase("application", "octet-stream")
+                    if isinstance(content, (bytes, bytearray)):
+                        part.set_payload(content)
+                    else:
+                        with open(content, "rb") as f:
+                            part.set_payload(f.read())
                     encoders.encode_base64(part)
                     part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
                     msg.attach(part)
-                except FileNotFoundError:
-                    logger.error(f"Attachment not found: {filepath}")
+                except Exception as att_err:
+                    logger.error(f"Attachment error for {filename}: {att_err}")
 
         # Send via smtplib
         logger.info(f"Sending SMTP email to {to_email} via {smtp_host}:{smtp_port}")
@@ -228,7 +255,7 @@ async def send_templated_email(
     # ── 1. Resolve company name first (needed for variables + from_email) ──
     company_name = "Il nostro team"
     try:
-        company_res = supabase.table("companies").select("name").eq("id", company_id).maybe_single().execute()
+        company_res = safe_single(supabase.table("companies").select("name").eq("id", company_id).maybe_single())
         if company_res.data:
             company_name = company_res.data["name"]
     except Exception:
@@ -248,14 +275,13 @@ async def send_templated_email(
 
     # Company level integrations override
     try:
-        integ = (
+        integ = safe_single(
             supabase.table("integrations")
             .select("config")
             .eq("company_id", company_id)
             .eq("type", "smtp")
             .eq("is_active", True)
             .maybe_single()
-            .execute()
         )
         if integ.data and integ.data.get("config") and integ.data["config"].get("from_email"):
             from_email = integ.data["config"]["from_email"]

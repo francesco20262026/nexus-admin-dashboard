@@ -136,15 +136,21 @@
            </div>
          </div>`;
 
+    const totalReq = pFields.length;
+    const presentReq = pFields.filter(f => f.val).length;
+    const reqPct = Math.round((presentReq / totalReq) * 100);
+
     const reqHtml = `
       <div style="display:flex; align-items:center; gap:8px; font-size:11px;">
-        <div style="font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; padding-right:8px; border-right:1px solid #e2e8f0; display:flex; align-items:center; gap:4px;">
-           <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
+        <div style="font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; padding-right:8px; border-right:1px solid #e2e8f0; display:flex; align-items:center; gap:6px;">
+           <div style="width:18px;height:18px;border-radius:50%;background:conic-gradient(#3b82f6 ${reqPct}%, #e2e8f0 0%);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.05);">
+             ${reqPct === 100 ? `<svg xmlns="http://www.w3.org/2000/svg" style="width:12px;height:12px;color:#fff;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>` : `<div style="width:14px;height:14px;border-radius:50%;background:#f8fafc;"></div>`}
+           </div>
            Requisiti Proforma
         </div>
         ${pFields.map(f => {
-      if (f.val) return `<div style="display:flex; align-items:center; gap:2px; font-weight:600; color:#10b981; background:#d1fae5; padding:2px 6px; border-radius:12px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg> ${f.label}</div>`;
-      return `<div style="display:flex; align-items:center; gap:2px; font-weight:600; color:#f97316; background:#ffedd5; padding:2px 6px; border-radius:12px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> ${f.label}</div>`;
+      if (f.val) return `<div style="display:flex; align-items:center; gap:4px; font-weight:600; color:#10b981; background:#d1fae5; padding:3px 10px; border-radius:12px;"><svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg> ${f.label}</div>`;
+      return `<div style="display:flex; align-items:center; gap:4px; font-weight:600; color:#dc2626; background:#fee2e2; padding:3px 10px; border-radius:12px;"><svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> ${f.label}</div>`;
     }).join('')}
       </div>
     `;
@@ -240,6 +246,8 @@
         pill(createdIcon, createdStr ? `Pratica dal ${createdStr}` : null),
       ].filter(Boolean).join('');
     }
+    
+    if (window.renderPortalPipeline) window.renderPortalPipeline();
   }
 
   /* ── ① Anagrafica ───────────────────────────────────────────── */
@@ -269,7 +277,8 @@
   window.changePipelineStatus = async (newStatus) => {
     if (ONBOARDING.status === newStatus) return;
     const label = STATUS_LABELS[newStatus] ? STATUS_LABELS[newStatus].label : newStatus;
-    if (!confirm(`Spostare la pratica allo stato "${label}"?`)) return;
+    const confirmed = await UI.confirm(`Spostare la pratica allo stato "${label}"?`, { title: 'Cambio stato' });
+    if (!confirmed) return;
     try {
       UI.toast('Aggiornamento stato...', 'info');
       ONBOARDING = await API.Onboarding.update(onboardingId, { status: newStatus });
@@ -601,22 +610,42 @@
         <thead><tr>
           <th>Titolo Contratto</th><th>Creato</th><th>Scadenza</th><th>Stato</th><th></th>
         </tr></thead>
-        <tbody>${data.map(c => `<tr class="hover-row" style="cursor:pointer;" onclick="location.href='admin_contracts.html?id=${c.id}'">
+        <tbody>${data.map(c => {
+          let warnObj = "";
+          let renewLbl = "";
+          if (c.auto_renewal === 'monthly') renewLbl = " 🔁 Mensile";
+          else if (c.auto_renewal === 'yearly') renewLbl = " 🔁 Annuale";
+          const dTo = c.valid_to || c.expires_at;
+          if (dTo && !['draft', 'archived', 'error'].includes(c.status)) {
+             const now = new Date();
+             const vTo = new Date(dTo);
+             const future = new Date(); future.setDate(future.getDate() + 30);
+             if (vTo < now) {
+               warnObj = `<div style="color:#dc2626; font-size:10px; margin-top:2px; font-weight:600;">${renewLbl ? "Da Rinnovare" + renewLbl : "Scaduto"}</div>`;
+             } else if (vTo <= future) {
+               warnObj = `<div style="color:#d97706; font-size:10px; margin-top:2px; font-weight:600;">In scadenza${renewLbl}</div>`;
+             } else if (renewLbl) {
+               warnObj = `<div style="color:var(--brand-600); font-size:10px; margin-top:2px; font-weight:600;">Rinnovo${renewLbl.replace(' 🔁','')} 🔁</div>`;
+             }
+           }
+          const retUrl = encodeURIComponent(window.location.href);
+          return `<tr class="hover-row" style="cursor:pointer;" onclick="location.href='admin_contracts.html?id=${c.id}&returnUrl=${retUrl}'">
           <td class="z-rt-name">${c.title || I18n.t('nav.contracts') || 'Contratto'}</td>
           <td class="z-rt-date">${c.created_at ? UI.date(c.created_at) : '-'}</td>
-          <td class="z-rt-date">${c.expires_at ? UI.date(c.expires_at) : '-'}</td>
+          <td class="z-rt-date">${dTo ? UI.date(dTo) : '-'}${warnObj}</td>
           <td>${UI.pill(c.status)}</td>
           <td>
             <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
-              <button class="btn btn-ghost btn-xs text-primary" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.duplicateContract(event, '${c.id}')" title="Duplica">
-                <span style="font-size:16px;line-height:1;">📄</span>
-              </button>
+              ${(c.pdf_url || c.status === 'signed') ? `
+              <button class="btn btn-ghost btn-xs text-primary" style="padding:4px;" onclick="window.downloadContractPDF(event, '${c.id}', false)" title="Visualizza PDF">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg>
+              </button>` : ''}
               <button class="btn btn-ghost btn-xs text-danger" style="padding:4px;opacity:0.6;background:none;border:none;cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="event.stopPropagation(); window.deleteContract(event, '${c.id}')" title="Elimina">
                 <span style="font-size:16px;line-height:1;">🗑️</span>
               </button>
             </div>
           </td>
-        </tr>`).join('')}</tbody>
+        </tr>`}).join('')}</tbody>
       </table>`;
     } catch {
       el.innerHTML = `<div class="list-card">${UI.createEmptyState(null, I18n.t('error.generic') || 'Errore.')}</div>`;
@@ -624,6 +653,46 @@
   }
 
   /* ── ⑤ Documents ────────────────────────────────────────────── */
+  window.downloadContractPDF = async (event, id, forceDownload=false) => {
+    event.stopPropagation();
+    const btn = event.currentTarget;
+    const txt = btn.innerHTML;
+    btn.innerHTML = '...';
+    btn.disabled = true;
+
+    // Open synchronously to avoid browser popup blockers for Visualizza
+    let newWin = null;
+    if (!forceDownload) {
+      newWin = window.open('about:blank', '_blank');
+    }
+
+    try {
+      const res = await API.get(`/contracts/${id}/download-url`);
+      if (res && res.url) {
+        if (forceDownload) {
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = res.url;
+          a.download = 'contratto.pdf';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          newWin.location.href = res.url;
+        }
+      } else {
+        if (newWin) newWin.close();
+        throw new Error('URL non valido');
+      }
+    } catch(e) {
+      if (newWin) newWin.close();
+      UI.toast('Impossibile scaricare il contratto', 'error');
+    } finally {
+      btn.innerHTML = txt;
+      btn.disabled = false;
+    }
+  };
+
   window.downloadDocument = async (event, id, forceDownload=false) => {
     event.stopPropagation();
     const btn = event.currentTarget;
@@ -1209,6 +1278,122 @@
       console.error(e);
       window.UI.toast(I18n.t('error.generic') || 'Errore durante l\'eliminazione', 'error');
     }
+  };
+
+  /* ── Attiva Portale Prospect ────────────────────────────────── */
+  window.activateProspectPortal = async () => {
+    const o = ONBOARDING;
+    if (!o) return;
+    const email = o.email;
+    if (!email) { UI.toast('Email prospect mancante. Aggiornala prima di attivare il portale.', 'warning'); return; }
+
+    const confirmed = await UI.confirm(
+      `Inviare l'invito al portale a:\n\n${email}\n\nIl prospect riceverà un'email per impostare la sua password.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await window.API.post('/users/invite', {
+        email,
+        name: o.company_name || o.name || '',
+        role: 'onboarding',
+        onboarding_id: onboardingId,
+        company_id: o.company_id || undefined,
+      });
+      window.UI.toast(`✓ Invito portale inviato a ${email}`, 'success');
+    } catch (e) {
+      window.UI.toast(e?.message || 'Errore durante l\'invio dell\'invito', 'error');
+    } finally {
+      if (window.renderPortalPipeline) window.renderPortalPipeline(); // reload pipeline
+    }
+  };
+
+  // Portal Pipeline visualization in the header
+  window.renderPortalPipeline = async () => {
+    const act = document.getElementById('portal-pipeline-container');
+    if (!act) return;
+    const o = ONBOARDING;
+    if (!o) return;
+
+    // Remove legacy portal button if it somehow still exists in page-actions
+    const oldBtn = document.getElementById('btn-activate-portal');
+    if (oldBtn) oldBtn.remove();
+    
+    // Determine states
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const hasEmail = !!(o.email && emailRegex.test(o.email));
+    
+    let hasPortalUser = false;
+    let isActiveUser = false;
+    let isLogged = false;
+
+    act.innerHTML = `<span style="font-size:12px;color:var(--gray-500);">Verifica stato portale...</span>`;
+
+    try {
+      const users = await window.API.Users.list();
+      const portalUser = users.find(u => 
+        (u.onboarding_ids && u.onboarding_ids.includes(onboardingId)) ||
+        (hasEmail && u.email.toLowerCase() === o.email.toLowerCase())
+      );
+
+      if (portalUser) {
+        hasPortalUser = true;
+        isActiveUser = portalUser.status === 'active';
+        isLogged = !!(portalUser.last_sign_in_at || portalUser.last_login);
+      }
+    } catch(e) {
+      console.warn('Could not fetch users list for portal pipeline');
+    }
+
+    const nodeState = (isDone, isActive, isError) => {
+        if(isError) return { bg: '#fee2e2', color: '#dc2626', textStatus: '#dc2626', border: '#f87171' };
+        if(isDone) return { bg: '#10b981', color: '#fff', textStatus: '#111827', border: 'transparent' };
+        if(isActive) return { bg: '#eff6ff', color: '#3b82f6', textStatus: '#2563eb', border: '#3b82f6' };
+        return { bg: '#f3f4f6', color: '#9ca3af', textStatus: '#9ca3af', border: 'transparent' };
+    };
+
+    const s1 = nodeState(hasEmail, true, !hasEmail);
+    const s2 = nodeState(isLogged, hasEmail && !isLogged, false);
+
+    let html = `<div style="display:flex; align-items:center; gap:12px; background:#fff; padding:6px 14px; border-radius:12px; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.05);">`;
+    
+    // Node 1: Email
+    html += `
+       <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:${s1.bg};border:1.5px solid ${s1.border};display:flex;align-items:center;justify-content:center;color:${s1.color};">
+            ${hasEmail ? `<svg fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>` : `<svg fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`}
+          </div>
+          <span style="font-size:12px; font-weight:600; color:${s1.textStatus};">${hasEmail ? 'Dati Validi' : 'Email Assente/Errata'}</span>
+       </div>
+       <div style="height:2px; width:20px; background:${hasEmail ? '#10b981' : '#e5e7eb'}; border-radius:2px;"></div>
+    `;
+
+    // Node 2: Portal
+    html += `
+       <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:${s2.bg};border:1.5px solid ${s2.border};display:flex;align-items:center;justify-content:center;color:${s2.color};">
+            ${isLogged ? `<svg fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>` : `<span style="font-size:11px;font-weight:bold;">2</span>`}
+          </div>
+          <span style="font-size:12px; font-weight:600; color:${s2.textStatus};">Accesso Portale</span>
+       </div>
+    `;
+
+    // Action button separator
+    html += `<div style="height:18px; width:1px; background:#e5e7eb; margin:0 4px;"></div>`;
+    
+    // Action button
+    if (hasPortalUser && !isLogged) {
+        html += `<button class="btn btn-ghost" style="padding:4px 8px; font-size:11px; height:auto; color:var(--brand-600); border: 1px solid var(--brand-100);" onclick="window.activateProspectPortal()">Reinvia Invito</button>`;
+    } else if (hasPortalUser && isLogged) {
+        html += `<button class="btn btn-ghost" style="padding:4px 8px; font-size:11px; height:auto; color:var(--brand-600); border: 1px solid var(--transparent);" disabled>Utente Attivo</button>`;
+    } else if (hasEmail) {
+        html += `<button class="btn btn-primary" style="padding:4px 12px; font-size:11px; height:auto; border-radius:6px; background:#3b82f6;" onclick="window.activateProspectPortal()">Invia Invito</button>`;
+    } else {
+        html += `<button class="btn" style="padding:4px 12px; font-size:11px; height:auto; border-radius:6px; opacity:0.5; background:#f3f4f6; color:#9ca3af; cursor:not-allowed;" disabled title="Inserisci / Correggi l'email del prospect per inviare l'invito">Invia Invito</button>`;
+    }
+
+    html += `</div>`;
+    act.innerHTML = html;
   };
 
   /* ── Init ───────────────────────────────────────────────────── */

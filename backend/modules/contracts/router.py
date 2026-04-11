@@ -1,9 +1,9 @@
 """
-modules/contracts/router.py — CRUD + Zoho Sign send + status update
+modules/contracts/router.py â€” CRUD + Zoho Sign send + status update
 """
 import logging
 import re
-from datetime import date
+from datetime import date, datetime, timezone
 from fastapi import APIRouter, HTTPException, status, Depends, Query, UploadFile, File, Form
 from pydantic import BaseModel, field_validator
 from uuid import UUID
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/contracts", tags=["contracts"])
 
-# ── Schemas ──────────────────────────────────────────────────
+# â”€â”€ Schemas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class ContractCreate(BaseModel):
     client_id:    Optional[UUID] = None   # null if creating for a prospect
@@ -28,6 +28,7 @@ class ContractCreate(BaseModel):
     quote_id:   Optional[UUID] = None   # preventivo accettato di origine
     valid_from: Optional[date] = None
     valid_to: Optional[date] = None
+    auto_renewal: Optional[str] = "none" # 'none' | 'monthly' | 'yearly'
     # Origin tracking (added by contract_templates_extend.sql migration)
     origin: str = "direct"                        # 'direct' | 'from_quote' | 'supplier_change'
     source_company_id: Optional[UUID] = None      # old supplier (for supplier_change)
@@ -44,12 +45,13 @@ class ContractUpdate(BaseModel):
     status: Optional[str] = None
     valid_from: Optional[date] = None
     valid_to: Optional[date] = None
+    auto_renewal: Optional[str] = None
     origin: Optional[str] = None
     source_company_id: Optional[UUID] = None
     supplier_company_id: Optional[UUID] = None
 
 
-# ── Helpers ──────────────────────────────────────────────────
+# â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def _audit(user: CurrentUser, entity_id: str, action: str,
            old: Optional[dict] = None, new: Optional[dict] = None) -> None:
@@ -92,7 +94,7 @@ def _require_contract(contract_id: UUID, user: CurrentUser, select: str = "*") -
     raise HTTPException(status.HTTP_404_NOT_FOUND, "Contract not found")
 
 
-# ── Document Templates (registered BEFORE /{contract_id} to avoid shadowing) ─
+# â”€â”€ Document Templates (registered BEFORE /{contract_id} to avoid shadowing) â”€
 
 class TemplateCreate(BaseModel):
     name: str
@@ -223,11 +225,12 @@ async def delete_template(
     ).execute()
 
 
-# ── List ─────────────────────────────────────────────────────
+# â”€â”€ List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @router.get("/")
 async def list_contracts(
     client_id: Optional[UUID] = None,
+    onboarding_id: Optional[UUID] = Query(None),
     status_filter: Optional[str] = Query(None, alias="status"),
     origin: Optional[str] = Query(None),
     supplier_company_id: Optional[str] = Query(None),
@@ -235,7 +238,14 @@ async def list_contracts(
     page_size: int = Query(50, ge=1, le=200),
     user: CurrentUser = Depends(get_current_user),
 ):
-    q = supabase.table("contracts").select("*, clients(name,email), document_templates!contracts_template_id_fkey(name,type,contract_type,version), onboarding!contracts_onboarding_id_fkey(company_name,email), companies!contracts_supplier_company_id_fkey(name)", count="exact")
+    q = supabase.table("contracts").select(
+        "*, clients(name,email), document_templates!contracts_template_id_fkey(name,type,contract_type,version), "
+        "onboarding!contracts_onboarding_id_fkey(company_name,email), "
+        "owner_company:companies!contracts_company_id_fkey(name), "
+        "supplier_company:companies!contracts_supplier_company_id_fkey(name), "
+        "contract_services(service_id, services_catalog(name, price, billing_cycle))",
+        count="exact"
+    )
     
     if user.is_admin:
         if supplier_company_id:
@@ -247,8 +257,11 @@ async def list_contracts(
         if not user.client_id:
             return {"data": [], "total": 0, "page": page, "page_size": page_size}
         q = q.eq("client_id", str(user.client_id))
+        
     if client_id:
         q = q.eq("client_id", str(client_id))
+    if onboarding_id:
+        q = q.eq("onboarding_id", str(onboarding_id))
     if status_filter:
         q = q.eq("status", status_filter)
     if origin:
@@ -265,15 +278,22 @@ async def list_contracts(
     offset = (page - 1) * page_size
     res = q.order("created_at", desc=True).range(offset, offset + page_size - 1).execute()
     rows = res.data or []
-    # Backfill origin for pre-migration rows
+    # Backfill origin e supplier_name per il frontend
     for r in rows:
         r.setdefault("origin", "from_quote" if r.get("quote_id") else "direct")
         r.setdefault("supplier_company_id", None)
         r.setdefault("source_company_id", None)
+        # Fornitore: usa supplier_company se impostato, altrimenti owner_company
+        supplier = r.pop("supplier_company", None) or {}
+        owner = r.pop("owner_company", None) or {}
+        r["companies"] = {
+            "name": supplier.get("name") or owner.get("name"),
+            "alias": supplier.get("alias") or owner.get("alias")
+        }
     return {"data": rows, "total": res.count or 0, "page": page, "page_size": page_size}
 
 
-# ── Create ────────────────────────────────────────────────────
+# â”€â”€ Create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_contract(
@@ -310,6 +330,8 @@ async def create_contract(
             row["valid_from"] = body.valid_from.isoformat()
         if body.valid_to:
             row["valid_to"] = body.valid_to.isoformat()
+        if body.auto_renewal:
+            row["auto_renewal"] = body.auto_renewal
         
         _origin = body.origin or ("from_quote" if body.quote_id else "direct")
         try:
@@ -378,7 +400,7 @@ async def create_contract(
 
 
 
-# ── Upload Manual Contract ────────────────────────────────────
+# â”€â”€ Upload Manual Contract â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @router.post("/upload-signed", status_code=status.HTTP_201_CREATED)
 async def upload_manual_contract(
@@ -499,7 +521,72 @@ async def upload_manual_contract(
     return contract
 
 
-# ── Get ───────────────────────────────────────────────────────
+@router.post("/{contract_id}/upload-signed", status_code=status.HTTP_200_OK)
+async def upload_signed_pdf_existing_contract(
+    contract_id: UUID,
+    file: UploadFile = File(...),
+    user: CurrentUser = Depends(require_admin),
+):
+    """
+    Manually upload a signed PDF for an existing contract (e.g., from email flow).
+    """
+    contract = _require_contract(contract_id, user)
+    
+    file_bytes = await file.read()
+    if len(file_bytes) > 50 * 1024 * 1024:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Il file supera il limite di 50 MB")
+        
+    storage_path = f"{contract_id}/Contratto_Signed_Manual_{contract_id}.pdf"
+    
+    try:
+        supabase.storage.from_("contracts").upload(
+            path=storage_path,
+            file=file_bytes,
+            file_options={"content-type": file.content_type or "application/pdf", "upsert": "true"}
+        )
+    except Exception as exc:
+        logger.error("Storage upload manual failed path=%s: %s", storage_path, exc)
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Errore caricamento storage: {exc}")
+        
+    now_iso = datetime.now(timezone.utc).isoformat()
+    update_data = {
+        "status": "signed",
+        "pdf_url": storage_path,
+        "signed_at": now_iso
+    }
+
+    res = supabase.table("contracts").update(update_data).eq("id", str(contract_id)).execute()
+    if not getattr(res, "data", None):
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Impossibile aggiornare il contratto")
+        
+    _audit(user, contract_id, "upload_manual_existing", new=update_data)
+    
+    try:
+        from modules.activity.router import log_timeline_event
+        log_timeline_event(
+            company_id=str(user.active_company_id), actor_user_id=str(user.user_id),
+            event_type="contract_signed", title="Contratto firmato caricato manualmente",
+            client_id=contract.get("client_id"), onboarding_id=contract.get("onboarding_id"),
+            body=contract.get("title", 'Contratto')
+        )
+    except Exception as ae:
+        pass
+        
+    try:
+        _auto_create_proforma_after_sign(
+            contract=contract,
+            contract_id=str(contract_id),
+            company_id=str(user.active_company_id),
+            user_id=str(user.user_id),
+            signed_at=now_iso
+        )
+    except Exception as exc:
+        logger.warning("Auto proforma failed for manual existing contract upload %s: %s", contract_id, exc)
+        
+    return res.data[0]
+
+
+# â”€â”€ Get â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @router.get("/{contract_id}")
 async def get_contract(
@@ -513,14 +600,14 @@ async def get_contract(
     contract = _require_contract(
         contract_id,
         user,
-        select="*, clients(name,email), document_templates(name,content), onboarding!contracts_onboarding_id_fkey(company_name,email)",
+        select="*, clients(name,email), document_templates(name,content), onboarding!contracts_onboarding_id_fkey(company_name,email), contract_services(*)",
     )
     if not user.is_admin and str(contract.get("client_id")) != str(user.client_id):
         raise HTTPException(status.HTTP_403_FORBIDDEN)
     return contract
 
 
-# ── Update ────────────────────────────────────────────────────
+# â”€â”€ Update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @router.put("/{contract_id}")
 async def update_contract(
@@ -547,6 +634,8 @@ async def update_contract(
         updates["valid_from"] = body.valid_from.isoformat()
     if body.valid_to is not None:
         updates["valid_to"] = body.valid_to.isoformat()
+    if body.auto_renewal is not None:
+        updates["auto_renewal"] = body.auto_renewal
 
     if updates:
         res = (
@@ -578,11 +667,26 @@ async def update_contract(
 
     _audit(user, str(contract_id), "update", old=old, new=updates)
     
+    final_contract = _require_contract(contract_id, user)
+    
+    # Auto-sync draft proforma if contract is active/signed
+    if final_contract.get("status") in ("signed", "active"):
+        try:
+            _auto_create_proforma_after_sign(
+                contract=final_contract,
+                contract_id=str(contract_id),
+                company_id=final_contract.get("company_id", str(user.active_company_id)),
+                user_id=str(user.user_id),
+                signed_at=final_contract.get("signed_at") or final_contract.get("updated_at")
+            )
+        except Exception as exc:
+            logger.warning("Auto proforma sync failed for updated contract %s: %s", contract_id, exc)
+
     # Return updated contract
-    return _require_contract(contract_id, user)
+    return final_contract
 
 
-# ── Delete ────────────────────────────────────────────────────
+# â”€â”€ Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @router.delete("/{contract_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_contract(
@@ -605,7 +709,7 @@ async def delete_contract(
     _audit(user, str(contract_id), "delete", old=old)
 
 
-# ── Compile (fill template with real data) ────────────────────
+# â”€â”€ Compile (fill template with real data) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @router.post("/{contract_id}/compile")
 async def compile_contract(
@@ -630,14 +734,14 @@ async def compile_contract(
     if not tmpl_content:
         raise HTTPException(400, "Nessun template associato al contratto. Seleziona un template prima di compilare.")
 
-    # ── Gather substitution values ───────────────────────────
+    # â”€â”€ Gather substitution values â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     client = contract.get("clients") or {}
 
     # Fallback: if no client yet (prospect), read from onboarding
     if not client and contract.get("onboarding_id"):
         onb_res = (
             supabase.table("onboarding")
-            .select("company_name,reference_name,email,vat_number,fiscal_code,pec,dest_code,address,city,phone")
+            .select("company_name,reference_name,email,vat_number,pec,dest_code,address,city,phone")
             .eq("id", str(contract["onboarding_id"]))
             .maybe_single()
             .execute()
@@ -652,7 +756,7 @@ async def compile_contract(
                 "city":        o.get("city", ""),
                 "pec":         o.get("pec", ""),
                 "sdi_code":    o.get("dest_code", ""),
-                "tax_code":    o.get("fiscal_code") or o.get("vat_number", ""),
+                "tax_code":    o.get("vat_number", ""),
             }
 
     # Determine effective supplier company
@@ -668,7 +772,7 @@ async def compile_contract(
     )
     company = getattr(company_res, "data", None) or {}
 
-    # ── Fetch and Aggregate Multiple Services ───────────────
+    # â”€â”€ Fetch and Aggregate Multiple Services â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     cs_res = supabase.table("contract_services").select("service_id").eq("contract_id", str(contract_id)).execute()
     s_ids = [r["service_id"] for r in (cs_res.data or [])]
     if contract.get("service_id") and contract.get("service_id") not in s_ids:
@@ -695,12 +799,12 @@ async def compile_contract(
     
     if quote_data:
         # Prezzo negoziato nel preventivo (netto)
-        srv_price = f"€ {float(quote_data.get('total_net') or 0):.2f}"
+        srv_price = f"â‚¬ {float(quote_data.get('total_net') or 0):.2f}"
     else:
         # Somma di listino dal catalogo
         try:
             total_price = sum(float(s.get("price") or 0) for s in services)
-            srv_price = f"€ {total_price:.2f}" if services else ""
+            srv_price = f"â‚¬ {total_price:.2f}" if services else ""
         except ValueError:
             srv_price = ""
 
@@ -735,7 +839,7 @@ async def compile_contract(
         for s in services:
             s_name = s.get("name", "")
             s_desc = str(s.get("description", "")).replace("\n", "<br>")
-            s_price = f"€ {float(s.get('price') or 0):.2f}"
+            s_price = f"â‚¬ {float(s.get('price') or 0):.2f}"
             s_cycle = srv_cycles_map.get(s.get("billing_cycle", ""), s.get("billing_cycle", ""))
             html_table += f'<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:12px; vertical-align:top; font-weight:bold; color:#0f172a;">{s_name}</td>'
             html_table += f'<td style="padding:12px; vertical-align:top; color:#334155; font-size:13px;">{s_desc}</td>'
@@ -748,7 +852,7 @@ async def compile_contract(
     for s in services:
         name = s.get("name", "").upper()
         desc = str(s.get("description", ""))
-        srv_elenco_items.append(f"• {name}\n{desc}")
+        srv_elenco_items.append(f"â€¢ {name}\n{desc}")
     srv_elenco = "\n\n".join(srv_elenco_items)
 
     today = datetime.now(timezone.utc)
@@ -757,7 +861,7 @@ async def compile_contract(
         "cliente_nome":       client.get("name", ""),
         "cliente_email":      client.get("email", ""),
         "cliente_piva":       client.get("vat_number") or client.get("vat") or client.get("vat_no", ""),
-        "cliente_cf":         client.get("tax_code") or client.get("fiscal_code") or client.get("cf", ""),
+        "cliente_cf":         client.get("tax_code") or client.get("cf", ""),
         "cliente_indirizzo":  client.get("address", ""),
         "cliente_citta":      client.get("city", ""),
         "cliente_pec":        client.get("pec", ""),
@@ -767,14 +871,14 @@ async def compile_contract(
         "servizio_descrizione": srv_descs,
         "servizio_prezzo":      srv_price,
         "servizio_periodicita": srv_cycles,
-        "servizio_ciclo":       srv_cycles,   # alias — same value, different template naming
+        "servizio_ciclo":       srv_cycles,   # alias â€” same value, different template naming
         "servizio_clausole":    srv_clausole,
         "servizi_elenco":       srv_elenco,    # NEW: Structured Name + Description list
         "tabella_servizi":      html_table,
         # Fornitore (nostra azienda)
         "fornitore_nome":      company.get("name", ""),
         "fornitore_piva":      company.get("vat_number") or company.get("vat", ""),
-        "fornitore_cf":        company.get("tax_code") or company.get("fiscal_code", ""),
+        "fornitore_cf":        company.get("tax_code") or company.get("tax_code", ""),
         "fornitore_indirizzo": company.get("address", ""),
         "fornitore_citta":     company.get("city", ""),
         "fornitore_cap":       company.get("zip_code", ""),
@@ -789,23 +893,69 @@ async def compile_contract(
     # Extend with other custom template_vars from services
     vars_map.update({k: str(v) for k, v in other_service_vars.items()})
 
-    # ── Replace all {{key}} placeholders ────────────────────
+    # â”€â”€ Replace all {{key}} placeholders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     compiled = tmpl_content
     for key, value in vars_map.items():
         compiled = compiled.replace("{{" + key + "}}", str(value) if value is not None else "")
-    # Note: line break and space preservation is handled by the frontend CSS (white‑space: pre‑wrap)
 
+    # Ensure {{Signature}} becomes mandatory and targeted like {{Signature*:Recipient1}}
+    import re as _re
+    count = [0]
+    def replace_signatures(match):
+        count[0] += 1
+        return f"{{{{Signature*:Recipient{count[0]}}}}}"
 
-    # ── Final adjustments for PDF Engine compatibility ──────
-    # If the template is not full HTML, wrap it to ensure pre-wrap layout
+    compiled = _re.sub(r'\{\{\s?Signature\s?\}\}', replace_signatures, compiled, flags=_re.IGNORECASE)
+
+    # â”€â”€ Convert \n â†’ <br> per corretta impaginazione HTML â”€â”€
+    # I template mischiano tag HTML con newline testuali. In HTML normale \n
+    # viene ignorato (whitespace collapsing). Convertiamo esplicitamente per
+    # mantenere la struttura visiva sia nel PDF che in Zoho Sign.
     if "<html>" not in compiled.lower():
-        compiled = f"""<style>
-            body {{ font-family: sans-serif; font-size: 13px; line-height: 1.6; color: #111; white-space: pre-wrap; margin: 40px; }}
-            table {{ white-space: normal; }} /* Tables should not pre-wrap cell content by default */
-        </style>
-        <div class="contract-wrapper">{compiled}</div>"""
+        # Proteggi il contenuto delle tabelle HTML (giÃ  strutturato)
+        import re as _re
+        # Dividi in parti: HTML tags vs testo puro
+        # Converti \n solo fuori dai tag HTML (tra i tag)
+        def _convert_newlines(text: str) -> str:
+            # Sostituisci \r\n e \r con \n
+            text = text.replace("\r\n", "\n").replace("\r", "\n")
+            # Paragrafo doppio newline â†’ separatore visivo
+            text = text.replace("\n\n", "<br><br>")
+            # Singolo newline â†’ <br>
+            text = text.replace("\n", "<br>")
+            return text
 
-    # ── Persist snapshot ─────────────────────────────────────
+        # Applica la conversione preservando i tag HTML esistenti
+        parts = _re.split(r'(<[^>]+>)', compiled)
+        converted_parts = []
+        for part in parts:
+            if part.startswith('<'):
+                converted_parts.append(part)  # tag HTML: lascia invariato
+            else:
+                converted_parts.append(_convert_newlines(part))  # testo: converti \n
+        compiled = ''.join(converted_parts)
+
+        # Applica inline style sulle img tag (Zoho Sign ignora il CSS esterno)
+        compiled = _re.sub(
+            r'<img\b(?![^>]*\bstyle=)([^>]*?)(/?)>',
+            r'<img\1 style="max-width:180px;height:auto;display:block;" \2>',
+            compiled,
+            flags=_re.IGNORECASE
+        )
+
+    # â”€â”€ Final adjustments for PDF Engine compatibility â”€â”€â”€â”€â”€â”€
+    if "<html>" not in compiled.lower():
+        compiled = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+            body {{ font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.6;
+                   color: #111; white-space: normal; margin: 0; padding: 40px; }}
+            h1, h2, h3 {{ margin-top: 1.5em; margin-bottom: 0.5em; }}
+            table {{ width: 100%; border-collapse: collapse; white-space: normal; }}
+            td, th {{ padding: 8px 12px; vertical-align: top; }}
+            b, strong {{ font-weight: bold; }}
+            img {{ max-width: 180px !important; height: auto !important; display: block; }}
+        </style></head><body><div class="contract-wrapper">{compiled}</div></body></html>"""
+
+    # â”€â”€ Persist snapshot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     now_iso = today.isoformat()
     supabase.table("contracts").update({
         "compiled_content": compiled,
@@ -814,6 +964,28 @@ async def compile_contract(
 
     _audit(user, str(contract_id), "compile", new={"compiled_at": now_iso})
     return {"compiled_content": compiled, "compiled_at": now_iso}
+
+
+@router.get("/{contract_id}/pdf")
+async def get_contract_pdf(
+    contract_id: UUID,
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Restituisce il PDF del contratto se salvato nello storage."""
+    contract = _require_contract(contract_id, user, select="pdf_url, status")
+    pdf_url = contract.get("pdf_url")
+    if not pdf_url:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "PDF non disponibile per questo contratto.")
+        
+    try:
+        pdf_bytes = supabase.storage.from_("contracts").download(pdf_url)
+        from fastapi.responses import Response
+        return Response(content=pdf_bytes, media_type="application/pdf", headers={
+            "Content-Disposition": f'inline; filename="{pdf_url.split("/")[-1]}"'
+        })
+    except Exception as e:
+        logger.error("Errore download PDF per contratto %s: %s", contract_id, e)
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Errore nel recupero del documento PDF")
 
 
 @router.post("/{contract_id}/send-sign")
@@ -830,7 +1002,7 @@ async def send_for_signature(
     contract = _require_contract(
         contract_id,
         user,
-        select="*, clients(name,email), document_templates(content), onboarding!contracts_onboarding_id_fkey(email, company_name, reference_name, fiscal_code, vat_number)",
+        select="*, clients(name,email), document_templates!contracts_template_id_fkey(content), onboarding!contracts_onboarding_id_fkey(email, company_name, reference_name, vat_number)",
     )
     if contract.get("status") not in ("draft", "expired"):
         raise HTTPException(
@@ -842,19 +1014,88 @@ async def send_for_signature(
     if not html_content:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Il contratto non ha un template associato. Selezionane uno.")
     
-    # Check client email
+    # Check client email â€” fallback a cascata
     client_info = contract.get("clients") or {}
     onb_info = contract.get("onboarding") or {}
     recipient_email = client_info.get("email") or onb_info.get("email")
-    
+
+    # Fallback: cerca email in tutti gli onboarding di questo cliente
+    if not recipient_email and contract.get("client_id"):
+        try:
+            onb_lookup = (
+                supabase.table("onboarding")
+                .select("email, company_name, reference_name")
+                .eq("client_id", str(contract["client_id"]))
+                .neq("email", "")
+                .order("created_at", desc=True)
+                .limit(1)
+                .maybe_single()
+                .execute()
+            )
+            if onb_lookup and getattr(onb_lookup, "data", None):
+                recipient_email = onb_lookup.data.get("email")
+                if not onb_info:
+                    onb_info = onb_lookup.data  # usa anche per il nome
+        except Exception as _e:
+            logger.warning("send_for_signature: fallback onboarding email lookup failed: %s", _e)
+
     if not recipient_email:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Il cliente non ha un indirizzo email configurato.")
 
     client_name = client_info.get("name") or onb_info.get("company_name") or onb_info.get("reference_name") or "Cliente"
 
+    # Auto-compila se compiled_content Ã¨ vuoto (es. contratto non ancora compilato)
+    if not contract.get("compiled_content"):
+        try:
+            logger.info("send_for_signature: auto-compiling contract %s", contract_id)
+            compile_result = await compile_contract(contract_id, user)
+            contract["compiled_content"] = compile_result.get("compiled_content", "")
+        except Exception as _ce:
+            logger.warning("send_for_signature: auto-compile failed, using raw template: %s", _ce)
+
+    # Determina company mittente: usa supplier_company_id (Azienda Fornitrice) se disponibile
+    mail_company_id = str(
+        contract.get("supplier_company_id")
+        or contract.get("company_id")
+        or user.active_company_id
+    )
+
+    final_content = contract.get("compiled_content") or html_content
+    
+    # Retrocompatibilità: Assicurati che i vecchi contratti compilati abbiano le signature aggiornate 
+    # a mandatory. Per firme multiple dello stesso utente mono-firmatario, NON dobbiamo usare :Recipient1
+    # per evitare loop nell'assegnazione: Zoho si confonde se l'action non ha label Recipient1.
+    # Usiamo quindi Nomi Campo personalizzati (es: Signature_1*)
+    import re as _re
+    count = [0]
+    def replace_signatures_final(match):
+        count[0] += 1
+        return f"{{{{Signature_Sig{count[0]}*}}}}"
+
+    final_content = _re.sub(r'\{\{\s?Signature[^\}]*\}\}', replace_signatures_final, final_content, flags=_re.IGNORECASE)
+
     try:
-        # Genera il PDF
-        pdf_bytes = generate_pdf_from_html(contract.get("compiled_content") or html_content)
+        # Genera il PDF (await perché generate_pdf_from_html è async)
+        pdf_bytes = await generate_pdf_from_html(final_content)
+        
+        # Salva in Supabase Storage
+        file_name = f"Contratto_{contract_id}.pdf"
+        storage_path = f"{contract_id}/{file_name}"
+        try:
+            supabase.storage.from_("contracts").upload(
+                path=storage_path,
+                file=pdf_bytes,
+                file_options={"content-type": "application/pdf", "upsert": "true"}
+            )
+            # Prepara il dictionary per l'update del DB 
+            pdf_update_data = {
+                "pdf_url": storage_path,
+                "pdf_uploaded_at": datetime.now(timezone.utc).isoformat()
+            }
+        except Exception as up_exc:
+            logger.error("send_for_signature: Failed to upload PDF to storage: %s", up_exc)
+            pdf_update_data = {}
+            
     except Exception as exc:
         logger.error("send_for_signature: PDF render error contract=%s: %s", contract_id, exc)
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Errore generazione PDF: {exc}")
@@ -896,7 +1137,7 @@ async def send_for_signature(
             # Fallback a email standard con allegato
             logger.info("Sending contract %s via Brevo Email (Zoho not configured)", contract_id)
             await send_templated_email(
-                company_id=str(user.active_company_id),
+                company_id=mail_company_id,
                 to_email=recipient_email,
                 template_type="contract_send",
                 lang="it",
@@ -913,17 +1154,21 @@ async def send_for_signature(
         logger.error("send_for_signature: Sending failed contract=%s: %s", contract_id, exc)
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Errore invio firma: {exc}")
 
-    # Persist sent status
+    # Persist sent status and pdf_url
+    update_data = {"status": "sent"}
+    if pdf_update_data:
+        update_data.update(pdf_update_data)
+        
     (
         supabase.table("contracts")
-        .update({"status": "sent"})
+        .update(update_data)
         .eq("id", str(contract_id))
         .eq("company_id", str(user.active_company_id))
         .execute()
     )
     _audit(user, str(contract_id), "send_sign",
            old={"status": contract.get("status")},
-           new={"status": "sent"})
+           new=update_data)
 
     # Log to Timeline
     from modules.activity.router import log_timeline_event
@@ -935,19 +1180,23 @@ async def send_for_signature(
     )
 
     # Auto-advance onboarding (non-blocking)
-    from automation import auto_advance_onboarding
-    auto_advance_onboarding(
-        company_id=str(user.active_company_id),
-        user_id=str(user.user_id),
-        onboarding_id=contract.get("onboarding_id"),
-        target_status="contract_sent",
-        reason=f"Contratto {str(contract_id)[:8]}… inviato via email",
-    )
+    if contract.get("onboarding_id"):
+        from automation import auto_advance_onboarding
+        try:
+            auto_advance_onboarding(
+                company_id=str(user.active_company_id),
+                user_id=str(user.user_id),
+                onboarding_id=contract.get("onboarding_id"),
+                trigger_event="contract_sent",
+                reason=f"Contratto {str(contract_id)[:8]}â€¦ inviato",
+            )
+        except Exception as _adv_exc:
+            logger.warning("auto_advance_onboarding failed after send: %s", _adv_exc)
 
     return {"message": "Contratto inviato con successo via Email"}
 
 
-# ── Auto-Proforma helper ──────────────────────────────────────
+# â”€â”€ Auto-Proforma helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 _REQUIRED_PROFORMA_FIELDS = {"vat_number", "address", "city"}  # pec OR dest_code checked separately below
 
@@ -958,7 +1207,7 @@ def _auto_create_proforma_after_sign(
     Auto-create a proforma invoice after a contract is signed.
     Only runs if all required proforma fields are present on the client or onboarding.
     Advances onboarding status to proforma_draft/proforma_issued.
-    Non-blocking — caller should catch any exceptions.
+    Non-blocking â€” caller should catch any exceptions.
     """
     from automation import auto_advance_onboarding
     from datetime import datetime, timezone
@@ -980,14 +1229,14 @@ def _auto_create_proforma_after_sign(
 
     source = client_data or onb_data
     missing = [f for f in _REQUIRED_PROFORMA_FIELDS if not source.get(f)]
-    # PEC or dest_code — at least one is required (OR logic)
+    # PEC or dest_code â€” at least one is required (OR logic)
     has_pec = bool(source.get("pec"))
     has_sdi = bool(source.get("dest_code") or source.get("sdi_code"))
     if not has_pec and not has_sdi:
         missing.append("pec_or_dest_code")
     if missing:
         logger.warning(
-            "_auto_create_proforma: skipping — missing fields %s on contract %s",
+            "_auto_create_proforma: skipping â€” missing fields %s on contract %s",
             missing, contract_id
         )
         return  # Admin must create proforma manually
@@ -1015,7 +1264,7 @@ def _auto_create_proforma_after_sign(
         "is_proforma":   True,
         "status":        "draft",
         "payment_status": "not_paid",
-        "notes":         f"Proforma automatica per {client_name} — contratto {contract_id[:8]}…",
+        "notes":         f"Proforma automatica per {client_name} â€” contratto {contract_id[:8]}â€¦",
         "total_net":     total_net,
         "total_vat":     total_vat,
         "total":         total,
@@ -1036,11 +1285,11 @@ def _auto_create_proforma_after_sign(
         user_id=user_id,
         onboarding_id=contract.get("onboarding_id"),
         target_status="proforma_draft",
-        reason=f"Proforma {str(pf_id)[:8]}… generata automaticamente dopo firma contratto",
+        reason=f"Proforma {str(pf_id)[:8]}â€¦ generata automaticamente dopo firma contratto",
     )
 
 
-# ── Mark Signed (manual — when Zoho Sign not in use) ─────────
+# â”€â”€ Mark Signed (manual â€” when Zoho Sign not in use) â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @router.post("/{contract_id}/mark-signed")
 async def mark_contract_signed(
@@ -1057,7 +1306,7 @@ async def mark_contract_signed(
 
     contract = _require_contract(contract_id, user)
     if contract.get("status") == "signed":
-        return {"message": "Contratto già firmato", "status": "signed"}
+        return {"message": "Contratto giÃ  firmato", "status": "signed"}
 
     if contract.get("status") not in ("sent", "draft"):
         raise HTTPException(
@@ -1090,10 +1339,10 @@ async def mark_contract_signed(
         user_id=str(user.user_id),
         onboarding_id=contract.get("onboarding_id"),
         target_status="contract_signed",
-        reason=f"Contratto {str(contract_id)[:8]}… firmato manualmente",
+        reason=f"Contratto {str(contract_id)[:8]}â€¦ firmato manualmente",
     )
 
-    # ── Auto-generate Proforma if required fields are complete ─────────────
+    # â”€â”€ Auto-generate Proforma if required fields are complete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try:
         _auto_create_proforma_after_sign(
             contract=contract,
@@ -1108,7 +1357,7 @@ async def mark_contract_signed(
     return {"message": "Contratto segnato come firmato", "status": "signed", "signed_at": now_iso}
 
 
-# ── Regenerate (supplier change) ──────────────────────────────
+# â”€â”€ Regenerate (supplier change) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class RegenerateRequest(BaseModel):
     template_id: UUID
@@ -1147,7 +1396,7 @@ async def regenerate_contract(
         if old.get(col):
             new_row[col] = str(old[col])
 
-    # Origin tracking (graceful — columns may not exist yet)
+    # Origin tracking (graceful â€” columns may not exist yet)
     try:
         new_row["origin"] = "supplier_change"
         new_row["source_company_id"] = str(body.source_company_id or old.get("supplier_company_id") or "")
@@ -1183,7 +1432,7 @@ async def regenerate_contract(
 
 
 
-# ── Sign Status ───────────────────────────────────────────────
+# â”€â”€ Sign Status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @router.get("/{contract_id}/sign-status")
 async def get_contract_sign_status(
@@ -1205,7 +1454,7 @@ async def get_contract_sign_status(
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Zoho Sign error: {exc}")
 
 
-# ── Client: download / sign-url ───────────────────────────────
+# â”€â”€ Client: download / sign-url â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @router.get("/{contract_id}/download-url")
 async def get_contract_download_url(
@@ -1213,14 +1462,24 @@ async def get_contract_download_url(
     user: CurrentUser = Depends(get_current_user),
 ):
     """Return a short-lived download URL for the contract PDF."""
-    contract = _require_contract(contract_id, str(user.active_company_id), select="client_id,pdf_url,zoho_request_id,status")
+    contract = _require_contract(contract_id, user, select="client_id,pdf_url,zoho_request_id,status")
     if not user.is_admin and str(contract.get("client_id")) != str(user.client_id):
         raise HTTPException(status.HTTP_403_FORBIDDEN)
 
     url = contract.get("pdf_url")
     if not url:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "PDF not yet generated for this contract")
-    return {"url": url, "name": "contratto.pdf"}
+    
+    try:
+        # Genera un signed URL valido per 60 secondi
+        res = supabase.storage.from_("contracts").create_signed_url(url, 60)
+        signed_url = res.get("signedURL")
+        if not signed_url:
+            raise Exception("No signedURL returned")
+        return {"url": signed_url, "name": "contratto.pdf"}
+    except Exception as e:
+        logger.error("Failed to generate signed url for %s: %s", contract_id, e)
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Impossibile generare il link di download")
 
 
 @router.get("/{contract_id}/sign-url")
@@ -1250,7 +1509,7 @@ async def get_contract_sign_url(
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Zoho Sign error: {exc}")
 
 
-# ── Webhook: Zoho Sign ────────────────────────────────────────
+# â”€â”€ Webhook: Zoho Sign â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 from fastapi import Request
 
@@ -1260,6 +1519,7 @@ async def zoho_sign_webhook(request: Request):
     Webhook target for Zoho Sign to notify when a document is signed or declined.
     """
     try:
+        from config import settings
         raw_body = await request.body()
         secret = getattr(settings, "zoho_webhook_secret", None)
         if secret:
@@ -1270,8 +1530,10 @@ async def zoho_sign_webhook(request: Request):
             
             import hmac
             import hashlib
-            expected_sig = hmac.new(secret.encode('utf-8'), raw_body, hashlib.sha256).hexdigest()
-            if not hmac.compare_digest(signature, expected_sig):
+            import base64
+            expected_sig_bytes = hmac.new(secret.encode('utf-8'), raw_body, hashlib.sha256).digest()
+            expected_sig_b64 = base64.b64encode(expected_sig_bytes).decode('utf-8')
+            if not hmac.compare_digest(signature, expected_sig_b64):
                 logger.warning("Zoho Webhook invalid signature")
                 return {"status": "error", "message": "Invalid Signature"}
 
@@ -1310,8 +1572,26 @@ async def zoho_sign_webhook(request: Request):
             from datetime import datetime, timezone
             now_iso = datetime.now(timezone.utc).isoformat()
             
+            update_data = {"status": "signed", "signed_at": now_iso}
+
+            # Scarica il PDF firmato da Zoho e salvalo in Supabase Storage
+            try:
+                from integrations.zoho_sign_service import zoho_sign_service
+                pdf_bytes = await zoho_sign_service.download_signed_document(request_id)
+                file_name = f"Contratto_Signed_{contract_id}.pdf"
+                storage_path = f"{contract_id}/{file_name}"
+                supabase.storage.from_("contracts").upload(
+                    path=storage_path,
+                    file=pdf_bytes,
+                    file_options={"content-type": "application/pdf", "upsert": "true"}
+                )
+                update_data["pdf_url"] = storage_path
+                update_data["pdf_uploaded_at"] = now_iso
+            except Exception as e:
+                logger.error("zoho_sign_webhook: failed to download/upload PDF from Zoho req=%s: %s", request_id, e)
+
             # update
-            supabase.table("contracts").update({"status": "signed", "signed_at": now_iso}).eq("id", contract_id).execute()
+            supabase.table("contracts").update(update_data).eq("id", contract_id).execute()
 
             # timeline
             from modules.activity.router import log_timeline_event
@@ -1339,3 +1619,119 @@ async def zoho_sign_webhook(request: Request):
     except Exception as e:
         logger.error(f"Zoho Webhook Error: {e}")
         return {"status": "error", "message": str(e)}
+
+
+# ── Auto-Proforma Engine ──────────────────────────────────────────────────────
+
+def _auto_create_proforma_after_sign(contract: dict, contract_id: str, company_id: str, user_id: str, signed_at: str):
+    """
+    Hook internally called when a contract is signed or updated.
+    Generates a draft Proforma mirroring all contract services.
+    Updates existing proforma if it's still in "draft" status.
+    """
+    # 1. Check existing proforma
+    existing = supabase.table("invoices").select("id, status, is_proforma").eq("contract_id", contract_id).eq("is_proforma", True).limit(1).execute()
+    existing_inv = existing.data[0] if existing.data else None
+    if existing_inv and existing_inv.get("status") != "draft":
+        logger.info("AutoProforma: Skipped for contract %s, proforma already %s.", contract_id, existing_inv.get("status"))
+        return
+
+    # 2. Extract client/onboarding
+    client_id = contract.get("client_id")
+    onboarding_id = contract.get("onboarding_id")
+
+    # 3. Retrieve contract_services
+    cs_res = supabase.table("contract_services").select("*, services_catalog(*)").eq("contract_id", contract_id).execute()
+    services_data = cs_res.data or []
+
+    if not services_data and contract.get("service_id"):
+        # Fallback if no junction table records but single service_id legacy field
+        s_res = supabase.table("services_catalog").select("*").eq("id", contract.get("service_id")).execute()
+        if s_res.data:
+            services_data = [{"services_catalog": s_res.data[0], "service_id": contract.get("service_id")}]
+
+    lines_to_insert = []
+    total_amount = 0.0
+
+    for item in services_data:
+        cat = item.get("services_catalog")
+        if not cat: continue
+
+        unit_price = float(cat.get("price") or 0.0)
+        qty = 1.0
+        vat_rate = 22.0
+        
+        line_total = unit_price * qty * (1 + vat_rate / 100.0)
+        total_amount += line_total
+        
+        lines_to_insert.append({
+            "description": cat.get("name", "Servizio") + (f" - {cat['description']}" if cat.get('description') else ""),
+            "quantity": qty,
+            "unit_price": unit_price,
+            "vat_rate": vat_rate,
+            "total": round(line_total, 2),
+            "service_id": item.get("service_id")
+        })
+
+    from datetime import datetime, timezone
+    today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    if existing_inv:
+        new_inv_id = existing_inv["id"]
+        # Update total amount
+        supabase.table("invoices").update({"total": round(total_amount, 2)}).eq("id", new_inv_id).execute()
+        # Wipe old lines
+        supabase.table("invoice_lines").delete().eq("invoice_id", new_inv_id).execute()
+    else:
+        # Generate new invoice number
+        year = datetime.now().year
+        q_count = supabase.table("invoices").select("id", count="exact").eq("company_id", company_id).eq("is_proforma", True).gte("issue_date", f"{year}-01-01").execute()
+        count = q_count.count or 0
+        invoice_number = f"P-{count + 1}/{year}"
+
+        # Insert new Invoice
+        inv_data = {
+            "company_id": company_id,
+            "client_id": client_id,
+            "onboarding_id": onboarding_id,
+            "contract_id": contract_id,
+            "is_proforma": True,
+            "status": "draft",
+            "payment_status": "not_paid",
+            "number": invoice_number,
+            "issue_date": today_iso,
+            "due_date": today_iso,
+            "currency": "EUR",
+            "total": round(total_amount, 2),
+            "notes": f"Generata automaticamente alla firma del contratto: {contract.get('title')}",
+            "direction": "outbound"
+        }
+
+        inv_res = supabase.table("invoices").insert(inv_data).execute()
+        if not inv_res.data:
+            raise Exception("Failed to insert proforma record")
+        
+        new_inv_id = inv_res.data[0]["id"]
+
+    # 6. Insert Lines
+    if lines_to_insert:
+        for ln in lines_to_insert:
+            ln["invoice_id"] = new_inv_id
+        supabase.table("invoice_lines").insert(lines_to_insert).execute()
+
+    # 7. Timeline / Audit Event
+    if not existing_inv:
+        try:
+            from modules.activity.router import log_timeline_event
+            log_timeline_event(
+                company_id=company_id, actor_user_id=user_id,
+                event_type="invoice_issued", title="Proforma Autogenerata",
+                client_id=client_id, onboarding_id=onboarding_id,
+                body=f"Creata in bozza: {invoice_number} ({round(total_amount, 2)} €)"
+            )
+        except Exception as e:
+            logger.warning(f"Error logging timeline for autoproforma: {e}")
+
+        logger.info("AutoProforma: Successfully created %s for contract %s", new_inv_id, contract_id)
+    else:
+        logger.info("AutoProforma: Successfully updated existing draft %s for contract %s", new_inv_id, contract_id)

@@ -97,7 +97,7 @@ async def list_documents(
     q = (
         supabase.table("documents")
         .select(select_cols, count="exact")
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
     )
     if not user.is_admin:
         if user.client_id:
@@ -254,7 +254,7 @@ async def update_document(
         supabase.table("documents")
         .update(updates)
         .eq("id", str(document_id))
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .execute()
     )
     if not res.data:
@@ -318,7 +318,7 @@ async def delete_document(
         except Exception as exc:
             logger.warning("Storage remove failed path=%s (proceeding with DB delete): %s", storage_path, exc)
 
-    supabase.table("documents").delete().eq("id", str(document_id)).eq("company_id", str(user.active_company_id)).execute()
+    supabase.table("documents").delete().eq("id", str(document_id)).eq("company_id", user.tenant).execute()
     _audit(user, str(document_id), "delete", old={"name": doc.get("name"), "storage_path": storage_path})
 
 
@@ -342,7 +342,7 @@ async def sign_document(
         supabase.table("documents")
         .update({"status": "signed", "signed_at": now})
         .eq("id", str(document_id))
-        .eq("company_id", str(user.active_company_id))   # tenant safety
+        .eq("company_id", user.tenant)   # tenant safety
         .execute()
     )
     if not res.data:
@@ -396,7 +396,7 @@ async def get_document_audit_trail(
     res = (
         supabase.table("audit_logs")
         .select("id,action,old_values,new_values,created_at,users(name)")
-        .eq("company_id", str(user.active_company_id))
+        .eq("company_id", user.tenant)
         .eq("entity_type", "document")
         .eq("entity_id", str(document_id))
         .order("created_at", desc=False)
@@ -435,7 +435,7 @@ async def send_document_for_signature_api(
     supabase.table("documents").update({
         "status": "sent",
         "zoho_request_id": zoho_request_id,
-    }).eq("id", str(document_id)).eq("company_id", str(user.active_company_id)).execute()
+    }).eq("id", str(document_id)).eq("company_id", user.tenant).execute()
 
     _audit(user, str(document_id), "send_sign",
            old={"status": doc.get("status")},

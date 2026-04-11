@@ -4,6 +4,63 @@
 
 const UI = {
 
+  // ── Custom Confirm Dialog ─────────────────────────────────
+  confirm(message, options = {}) {
+    return new Promise((resolve) => {
+      const title = options.title || 'Conferma';
+      const confirmText = options.confirmText || 'Ok';
+      const cancelText = options.cancelText || 'Annulla';
+      const type = options.type || 'info'; 
+      
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,0.4); 
+        display: flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.2s ease;
+      `;
+      
+      let btnColor = 'var(--blue-primary, #3b82f6)';
+      if(type === 'danger') btnColor = 'var(--color-danger, #ef4444)';
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        background: #ffffff; width: 400px; max-width: 90%; border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15); padding: 24px;
+        transform: scale(0.95); transition: transform 0.2s ease; font-family: inherit;
+        border: 1px solid #e2e8f0;
+      `;
+      
+      modal.innerHTML = `
+        <h3 style="margin:0 0 12px 0; font-size:18px; color:#0f172a; font-weight:700;">${title}</h3>
+        <p style="margin:0 0 24px 0; font-size:14px; color:#475569; line-height:1.5;">${message}</p>
+        <div style="display:flex; justify-content:flex-end; gap:12px;">
+          <button id="z-confirm-btn-cancel" style="padding:8px 16px; border-radius:8px; border:1px solid #cbd5e1; background:#f8fafc; color:#334155; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">${cancelText}</button>
+          <button id="z-confirm-btn-ok" style="padding:8px 16px; border-radius:8px; border:1px solid transparent; background:${btnColor}; color:#ffffff; font-size:13px; font-weight:600; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1); transition:all 0.2s; opacity:0.9;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.9'">${confirmText}</button>
+        </div>
+      `;
+      
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+      
+      requestAnimationFrame(() => {
+        overlay.style.opacity = '1';
+        modal.style.transform = 'scale(1)';
+      });
+      
+      const close = (result) => {
+        overlay.style.opacity = '0';
+        modal.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          if (document.body.contains(overlay)) document.body.removeChild(overlay);
+          resolve(result);
+        }, 200);
+      };
+      
+      modal.querySelector('#z-confirm-btn-cancel').onclick = () => close(false);
+      modal.querySelector('#z-confirm-btn-ok').onclick = () => close(true);
+    });
+  },
+
   // ── Toast notifications ───────────────────────────────────
   toast(message, type = 'info', duration = 3500) {
     window.showToast?.(message, type, duration);
@@ -14,10 +71,11 @@ const UI = {
     if (!status) return '';
     const s = String(status).toLowerCase();
     const map = {
-      active:   { cls: 'pill-active',   lbl: 'Attivo' },
+      active:   { cls: 'pill-active" style="background:#34c759; color:#ffffff; border:none; box-shadow:0 1px 2px rgba(0,0,0,0.1); font-weight: 600;"',   lbl: 'Attivo' },
       inactive: { cls: 'pill-inactive', lbl: 'Inattivo' },
       non_active: { cls: 'pill-inactive', lbl: 'Non attivo' },
       suspended:  { cls: 'pill-warning',  lbl: 'Sospeso' },
+      sospeso:    { cls: 'pill-danger',   lbl: 'Sospeso (Insoluto)' },
       insolvent:  { cls: 'pill-danger',   lbl: 'Insolvente' },
       ceased:     { cls: 'pill-red',     lbl: 'Cessato' },
       draft:    { cls: 'pill-gray',     lbl: 'Bozza' },

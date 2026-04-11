@@ -15,7 +15,9 @@
   const kpiGrid = $('kpi-grid');
   if (kpiGrid) kpiGrid.style.display = 'none';
 
-  window.addEventListener('companyChanged', load);
+  if (window._settingsCmpListener) window.removeEventListener('companyChanged', window._settingsCmpListener);
+  window._settingsCmpListener = () => load();
+  window.addEventListener('companyChanged', window._settingsCmpListener);
 
   async function load() {
     await Promise.all([
@@ -234,7 +236,7 @@
   };
 
   window.deleteContractTemplate = async (id, name) => {
-    if (!confirm('Eliminare il template "' + name + '"?')) return;
+    if (!await UI.confirm('Eliminare il template "' + name + '"?')) return;
     try {
       await API.Contracts.deleteTemplate(id);
       UI.toast('Template eliminato', 'success');

@@ -1,170 +1,259 @@
 import os
-import glob
 import logging
 import asyncio
-import shutil
-from pathlib import Path
 from datetime import datetime
 import uuid
+import re
 
-from config import settings
 from database import supabase
 from modules.invoices.router import process_pdf_job
+from utils.pdf_parser import parse_wiki_pdf
+from integrations.google_drive import drive_service
 
 logger = logging.getLogger(__name__)
 
-# Base folder for GDrive sync
-GDRIVE_BASE_DIR = r"G:\My Drive\_Fatture"
+async def _get_companies():
+    companies_res = supabase.table("companies").select("id, name").execute()
+    return companies_res.data or []
 
-async def run_gdrive_pdf_poller():
-    """
-    Polls the root of GDRIVE_BASE_DIR for new .pdf files.
-    Parses them, creates the invoice in the DB, uploads to Supabase,
-    and moves the physical file to the appropriate categorized subfolder.
-    """
-    logger.info("Starting GDrive PDF Poller...")
-    
-    if not os.path.exists(GDRIVE_BASE_DIR):
-        logger.warning(f"GDrive folder {GDRIVE_BASE_DIR} does not exist or is not reachable.")
+def _resolve_company_id(folder_name: str, companies: list):
+    target_id = companies[0]["id"] if companies else ""
+    for c in companies:
+        cn = c["name"].lower().replace(" ", "")
+        ch = folder_name.lower().replace(" ", "")
+        if ch in cn or ("itservices" in ch and "it" in cn):
+            return c["id"]
+    return target_id
+
+
+import asyncio
+_poll_invoices_running = False
+
+async def poll_invoices_dropzone():
+    global _poll_invoices_running
+    if _poll_invoices_running:
+        logger.info("Invoices poller already running, skipping.")
         return
+    _poll_invoices_running = True
+    try:
+        """
+        Spia la cartella: Upload / [Azienda] / Fatture in ingresso
+        Estrae il fornitore via AI.
+        Sposta in: Documenti_Aziendali / [Azienda] / [Fornitore] / Fatture / [Anno] / [Mesi] /
+        """
+        logger.info("Starting Invoices Dropzone Poller...")
+        if not drive_service.service or not drive_service.root_folder_id:
+            logger.warning("Google Drive API is not configured.")
+            return
 
-    # Only look at the root directory level of specific target companies (non-recursive)
-    target_folders = ["ITServices", "Deloca"]
-    pdf_files = []
-    
-    for folder in target_folders:
-        folder_path = os.path.join(GDRIVE_BASE_DIR, folder)
-        if not os.path.exists(folder_path):
-            continue
-        for file in os.listdir(folder_path):
-            if file.lower().endswith(".pdf"):
-                full_path = os.path.join(folder_path, file)
-                if os.path.isfile(full_path):
-                    pdf_files.append({"path": full_path, "company_hint": folder})
+        upload_root_id = drive_service.get_or_create_folder("Upload", drive_service.root_folder_id)
+        out_root_id = drive_service.root_folder_id
+        if not upload_root_id or not out_root_id: return
 
-    if not pdf_files:
-        logger.info("No new PDFs found in GDrive target folders.")
-        return
+        companies = await _get_companies()
+        target_folders = ["IT Services", "Deloca"]
 
-    logger.info(f"Found {len(pdf_files)} PDF(s) to process in GDrive targets.")
-    
-    # Pre-fetch companies to categorize by vat_number or name
-    companies_res = supabase.table("companies").select("id, name, vat_number").execute()
-    companies = companies_res.data or []
+        for folder in target_folders:
+            comp_upload_id = drive_service.get_or_create_folder(folder, upload_root_id)
+            if not comp_upload_id: continue
 
-    for item in pdf_files:
-        file_path = item["path"]
-        company_hint = item["company_hint"]
-        try:
-            logger.info(f"Processing {file_path}...")
-            # 1. Read file bytes
-            with open(file_path, "rb") as f:
-                file_bytes = f.read()
+            invoices_dropzone_id = drive_service.get_or_create_folder("Fatture in ingresso", comp_upload_id)
+            if not invoices_dropzone_id: continue
 
-            filename = os.path.basename(file_path)
-
-            # 2. Upload to Supabase Storage
-            storage_path = ""
-            file_uuid = uuid.uuid4().hex[:8]
-            try:
-                storage_filename = f"inbound_{file_uuid}_{filename}"
-                supabase.storage.from_("documents").upload(
-                    storage_filename,
-                    file_bytes,
-                    {"content-type": "application/pdf"}
-                )
-                storage_path = supabase.storage.from_("documents").get_public_url(storage_filename)
-            except Exception as e:
-                logger.warning(f"Parse PDF poller: impossible to upload to documents bucket: {e}")
-
-            # Note: We need a default company ID to assign the invoice BEFORE we fully parse it.
-            # We'll use the first company found, and adjust it later if the parser finds a specific target company.
-            default_company_id = companies[0]["id"] if companies else ""
-
-            # 3. Create initial DB row
-            import_data = {
-                "company_id": default_company_id,
-                "direction": "inbound",
-                "number": "Elaborando PDF...",
-                "status": "draft",
-                "payment_status": "not_paid",
-                "pdf_path": storage_path
+            files = drive_service.get_files_in_folder(invoices_dropzone_id)
+            logger.info(f"Fatture Poller: {len(files)} docs in {folder}/Fatture in ingresso.")
+        
+            target_company_id = _resolve_company_id(folder, companies)
+            folder_map = {
+                "IT Services": "IT SERVICES & HUMAN JOB TALENT",
+                "Deloca": "DELOCA NOVA SYSTEMS"
             }
-            res = supabase.table("invoices").insert(import_data).execute()
-            if not res.data:
-                logger.error(f"Failed to create DB row for {filename}")
-                continue
+            dest_company_name = folder_map.get(folder, folder)
+            out_comp_id = drive_service.get_or_create_folder(dest_company_name, out_root_id)
+        
+            for file in files:
+                file_id = file.get("id")
+                filename = file.get("name")
+                parents = file.get("parents", [])
+                logger.info(f"Processing invoice {filename}...")
+                invoice_id = None
+                try:
+                    file_bytes = drive_service.download_file(file_id)
+                    if not file_bytes:
+                        logger.warning(f"Empty download for {filename}, skipping.")
+                        continue
+
+                    # Create Dummy CRM Row
+                    storage_path = ""
+                    file_uuid = uuid.uuid4().hex[:8]
+                    try:
+                        storage_filename = f"inbound_{file_uuid}_{filename}"
+                        supabase.storage.from_("documents").upload(
+                            storage_filename, file_bytes, {"content-type": "application/pdf"}
+                        )
+                        storage_path = supabase.storage.from_("documents").get_public_url(storage_filename)
+                    except Exception as e:
+                        logger.warning(f"Storage upload failed: {e}")
+
+                    import_data = {
+                        "company_id": target_company_id,
+                        "direction": "inbound",
+                        "number": "Elaborando PDF...",
+                        "status": "draft",
+                        "payment_status": "not_paid",
+                        "pdf_path": storage_path
+                    }
+                    res = supabase.table("invoices").insert(import_data).execute()
+                    if not res.data:
+                        logger.warning(f"Failed to insert dummy row for {filename}, skipping.")
+                        continue
+                    invoice_id = res.data[0]["id"]
+
+                    # Parse with GPT for Invoices
+                    await process_pdf_job(invoice_id, file_bytes, target_company_id)
+                    await asyncio.sleep(1)
+
+                    inv_res = supabase.table("invoices").select("status, parsed_data, issue_date, notes").eq("id", invoice_id).execute()
+                    supplier_name = "Fornitore Sconosciuto"
+                    year = datetime.now().strftime("%Y")
+                    month = datetime.now().strftime("%m")
+                    status = "draft"
                 
-            invoice_id = res.data[0]["id"]
+                    if inv_res.data:
+                        p = inv_res.data[0].get("parsed_data") or {}
+                        supplier_name = p.get("supplier_name", "Fornitore Sconosciuto")
+                        status = inv_res.data[0].get("status")
+                        iss_dt = inv_res.data[0].get("issue_date")
+                        if iss_dt:
+                            dt = datetime.fromisoformat(iss_dt)
+                            year = str(dt.year)
+                            month = f"{dt.month:02d}"
+                
+                    safe_supp = re.sub(r'[\\/*?:"<>|]', '', supplier_name).strip().replace(" ", "_") or "Sconosciuto"
+                
+                    # Move on Drive
+                    fatture_f_id = drive_service.get_or_create_folder("Fatture", out_comp_id)
+                    ingresso_f_id = drive_service.get_or_create_folder("ingresso", fatture_f_id)
+                
+                    notes = inv_res.data[0].get("notes") or "" if inv_res.data else ""
+                
+                    if status == "cancelled" and "DUPLICATA" in notes:
+                        # Route to Duplicates quarantine
+                        dup_f_id = drive_service.get_or_create_folder("Duplicati", ingresso_f_id)
+                        drive_service.move_file(file_id, parents, dup_f_id)
+                    else:
+                        supp_f_id = drive_service.get_or_create_folder(safe_supp, ingresso_f_id)
+                        y_id = drive_service.get_or_create_folder(year, supp_f_id)
+                        m_id = drive_service.get_or_create_folder(month, y_id)
+                        if m_id:
+                            drive_service.move_file(file_id, parents, m_id)
 
-            # 4. Parse the PDF synchronously (or await the async function)
-            await process_pdf_job(invoice_id, file_bytes, default_company_id)
-            
-            # 5. Retrieve the updated invoice to see the parsed data
-            inv_res = supabase.table("invoices").select("parsed_data, issue_date").eq("id", invoice_id).execute()
-            if not inv_res.data:
-                logger.warning(f"Could not retrieve updated invoice {invoice_id} for {filename}")
-                continue
+                except Exception as file_exc:
+                    logger.error(f"CRITICAL: Failed to process file '{filename}': {file_exc}", exc_info=True)
+                    # Mark the stuck row as error state so it doesn't remain 'Elaborando PDF...'
+                    if invoice_id:
+                        try:
+                            supabase.table("invoices").update({
+                                "number": f"[ERRORE] {filename}",
+                                "status": "draft",
+                                "notes": f"Errore durante l'elaborazione: {str(file_exc)[:300]}"
+                            }).eq("id", invoice_id).execute()
+                        except Exception:
+                            pass
+                    continue  # Always continue to next file
 
-            inv_row = inv_res.data[0]
-            parsed = inv_row.get("parsed_data") or {}
-            
-            # 6. Determine Company
-            target_company_name = company_hint
-            target_company_id = default_company_id
-            
-            # Trova ID basato sull'hint della cartella
-            for c in companies:
-                cn = c["name"].lower()
-                ch = company_hint.lower()
-                if (ch.replace(" ", "") == cn.replace(" ", "")) or \
-                   ("deloca" in ch and "deloca" in cn) or \
-                   ("itservices" in ch and "it services" in cn) or \
-                   ("it services" in ch and "it services" in cn):
-                    target_company_id = c["id"]
-                    target_company_name = c["name"]
-                    break
-
-            # Se abbiamo trovato una company diversa da quella di default, aggiorniamo il record
-            if target_company_id and target_company_id != default_company_id:
-                supabase.table("invoices").update({"company_id": target_company_id}).eq("id", invoice_id).execute()
-
-            # 7. Determine Year and Month from issue_date
-            issue_date_str = inv_row.get("issue_date")
-            if issue_date_str:
-                dt = datetime.fromisoformat(issue_date_str)
-                year = str(dt.year)
-                month = f"{dt.month:02d}"
-            else:
-                year = datetime.now().strftime("%Y")
-                month = datetime.now().strftime("%m")
-
-            # 8. Determine Supplier
-            supplier_name = parsed.get("supplier_name", "Fornitore_Sconosciuto")
-            # pulizia nome file sicuro per windows
-            import re
-            safe_supplier = re.sub(r'[\\/*?:"<>|]', '', supplier_name)
-
-            # 9. Build destination folder: G:\My Drive\_Fatture\CompanyName\Anno\Mese\Fornitore
-            # Se target_company_name contiene spazi o caratteri strani, usiamo una versione pulita.
-            safe_company = re.sub(r'[\\/*?:"<>|]', '', target_company_name)
-            
-            dest_dir = os.path.join(GDRIVE_BASE_DIR, safe_company, year, month, safe_supplier)
-            os.makedirs(dest_dir, exist_ok=True)
-            
-            # Move the file
-            dest_path = os.path.join(dest_dir, filename)
-            
-            # Gestione conflitti nome
-            if os.path.exists(dest_path):
-                name, ext = os.path.splitext(filename)
-                dest_path = os.path.join(dest_dir, f"{name}_{file_uuid}{ext}")
-
-            shutil.move(file_path, dest_path)
-            logger.info(f"Successfully processed and moved {filename} to {dest_path}")
-            
-            # Breve pausa per evitare limit rate OCR
             await asyncio.sleep(2)
+
+    finally:
+        _poll_invoices_running = False
+
+
+async def poll_documents_dropzone():
+    """
+    Spia la cartella: Upload / [Azienda] / Documenti
+    Applica parse_wiki_pdf e stabilisce la Categoria e il Mittente.
+    Sposta in: Documenti_Aziendali / [Azienda] / [Fornitore] / [Categoria] /
+    """
+    logger.info("Starting Documents Dropzone Poller...")
+    if not drive_service.service or not drive_service.root_folder_id:
+        logger.warning("Google Drive API is not configured.")
+        return
+
+    upload_root_id = drive_service.get_or_create_folder("Upload", drive_service.root_folder_id)
+    out_root_id = drive_service.root_folder_id
+    if not upload_root_id or not out_root_id: return
+
+    companies = await _get_companies()
+    target_folders = ["IT Services", "Deloca"]
+
+    for folder in target_folders:
+        comp_upload_id = drive_service.get_or_create_folder(folder, upload_root_id)
+        if not comp_upload_id: continue
+
+        docs_dropzone_id = drive_service.get_or_create_folder("Documenti", comp_upload_id)
+        if not docs_dropzone_id: continue
+
+        # Estrai i file direttamente in "Documenti"
+        base_files = drive_service.get_files_in_folder(docs_dropzone_id)
+        for b in base_files:
+            b["user_defined_category"] = None
+        
+        # Cerca sottocartelle (ad es. "Contratti_di_Lavoro", "Busta_Paga" create dall'utente)
+        subfolders = drive_service.get_folders_in_folder(docs_dropzone_id)
+        for sf in subfolders:
+            sub_files = drive_service.get_files_in_folder(sf.get("id"))
+            cat_name = sf.get("name").replace("_", " ")  # Supporta "Contratti_di_Lavoro" -> "Contratti di Lavoro"
+            for f in sub_files:
+                f["user_defined_category"] = cat_name
+            base_files.extend(sub_files)
+
+        files = base_files
+        logger.info(f"Documenti Poller: {len(files)} docs in {folder}/Documenti e relative sottocartelle.")
+        
+        target_company_id = _resolve_company_id(folder, companies)
+        folder_map = {
+            "IT Services": "IT SERVICES & HUMAN JOB TALENT",
+            "Deloca": "DELOCA NOVA SYSTEMS"
+        }
+        dest_company_name = folder_map.get(folder, folder)
+        out_comp_id = drive_service.get_or_create_folder(dest_company_name, out_root_id)
+        
+        for file in files:
+            file_id = file.get("id")
+            filename = file.get("name")
+            parents = file.get("parents", [])
+            user_defined_category = file.get("user_defined_category")
+            logger.info(f"Processing WIKI document {filename}...")
+
+            file_bytes = drive_service.download_file(file_id)
+            if not file_bytes: continue
+
+            parsed_data = await parse_wiki_pdf(file_bytes)
             
-        except Exception as e:
-            logger.error(f"Error processing GDrive file {file_path}: {e}")
+            doc_type = user_defined_category if user_defined_category else parsed_data.get("category", "Altro")
+            supplier_name = dest_company_name
+            safe_supp = "Interno" # We keep safe_supp as Interno just so the folder logic doesn't break, wait no, safe_supp == dest_company_name is already handled! Let's check below.
+            safe_supp = dest_company_name
+            title = parsed_data.get("title", filename)
+            category = f"{supplier_name}::{doc_type}"
+
+            # Move on Drive
+            if safe_supp.lower() == "interno" or safe_supp == dest_company_name:
+                cat_f_id = drive_service.get_or_create_folder(doc_type, out_comp_id)
+            else:
+                supp_f_id = drive_service.get_or_create_folder(safe_supp, out_comp_id)
+                cat_f_id = drive_service.get_or_create_folder(doc_type, supp_f_id)
+                
+            if cat_f_id:
+                drive_service.move_file(file_id, parents, cat_f_id)
+
+            dummy_url = f"https://drive.google.com/file/d/{file_id}/view"
+            supabase.table("company_wiki").insert({
+                "company_id": target_company_id,
+                "title": title,
+                "category": category,
+                "url": dummy_url,
+                "raw_text": parsed_data.get("raw_text", "")
+            }).execute()
+
+            await asyncio.sleep(2)

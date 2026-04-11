@@ -3,6 +3,14 @@ main.py — FastAPI application entry point.
 Responsibility: bootstrap only — app creation, CORS, router registration, scheduler lifespan.
 Business routes belong in their respective router modules.
 """
+# ── Windows asyncio subprocess fix ───────────────────────────
+# On Windows, the default SelectorEventLoop cannot spawn subprocesses
+# (used by Playwright for PDF generation). Switch to ProactorEventLoop.
+import sys
+if sys.platform == "win32":
+    import asyncio
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,12 +35,16 @@ from modules.users.router       import router as users_router
 from modules.companies.router   import router as companies_router
 from modules.copilot.router     import router as copilot_router
 from modules.categories.router  import router as categories_router
+from modules.reports.router     import router as reports_router
+from modules.wiki.router        import router as wiki_router
 from modules.activity.router    import client_router as activity_client_router
 from modules.activity.router    import onboarding_router as activity_onboarding_router
 from modules.activity.router    import global_router as activity_global_router
+from modules.notifications.router import router as notifications_router
 from routers.health    import router as health_router
 from routers.jobs      import router as jobs_router
 from routers.webhooks  import router as webhooks_router
+from routers.ai_agent_router import router as ai_agent_router
 
 logger = logging.getLogger(__name__)
 
@@ -45,13 +57,14 @@ async def lifespan(app: FastAPI):
     """Start/stop background scheduler with the app."""
     from jobs.payment_reminders import run_payment_reminders
     from jobs.renewal_alerts    import run_renewal_alerts
-    from jobs.gdrive_pdf_poller import run_gdrive_pdf_poller
+    from jobs.dunning_check     import run_dunning_check
 
     # ── Startup migrations (idempotent DDL additions) ─────────
     try:
         from database import supabase
-        supabase.table("documents").select("id,visibility,onboarding_id,contract_id").limit(0).execute()
-        logger.info("documents.visibility, onboarding_id, contract_id columns OK")
+        supabase.table("documents").select("id,visibility,onboarding_id,contract_id").limit(1).execute()
+        supabase.table("users").select("last_login").limit(1).execute()
+        logger.info("documents.visibility, onboarding_id, contract_id, and users.last_login columns OK")
     except Exception:
         # Columns might not exist — add them via a raw psycopg2
         try:
@@ -66,17 +79,18 @@ async def lifespan(app: FastAPI):
             _cur.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS visibility TEXT NOT NULL DEFAULT 'internal'")
             _cur.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS onboarding_id UUID")
             _cur.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS contract_id UUID")
+            _cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP WITH TIME ZONE")
             _conn.commit()
             _cur.close(); _conn.close()
-            logger.info("Startup migration: documents extended with visibility, onboarding_id, contract_id")
+            logger.info("Startup migration: documents extended with visibility, onboarding_id, contract_id; users extended with last_login")
         except Exception as exc:
-            logger.warning("Startup migration for documents failed: %s — "
-                           "run manually: ALTER TABLE documents ADD COLUMN visibility TEXT NOT NULL DEFAULT 'internal', ADD COLUMN onboarding_id UUID, ADD COLUMN contract_id UUID", exc)
+            logger.warning("Startup migration failed: %s — "
+                           "run manually: ALTER document and users tables accordingly", exc)
 
     scheduler.add_job(run_payment_reminders, "cron", hour=8, minute=0,  id="payment_reminders")
     scheduler.add_job(run_renewal_alerts,    "cron", hour=8, minute=30, id="renewal_alerts")
-    # Poll GDrive for PDFs every 5 minutes
-    scheduler.add_job(run_gdrive_pdf_poller, "interval", minutes=5, id="gdrive_pdf_poller")
+    scheduler.add_job(run_dunning_check,     "cron", hour=9, minute=0,  id="dunning_check")
+    # Poller manuale: si lancia dal tasto "Sync GDrive" nel CRM (endpoint /invoices/sync-gdrive)
     scheduler.start()
     app.state.scheduler = scheduler
     logger.info("Scheduler started")
@@ -124,10 +138,44 @@ app = FastAPI(
 )
 
 # CORS — wildcard in development; restrict to known origins in production
-_dev = settings.app_env == "development"
+_origins = settings.cors_origins
+logger.info(f"CORS origins configured: {_origins}")
+
+from fastapi import Request
+
+@app.middleware("http")
+async def catch_exceptions_middleware(request: Request, call_next):
+    import traceback
+    with open('E:/App/crm/backend/global_error.txt', 'a') as f:
+        f.write(f"\\n--- RECEIVED REQUEST {request.method} {request.url} ---\\n")
+    try:
+        response = await call_next(request)
+        with open('E:/App/crm/backend/global_error.txt', 'a') as f:
+            f.write(f"--- SUCCESS {response.status_code} ---\\n")
+        return response
+    except Exception as e:
+        with open('E:/App/crm/backend/global_error.txt', 'a') as f:
+            f.write(f"\\n--- 500 Error at {request.url} ---\\n")
+            traceback.print_exc(file=f)
+        raise
+
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    import traceback
+    tb = traceback.format_exc()
+    logger.error("Unhandled exception on %s %s:\n%s", request.method, request.url, tb)
+    with open('E:/App/crm/backend/global_error.txt', 'a') as f:
+        f.write(f"\\n=== UNHANDLED 500 {request.method} {request.url} ===\\n{tb}\\n")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal server error: {str(exc)}"},
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -138,6 +186,7 @@ app.include_router(auth_router,      prefix="/api")
 app.include_router(clients_router,   prefix="/api")
 app.include_router(invoices_router,  prefix="/api")
 app.include_router(services_router,  prefix="/api")
+app.include_router(wiki_router,      prefix="/api")
 app.include_router(contracts_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
 app.include_router(reminders_router, prefix="/api")
@@ -151,10 +200,13 @@ app.include_router(users_router,       prefix="/api")
 app.include_router(companies_router,   prefix="/api")
 app.include_router(copilot_router,     prefix="/api")
 app.include_router(categories_router,  prefix="/api")
+app.include_router(reports_router,     prefix="/api")
 app.include_router(activity_client_router,     prefix="/api")
 app.include_router(activity_onboarding_router, prefix="/api")
 app.include_router(activity_global_router,     prefix="/api")
+app.include_router(notifications_router,         prefix="/api")
 app.include_router(health_router,    prefix="/api")
 app.include_router(jobs_router,      prefix="/api")
+app.include_router(ai_agent_router,  prefix="/api/agent")
 # Webhooks are NOT under /api — providers call the path directly
 app.include_router(webhooks_router)

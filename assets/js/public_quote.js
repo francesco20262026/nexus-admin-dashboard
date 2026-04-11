@@ -135,13 +135,13 @@ function renderQuote(q) {
 }
 
 async function acceptQuote() {
-  if (!confirm("Confermi di voler accettare formalmente questo preventivo? Invieremo la notifica di accettazione.")) return;
+  if (!await UI.confirm("Confermi di voler accettare formalmente questo preventivo? Invieremo la notifica di accettazione.")) return;
   
   await doAction('accept', "Preventivo accettato con successo!", "success");
 }
 
 async function rejectQuote() {
-  if (!confirm("Sei sicuro di voler rifiutare questo preventivo?")) return;
+  if (!await UI.confirm("Sei sicuro di voler rifiutare questo preventivo?")) return;
   
   await doAction('reject', "Hai rifiutato il preventivo.", "error");
 }

@@ -81,7 +81,9 @@
 
   /* ── Refresh ────────────────────────────────────────────────── */
   btnRefresh?.addEventListener('click', () => { if(window.UI) UI.toast('Aggiornamento in corso...', 'info'); load(true); });
-  window.addEventListener('companyChanged', () => load(true));
+  if (window._clientsCmpListener) window.removeEventListener('companyChanged', window._clientsCmpListener);
+  window._clientsCmpListener = () => load(true);
+  window.addEventListener('companyChanged', window._clientsCmpListener);
 
   /* ── Add client button ──────────────────────────────────────── */
   btnAdd?.addEventListener('click', () => {
@@ -90,7 +92,7 @@
       companySelect.innerHTML = '<option value="">Seleziona fornitrice...</option>' + 
         _companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     }
-    ['f-name','f-vat','f-sdi','f-sector','f-referente','f-email','f-pec','f-phone','f-city','f-address','f-notes'].forEach(id => {
+    ['f-name','f-alias','f-vat','f-sdi','f-sector','f-referente','f-email','f-pec','f-phone','f-city','f-address','f-notes'].forEach(id => {
       const el = $(id); if(el) el.value = '';
     });
     $('f-portal').checked = false;
@@ -114,9 +116,10 @@
     btnSaveModal.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;"></div> <span style="margin-left:8px;">Salvataggio...</span>';
 
     try {
-      const created = await API.Clients.create({
+      const payload = {
         company_id: compId,
         company_name: name,
+        alias:      $('f-alias')?.value?.trim() || null,
         vat_number: $('f-vat')?.value?.trim() || null,
         dest_code:  $('f-sdi')?.value?.trim() || null,
         sector:     $('f-sector')?.value?.trim() || null,
@@ -129,7 +132,8 @@
         notes:      $('f-notes')?.value?.trim() || null,
         invite_portal: $('f-portal')?.checked || false,
         is_supplier: $('f-is-supplier')?.checked || false
-      });
+      };
+      const created = await API.Clients.create(payload);
       if (created) ALL.unshift(created);
       UI.toast('Cliente creato con successo', 'success');
       modal?.classList.remove('open');
@@ -142,7 +146,46 @@
       }
       
     } catch (e) {
-      UI.toast(e.message || 'Errore durante la creazione', 'error');
+      const msg = e.message || 'Errore durante la creazione';
+      if (msg.startsWith('SOFT:')) {
+        const cleanMsg = msg.replace(/^SOFT:/, '').trim();
+        if (await UI.confirm(cleanMsg)) {
+          btnSaveModal.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;"></div> <span style="margin-left:8px;">Salvataggio Forza...</span>';
+          try {
+            const payload = {
+              company_id: compId,
+              company_name: name,
+              alias:      $('f-alias')?.value?.trim() || null,
+              vat_number: $('f-vat')?.value?.trim() || null,
+              dest_code:  $('f-sdi')?.value?.trim() || null,
+              sector:     $('f-sector')?.value?.trim() || null,
+              name:       referente || name, // User's requested fix
+              email:      email,
+              pec:        $('f-pec')?.value?.trim() || null,
+              phone:      $('f-phone')?.value?.trim() || null,
+              city:       $('f-city')?.value?.trim() || null,
+              address:    $('f-address')?.value?.trim() || null,
+              notes:      $('f-notes')?.value?.trim() || null,
+              invite_portal: $('f-portal')?.checked || false,
+              is_supplier: $('f-is-supplier')?.checked || false,
+              force: true
+            };
+            const forceCreated = await API.Clients.create(payload);
+            if (forceCreated) ALL.unshift(forceCreated);
+            UI.toast('Cliente creato (forzato) con successo', 'success');
+            modal?.classList.remove('open');
+            load(true);
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('create_supplier') === 'true' && $('f-is-supplier')?.checked) {
+                window.location.href = 'admin_suppliers.html';
+            }
+          } catch (forceErr) {
+             UI.toast(forceErr.message || 'Errore', 'error');
+          }
+        }
+      } else {
+        UI.toast(msg, 'error');
+      }
     } finally {
       btnSaveModal.disabled = false;
       btnSaveModal.innerHTML = oldHtml;
@@ -156,13 +199,16 @@
     if (!list) return;
     list.innerHTML = UI.skeletonCardList(5);
     try {
+      let compRes = null, res = null;
       if (!_companies) {
-        try {
-          const compRes = await API.Companies.list();
-          _companies = Array.isArray(compRes) ? compRes : (compRes?.data || []);
-        } catch(e) { console.warn('No companies', e); }
+        [compRes, res] = await Promise.all([
+          API.Companies.list().catch(e => { console.warn(e); return []; }),
+          API.Clients.list()
+        ]);
+        _companies = Array.isArray(compRes) ? compRes : (compRes?.data || []);
+      } else {
+        res = await API.Clients.list();
       }
-      const res = await API.Clients.list();
       ALL = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
       
       // Auto-open logic for supplier creation
@@ -266,6 +312,7 @@
     applyFilters();
   });
 
+  window.applyFilters = applyFilters;
   function applyFilters() {
     const text     = (searchEl?.value || '').toLowerCase().trim();
     const city     = filterCity?.value     || '';
@@ -332,7 +379,7 @@
       }
 
       if (text) {
-        const hay = [c.company_name, c.name, c.email, c.phone, c.city, c.sector, c.vat_number, c.owner_name]
+        const hay = [c.alias, c.company_name, c.name, c.email, c.phone, c.city, c.sector, c.vat_number, c.owner_name]
           .filter(Boolean).join(' ').toLowerCase();
         if (!hay.includes(text)) return false;
       }
@@ -404,13 +451,32 @@
   }
 
   function renderRow(c) {
-    const display  = c.company_name || c.name || '';
+    const display  = c.alias || c.company_name || c.name || '';
     const initials = display.slice(0, 2).toUpperCase();
     const cId      = c.id;
 
     // Lookup fornitrice name
     const fornitriceLine = _companies?.find(comp => comp.id == c.company_id);
     const fornitriceName = fornitriceLine ? fornitriceLine.name : '';
+
+    // Alias Fornitore
+    const fn_alias = fornitriceLine?.alias || undefined;
+    let badgeText = '---';
+    if ((fornitriceName || 'Nova CRM').toUpperCase() === 'NOVA CRM') {
+        badgeText = 'NCRM';
+    } else {
+        badgeText = fn_alias ? fn_alias.toUpperCase() : (fornitriceName ? fornitriceName.substring(0, 3).toUpperCase() : '---');
+        const upperFornitore = fornitriceName.toUpperCase();
+        
+        if (upperFornitore.includes('IT SERVICES') || upperFornitore === 'ITS') {
+            badgeText = 'ITS';
+        } else if (upperFornitore.includes('HUMAN JOB') || upperFornitore === 'HJB') {
+            badgeText = 'HJB';
+        } else if (upperFornitore.includes('DLC') || upperFornitore.includes('DELOCA')) {
+            badgeText = 'DLC';
+        }
+    }
+    const badgeHtml = `<div title="${fornitriceName || 'Nova CRM'}" style="font-size:11px;font-weight:700;color:var(--gray-600);background:var(--gray-100);padding:2px 6px;border-radius:4px;cursor:help;display:inline-block;">${badgeText}</div>`;
 
     const referente   = c.name && c.name !== display ? c.name : (c.referente || '');
     const email       = c.email  || '';
@@ -423,16 +489,69 @@
     const lastAct     = c.last_activity_at || c.updated_at || '';
     const servicesN   = c.active_services_count ?? c.services_count ?? 0;
     const contractsN  = c.active_contracts_count ?? 0;
+    const quotesN     = c.pending_quotes_count ?? 0;
     const invoicesN   = c.open_invoices_count ?? 0;
-    const renewalDate = c.next_renewal_date || null;
     const owner       = c.assigned_to_name || c.owner_name || '';
 
     const iconUser  = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="11" height="11"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75"/></svg>`;
     const iconMail  = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="11" height="11"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>`;
     const iconPhone = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="11" height="11"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z"/></svg>`;
 
+    const getActivityEmoji = (type) => {
+      if (!type) return '';
+      switch(type) {
+        case 'quote_accepted': return '<span title="Preventivo Accettato" style="margin-left:4px;">👍</span>';
+        case 'quote_rejected': return '<span title="Preventivo Rifiutato" style="margin-left:4px;">👎</span>';
+        case 'quote_opened':   return '<span title="Preventivo Visualizzato" style="margin-left:4px;">👁️</span>';
+        case 'quote_sent':     return '<span title="Preventivo Inviato" style="margin-left:4px;">⏳</span>';
+        case 'first_login':    return '<span title="Primo Accesso Portale" style="margin-left:4px;">😉</span>';
+        case 'contract_signed':return '<span title="Contratto Firmato" style="margin-left:4px;">✍️</span>';
+        case 'service_activated': return '<span title="Servizio Attivato" style="margin-left:4px;">✅</span>';
+        case 'system':         return '<span title="Log di Sistema" style="margin-left:4px;">⚙️</span>';
+        case 'status_changed': return '<span title="Aggiornamento Stato" style="margin-left:4px;">🔄</span>';
+        case 'invoice_issued': return '<span title="Fattura Emessa" style="margin-left:4px;">🧾</span>';
+        case 'proforma_issued': return '<span title="Proforma Emessa" style="margin-left:4px;">📄</span>';
+        case 'payment_received': return '<span title="Pagamento Ricevuto" style="margin-left:4px;">💰</span>';
+        case 'document_uploaded': return '<span title="Documento Caricato" style="margin-left:4px;">📁</span>';
+        case 'contract_generated': return '<span title="Contratto Generato" style="margin-left:4px;">📝</span>';
+        case 'note':           return '<span title="Nota" style="margin-left:4px;">🗒️</span>';
+        case 'call':           return '<span title="Chiamata" style="margin-left:4px;">📞</span>';
+        case 'meeting':        return '<span title="Incontro" style="margin-left:4px;">🤝</span>';
+        case 'task':           return '<span title="Task" style="margin-left:4px;">✅</span>';
+        default: return '<span title="Attività Variabile" style="margin-left:4px;">📌</span>';
+      }
+    };
+
+    const getActivityLabel = (type) => {
+      if (!type) return 'Ultima attività';
+      switch(type) {
+        case 'quote_accepted':    return 'Prev. Accettato';
+        case 'quote_rejected':    return 'Prev. Rifiutato';
+        case 'quote_opened':      return 'Prev. Visualizzato';
+        case 'quote_sent':        return 'Prev. Inviato';
+        case 'first_login':       return 'Accesso Portale';
+        case 'contract_signed':   return 'Contr. Firmato';
+        case 'service_activated': return 'Servizio Attivato';
+        case 'system':            return 'Sistema';
+        case 'status_changed':    return 'Stato Aggiornato';
+        case 'stage_changed':     return 'Avanz. Pratica';
+        case 'lead_created':      return 'Lead Creato';
+        case 'email_sent':        return 'Email Inviata';
+        case 'invoice_issued':    return 'Fattura Emessa';
+        case 'proforma_issued':   return 'Proforma Emessa';
+        case 'payment_received':  return 'Pagam. Ricevuto';
+        case 'document_uploaded': return 'Doc. Caricato';
+        case 'contract_generated':return 'Contratto Generato';
+        case 'note':              return 'Nota Aggiunta';
+        case 'call':              return 'Chiamata Registrata';
+        case 'meeting':           return 'Incontro Fissato';
+        case 'task':              return 'Task Creato';
+        default:                  return type.replace(/_/g, ' ');
+      }
+    };
+
     return `
-    <div class="cl-row fade-in" onclick="location.href='admin_client_detail.html?id=${cId}'" style="display: grid; grid-template-columns: 1.6fr 1.2fr 1.4fr 1.2fr 1fr 1fr 100px; gap: 16px; padding: 10px 24px; min-height: 54px; align-items: center; border-bottom: 1px solid var(--border); cursor: pointer;">
+    <div class="cl-row fade-in" onclick="location.href='admin_client_detail.html?id=${cId}'" style="display: grid; grid-template-columns: 2.8fr 1.4fr 1.4fr 1.2fr 1fr 1fr 100px; gap: 16px; padding: 10px 24px; min-height: 54px; align-items: center; border-bottom: 1px solid var(--border); cursor: pointer;">
       
       <!-- 1. Ragione Sociale -->
       <div class="cl-col" style="min-width: 0;">
@@ -442,21 +561,21 @@
           </div>
           <div class="avatar cl-row-avatar cl-row-avatar-blue" style="flex-shrink:0;">${initials}</div>
           <div class="cl-row-identity-body" style="min-width:0;">
-            <div class="cl-row-name truncate" title="${display}" style="display:flex;align-items:center;gap:6px;">
+            <div class="cl-row-name truncate" title="${display}">
               ${display}
+              ${c.portal_first_login_at ? `<span title="Cliente Attivo (Dashboard Loggata)" style="display:inline-flex; align-items:center; color:#3b82f6; flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549a4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" /></svg></span>` : ''}
             </div>
-            <div class="cl-row-meta" style="flex-wrap:wrap;">
-              ${referente ? `<span class="cl-row-chip">${iconUser}${referente}</span>` : ''}
-              ${email ? `<a class="cl-row-chip cl-row-link truncate" href="mailto:${email}" onclick="event.stopPropagation()" style="color:#3b82f6; max-width: 150px;">${iconMail}${email}</a>` : ''}
-              ${phoneVal ? `<a class="cl-row-chip cl-row-link" href="tel:${phoneVal}" onclick="event.stopPropagation()">${iconPhone}${phoneVal}</a>` : ''}
+            <div class="cl-row-meta" style="display:flex; flex-direction:column; gap:4px; margin-top:4px; align-items:flex-start;">
+              ${email ? `<a class="cl-row-chip cl-row-link truncate" href="mailto:${email}" onclick="event.stopPropagation()" style="color:#3b82f6; max-width: 100%;">${email}</a>` : ''}
+              ${phoneVal ? `<a class="cl-row-chip cl-row-link" href="tel:${phoneVal}" onclick="event.stopPropagation()">${phoneVal}</a>` : ''}
             </div>
           </div>
         </div>
       </div>
 
       <!-- 2. Fornitore -->
-      <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center;">
-        <div class="cl-data-val truncate" style="color:var(--gray-700); font-weight:500;">${fornitriceName || 'Nova CRM'}</div>
+      <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
+        ${badgeHtml}
       </div>
 
       <!-- 3. Dati Base -->
@@ -474,19 +593,25 @@
 
       <!-- 3. Stato / KPI -->
       <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center;">
-        <div style="margin-bottom:2px;">${UI.pill(c.status)}</div>
+        <div style="margin-bottom:2px; display:flex; align-items:center;">
+          ${UI.pill(c.status)}
+        </div>
         ${owner ? `<div class="cl-data-lbl truncate" title="${owner}">${iconUser}${owner}</div>` : ''}
       </div>
 
       <!-- 4. Operatività -->
       <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center;">
-        <div class="cl-mini-kpi">${servicesN} Servizi · ${contractsN} Contratti</div>
-        ${invoicesN > 0 ? `<div class="cl-mini-kpi truncate" style="color:var(--warning-600)" title="Ci sono ${invoicesN} fatture aperte da controllare">⚠️ ${invoicesN} Fatt. aperte</div>` : `<div class="cl-mini-kpi truncate" style="color:var(--gray-500)">Nessuna fattura pendente</div>`}
+        <div class="cl-mini-kpi" style="margin-bottom:2px;">${servicesN > 0 ? `<strong>${servicesN}</strong> Servizi` : `<span style="opacity:0.5;">0 Servizi</span>`} · ${contractsN > 0 ? `<strong>${contractsN}</strong> Contratti` : `<span style="opacity:0.5;">0 Contratti</span>`}</div>
+        
+        <div style="display:flex; flex-direction:column; gap:2px; margin-top:2px;">
+          ${quotesN > 0 ? `<div class="cl-mini-kpi truncate" style="color:#0ea5e9;" title="${quotesN} Preventiv${quotesN === 1 ? 'o' : 'i'} in lavorazione">⏳ ${quotesN} Prev. in attesa</div>` : ''}
+          ${invoicesN > 0 ? `<div class="cl-mini-kpi truncate" style="color:var(--warning-600)" title="${invoicesN} Fattur${invoicesN === 1 ? 'a aperta' : 'e aperte'} da controllare">⚠️ ${invoicesN} Fatt. aperte</div>` : (quotesN === 0 ? `<div class="cl-mini-kpi truncate" style="color:var(--gray-500)">Nessuna pendenza</div>` : '')}
+        </div>
       </div>
 
       <!-- 5. Attività -->
       <div class="cl-col" style="min-width: 0; display:flex; flex-direction:column; justify-content:center;">
-        <div class="cl-data-lbl">Ultima attività</div>
+        <div class="cl-data-lbl" style="display:flex;align-items:center;gap:4px;">${getActivityEmoji(c.last_activity_type)}${getActivityLabel(c.last_activity_type)}</div>
         <div class="cl-data-val truncate">${lastAct ? UI.date(lastAct) : 'Nessuna attività'}</div>
       </div>
 
@@ -504,9 +629,9 @@
 
   window.deleteClient = async (id, force = false) => {
     if (force) {
-      if (!confirm('ATTENZIONE: Stai per eliminare definitivamente questo cliente e tutto il suo storico (preventivi, contratti, log). Procedere?')) return;
+      if (!await UI.confirm('ATTENZIONE: Stai per eliminare definitivamente questo cliente e tutto il suo storico (preventivi, contratti, log). Procedere?')) return;
     } else {
-      if (!confirm('Eliminare (archiviare in cessato) questo cliente?')) return;
+      if (!await UI.confirm('Eliminare (archiviare in cessato) questo cliente?')) return;
     }
     
     try {
@@ -608,9 +733,9 @@
   window.massDelete = async (force = false) => {
     if (!window.selectedIds.size) return;
     if (force) {
-      if (!confirm(`ATTENZIONE: Eliminare DEFINITIVAMENTE ${window.selectedIds.size} clienti e tutto il loro storico?`)) return;
+      if (!await UI.confirm(`ATTENZIONE: Eliminare DEFINITIVAMENTE ${window.selectedIds.size} clienti e tutto il loro storico?`)) return;
     } else {
-      if (!confirm(`Archiviare ${window.selectedIds.size} clienti in stato cessato?`)) return;
+      if (!await UI.confirm(`Archiviare ${window.selectedIds.size} clienti in stato cessato?`)) return;
     }
     UI.toast(`Operazione in corso...`, 'info');
     for (const id of window.selectedIds) { try { await API.Clients.remove(id, force); } catch(e){} }
@@ -620,7 +745,7 @@
   };
 
   window.massSyncWindoc = async () => {
-    if (!confirm(`Sincronizzare ${window.selectedIds.size} clienti su Windoc?`)) return;
+    if (!await UI.confirm(`Sincronizzare ${window.selectedIds.size} clienti su Windoc?`)) return;
     UI.toast(`Sincronizzazione di ${window.selectedIds.size} clienti in corso...`, 'info');
     for (const id of window.selectedIds) { try { await API.Windoc.syncClient(id); } catch(e){} }
     UI.toast('Sincronizzazione completata', 'success');

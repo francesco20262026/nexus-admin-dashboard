@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 async def parse_invoice_pdf(pdf_bytes: bytes) -> dict:
     """
-    Estrae testo e immagini da un PDF e usa GPT-4o Vision per estrarre 
+    Estrae testo e immagini da un PDF e usa GPT-5.1 Vision per estrarre 
     i dati della fattura. Fallback su regex in caso di assenza API key.
     """
     text = ""
@@ -56,11 +56,14 @@ async def parse_invoice_pdf(pdf_bytes: bytes) -> dict:
         "raw_text": text[:2000]
     }
 
-    # Se abbiamo la chiave OpenAI, proviamo a usare la AI per l'estrazione
-    from dotenv import dotenv_values
-    env_vars = dotenv_values(os.path.join(os.path.dirname(__file__), "..", ".env"))
-    
-    openai_key = env_vars.get("OPENAI_API_KEY")
+    # Use settings (always resolves correctly, even when running as Windows service)
+    from config import settings
+    openai_key = settings.openai_api_key if hasattr(settings, 'openai_api_key') else None
+    if not openai_key:
+        # Final fallback: try dotenv manually
+        from dotenv import dotenv_values
+        env_vars = dotenv_values(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
+        openai_key = env_vars.get("OPENAI_API_KEY")
     if openai_key and openai_key.startswith("sk-"):
         try:
             logger.info("Using OpenAI Vision per fattura")
@@ -139,6 +142,8 @@ Restituisci esattamente questa struttura JSON:
 """
             
             content_arr = [{"type": "text", "text": prompt}]
+            if text.strip():
+                content_arr[0]["text"] += f"\n\n=== TESTO ESTRATTO DAL PDF ===\n{text[:6000]}\n==============================\n"
             for b64 in base64_images:
                 content_arr.append({
                     "type": "image_url",
@@ -150,12 +155,12 @@ Restituisci esattamente questa struttura JSON:
                 
             headers = {"Authorization": f"Bearer {openai_key}", "Content-Type": "application/json"}
             payload = {
-                "model": "gpt-4o",
+                "model": "gpt-5.1",
                 "messages": [{"role": "user", "content": content_arr}],
                 "temperature": 0.1,
                 "response_format": {"type": "json_object"}
             }
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=120) as client:
                 resp = await client.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
                 if resp.status_code == 200:
                      ai_data = resp.json()["choices"][0]["message"]["content"]
@@ -166,7 +171,7 @@ Restituisci esattamente questa struttura JSON:
                      
                      data["supplier_name"] = supplier.get("name") or ""
                      data["vat_number"] = supplier.get("vat_number") or ""
-                     data["issue_date"] = parsed.get("invoice_date") or ""
+                     data["issue_date"] = parsed.get("invoice_date") or parsed.get("payment_due_date") or ""
                      data["number"] = parsed.get("invoice_number") or "Sconosciuto"
                      
                      raw_tot = str(totals.get("net_to_pay") or totals.get("gross_total") or "0.0").strip()
@@ -190,7 +195,7 @@ Restituisci esattamente questa struttura JSON:
                 else:
                     logger.warning(f"OpenAI error: {resp.status_code} {resp.text}. Falling back to Regex.")
         except Exception as e:
-            logger.warning(f"OpenAI parsing failed: {e}. Falling back to Regex.")
+            logger.error(f"OpenAI parsing FAILED (background task): {type(e).__name__}: {e}. Will fall back to regex.")
 
     # ---------------- FALLBACK REGEX ----------------
 
@@ -217,5 +222,137 @@ Restituisci esattamente questa struttura JSON:
     lines = [L.strip() for L in text.split("\n") if L.strip()]
     if lines:
         data["supplier_name"] = lines[0]
+        
+    return data
+
+async def parse_wiki_pdf(pdf_bytes: bytes) -> dict:
+    """
+    Estrae testo da un PDF generico e usa GPT-5.1 Vision per determinare 
+    Titolo (massimo 10 parole) e Categoria.
+    """
+    text = ""
+    base64_images = []
+    
+    try:
+        import fitz  # PyMuPDF
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        for i in range(min(5, len(doc))): # analizza al max le prime 5 pagine per contesto
+            page = doc[i]
+            text += page.get_text() + "\n"
+            
+            # render page to image
+            pix = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5))
+            img_bytes = pix.tobytes("jpeg")
+            b64_str = base64.b64encode(img_bytes).decode("utf-8")
+            base64_images.append(b64_str)
+            
+        doc.close()
+    except ImportError:
+        logger.warning("PyMuPDF non installato. Usando pypdf per solo testo (Wiki).")
+        try:
+            reader = pypdf.PdfReader(BytesIO(pdf_bytes))
+            for page in reader.pages:
+                t = page.extract_text()
+                if t: text += t + "\n"
+        except Exception as exc:
+            return {"error": str(exc), "success": False}
+    except Exception as exc:
+        logger.error(f"Errore caricamento PDF Wiki: {exc}")
+        return {"error": str(exc), "success": False}
+        
+    if not text.strip() and not base64_images:
+        return {"success": False, "error": "PDF vuoto o illeggibile."}
+
+    data = {
+        "success": True,
+        "title": "Documento Sconosciuto",
+        "category": "Procedure Operative",
+        "raw_text": text
+    }
+
+    # Se abbiamo la chiave OpenAI, proviamo a usare la AI per l'estrazione
+    from dotenv import dotenv_values
+    env_vars = dotenv_values(os.path.join(os.path.dirname(__file__), "..", ".env"))
+    
+    openai_key = env_vars.get("OPENAI_API_KEY")
+    if openai_key and openai_key.startswith("sk-"):
+        try:
+            logger.info("Using OpenAI Vision per categorizzazione Documento Wiki")
+            prompt = """
+Sei un archivista esperto. Analizza questo documento (se possibile tramite immagini o testo estratto).
+
+Obiettivo:
+Crea un Titolo conciso per questo documento e assegnagli una categoria.
+
+Regole:
+1. "title": Massimo 6-8 parole, deve rappresentare esattamente la natura del file (es: "Lettera assunzione Mario Rossi", "Brochure Prodotti")
+2. "category": DEVE essere esattamente una di queste 5 stringhe:
+   - Fattura
+   - Contratto
+   - Procedura
+   - Estratto Conto
+   - Altro
+
+Restituisci ESCLUSIVAMENTE questo JSON (senza tag extra markdown):
+{
+  "title": "",
+  "category": ""
+}
+"""
+            
+            content_arr = [{"type": "text", "text": prompt}]
+            for b64 in base64_images[:2]: # Max prime due pagine in vision per risparmiare tokens
+                content_arr.append({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{b64}",
+                        "detail": "high"
+                    }
+                })
+            
+            # Se fitz ha fallito e abbiamo solo testo
+            if not base64_images and text:
+                content_arr[0]["text"] += f"\n\n\n=== TESTO ESTRATTO ===\n{text[:4000]}"
+                
+            headers = {"Authorization": f"Bearer {openai_key}", "Content-Type": "application/json"}
+            payload = {
+                "model": "gpt-5.1",
+                "messages": [{"role": "user", "content": content_arr}],
+                "temperature": 0.2,
+                "response_format": {"type": "json_object"}
+            }
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+                if resp.status_code == 200:
+                     ai_data = resp.json()["choices"][0]["message"]["content"]
+                     parsed = json.loads(ai_data)
+                     
+                     data["title"] = parsed.get("title", "Nuovo Documento")
+                     
+                     # Forza una categoria valida
+                     cat = parsed.get("category", "")
+                     valid_cats = ["Fattura", "Contratto", "Procedura", "Estratto Conto", "Altro"]
+                     if cat in valid_cats:
+                         data["category"] = cat
+                     else:
+                         data["category"] = "Altro" # Fallback
+                         
+                     return data
+                else:
+                    logger.warning(f"OpenAI error Wiki: {resp.status_code} {resp.text}.")
+        except Exception as e:
+            logger.warning(f"OpenAI parsing Wiki failed: {e}.")
+
+    # ---------------- FALLBACK ----------------
+    # Se fallisce OpenAI ma abbiamo letto il testo, proviamo a dedurre una parola chiave
+    t_low = text.lower()
+    if "contratto" in t_low or "accordo" in t_low or "legge" in t_low or "gdpr" in t_low:
+        data["category"] = "Contratto"
+    elif "fattura" in t_low or "invoice" in t_low:
+        data["category"] = "Fattura"
+    elif "procedura" in t_low or "manuale" in t_low:
+        data["category"] = "Procedura"
+    else:
+        data["category"] = "Altro"
         
     return data

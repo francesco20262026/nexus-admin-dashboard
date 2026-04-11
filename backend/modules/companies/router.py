@@ -270,7 +270,7 @@ async def get_company(
     int_res = (
         supabase.table("integrations")
         .select("type, is_active, last_sync_at")
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .execute()
     )
     by_type: dict = {}
@@ -301,18 +301,18 @@ async def delete_company(
     try:
         # 1. Clean up multi-level dependencies (Lines linked to entities in this company)
         # Fetch entities so we can delete their dependent inner lines if DB doesn't cascade
-        invoices = supabase.table("invoices").select("id").eq("company_id", company_id).execute()
+        invoices = supabase.table("invoices").select("id").eq("company_id", user.tenant).execute()
         if invoices.data:
             for inv in invoices.data:
                 supabase.table("invoice_lines").delete().eq("invoice_id", inv["id"]).execute()
                 supabase.table("payment_logs").delete().eq("invoice_id", inv["id"]).execute()
                 
-        contracts = supabase.table("contracts").select("id").eq("company_id", company_id).execute()
+        contracts = supabase.table("contracts").select("id").eq("company_id", user.tenant).execute()
         if contracts.data:
             for ctt in contracts.data:
                 supabase.table("contract_lines").delete().eq("contract_id", ctt["id"]).execute()
                 
-        quotes = supabase.table("quotes").select("id").eq("company_id", company_id).execute()
+        quotes = supabase.table("quotes").select("id").eq("company_id", user.tenant).execute()
         if quotes.data:
             for qut in quotes.data:
                 supabase.table("quote_lines").delete().eq("quote_id", qut["id"]).execute()
@@ -334,7 +334,7 @@ async def delete_company(
         
         for table in dependent_tables:
             try:
-                supabase.table(table).delete().eq("company_id", company_id).execute()
+                supabase.table(table).delete().eq("company_id", user.tenant).execute()
             except Exception as loop_cancel:
                 logger.warning(f"Error auto-clearing {table} for company {company_id}: {loop_cancel}")
                 
@@ -379,7 +379,7 @@ async def get_company_integrations(
     res = (
         supabase.table("integrations")
         .select("type, is_active, last_sync_at, config")
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .execute()
     )
     by_type: dict = {}
@@ -433,7 +433,7 @@ async def update_company_integration(
         query = (
             supabase.table("integrations")
             .select("id")
-            .eq("company_id", company_id)
+            .eq("company_id", user.tenant)
             .eq("type", integration_type)
             .maybe_single()
         )
@@ -482,7 +482,7 @@ async def test_windoc_integration_company(
     query = (
         supabase.table("integrations")
         .select("config")
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .eq("type", "windoc")
         .maybe_single()
     )
@@ -541,7 +541,7 @@ async def get_company_email_templates(
     res = (
         supabase.table("email_templates")
         .select("id, type, lang, subject, body_html")
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .order("type")
         .execute()
     )
@@ -593,7 +593,7 @@ async def update_company_email_template(
     query = (
         supabase.table("email_templates")
         .select("id")
-        .eq("company_id", company_id)
+        .eq("company_id", user.tenant)
         .eq("type", template_type)
         .eq("lang", lang)
         .maybe_single()
